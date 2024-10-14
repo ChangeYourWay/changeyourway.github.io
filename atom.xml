@@ -226,7 +226,7 @@
     <link href="https://changeyourway.github.io/2024/06/07/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Rome%E5%88%A9%E7%94%A8%E9%93%BE%E5%88%86%E6%9E%90/"/>
     <id>https://changeyourway.github.io/2024/06/07/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Rome%E5%88%A9%E7%94%A8%E9%93%BE%E5%88%86%E6%9E%90/</id>
     <published>2024-06-07T09:44:56.493Z</published>
-    <updated>2024-09-26T10:30:48.681Z</updated>
+    <updated>2024-10-14T06:25:01.025Z</updated>
     
     
     <summary type="html">&lt;p&gt;ROME 是一个强大的 Java 库，用于解析和生成各种格式的 RSS 和 Atom feeds 。它兼容多种版本的 RSS（包括 RSS 0.90、0.91、0.92、0.93、0.94、1.0 和 2.0 ）和 Atom（包括 0.3 和 1.0 ）。ROME 提供了一个统一的 API ，简化了处理不同 feed 格式的复杂性。&lt;/p&gt;</summary>
@@ -260,10 +260,10 @@
     <link href="https://changeyourway.github.io/2024/06/07/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Rome%E9%93%BE%E4%B9%8BHotSwappableTargetSource%E9%93%BE/"/>
     <id>https://changeyourway.github.io/2024/06/07/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Rome%E9%93%BE%E4%B9%8BHotSwappableTargetSource%E9%93%BE/</id>
     <published>2024-06-07T09:44:56.491Z</published>
-    <updated>2024-10-08T08:12:43.101Z</updated>
+    <updated>2024-10-14T06:07:34.297Z</updated>
     
     
-    <summary type="html">&lt;p&gt;HotSwappableTargetSource 是在 Spring AOP 中出现的一个类。作用是可以在代理 bean 运行过程中，动态更新实际 bean 对象。HotSwappableTargetSource 类实现了 TargetSource 接口。对外暴露 getTarget 方法，提供真正的 target 对象。再说的明白一点，HotSwappableTargetSourc 是对真正 target 对象的封装。在 Spring 的源码中，体现在 JdkDynamicAopProxy 中的 invoke 方法中。&lt;/p&gt;</summary>
+    <summary type="html">&lt;p&gt;HotSwappableTargetSource 是在 Spring AOP 中出现的一个类。作用是可以在代理 bean 运行过程中，动态更新实际 bean 对象。HotSwappableTargetSource 类实现了 TargetSource 接口。对外暴露 getTarget 方法，提供真正的 target 对象。再说的明白一点，HotSwappableTargetSource 是对真正 target 对象的封装。在 Spring 的源码中，体现在 JdkDynamicAopProxy 中的 invoke 方法中。&lt;/p&gt;</summary>
     
     
     
