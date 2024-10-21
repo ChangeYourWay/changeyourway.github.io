@@ -6,7 +6,7 @@
   <link href="https://changeyourway.github.io/atom.xml" rel="self"/>
   
   <link href="https://changeyourway.github.io/"/>
-  <updated>2024-09-26T10:57:05.832Z</updated>
+  <updated>2024-10-21T12:15:05.069Z</updated>
   <id>https://changeyourway.github.io/</id>
   
   <author>
@@ -15,6 +15,35 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>漏洞篇 - Spring 内存马</title>
+    <link href="https://changeyourway.github.io/2024/10/21/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Spring%E5%86%85%E5%AD%98%E9%A9%AC/"/>
+    <id>https://changeyourway.github.io/2024/10/21/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Spring%E5%86%85%E5%AD%98%E9%A9%AC/</id>
+    <published>2024-10-21T12:14:00.715Z</published>
+    <updated>2024-10-21T12:15:05.069Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h2 id=&quot;Spring-概念总结&quot;&gt;&lt;a href=&quot;#Spring-概念总结&quot; class=&quot;headerlink&quot; title=&quot;Spring 概念总结&quot;&gt;&lt;/a&gt;Spring 概念总结&lt;/h2&gt;&lt;p&gt;本节的前置知识是 Spring、SpringBoot、SpringMVC 。这里总结一下基本问题：&lt;/p&gt;
+&lt;h3 id=&quot;Spring-Framework&quot;&gt;&lt;a href=&quot;#Spring-Framework&quot; class=&quot;headerlink&quot; title=&quot;Spring Framework&quot;&gt;&lt;/a&gt;&lt;strong&gt;Spring Framework&lt;/strong&gt;&lt;/h3&gt;&lt;p&gt;Spring 是一个全功能的 Java 应用开发框架，提供核心容器功能、AOP、数据访问等模块。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;IoC（控制反转）容器&lt;/strong&gt;：对 Java 对象的控制权由用户转移到 Spring IOC 容器，通过依赖注入（DI）管理对象的创建和依赖关系。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;AOP（面向切面编程）&lt;/strong&gt;：通过定义通知无侵入式的对切入点方法进行功能增强。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;事务管理&lt;/strong&gt;：提供声明式和编程式事务管理，支持数据库事务和其他资源的管理。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;DAO 支持&lt;/strong&gt;：整合 JDBC、Hibernate、JPA 等数据访问框架。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Context&lt;/strong&gt;：ApplicationContext 作为核心容器，管理 Bean 的生命周期和依赖注入。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&quot;Spring-常用注解&quot;&gt;&lt;a href=&quot;#Spring-常用注解&quot; class=&quot;headerlink&quot; title</summary>
+      
+    
+    
+    
+    <category term="Java 安全" scheme="https://changeyourway.github.io/categories/Java-%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
   
   <entry>
     <title>漏洞篇 - Tomcat 内存马</title>
