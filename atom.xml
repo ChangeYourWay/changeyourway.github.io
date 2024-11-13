@@ -1,0 +1,629 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>妙尽璇机</title>
+  
+  
+  <link href="https://changeyourway.github.io/atom.xml" rel="self"/>
+  
+  <link href="https://changeyourway.github.io/"/>
+  <updated>2024-11-13T01:42:05.914Z</updated>
+  <id>https://changeyourway.github.io/</id>
+  
+  <author>
+    <name>妙尽璇机</name>
+    
+  </author>
+  
+  <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>基础篇 - Hessian 协议详解</title>
+    <link href="https://changeyourway.github.io/2024/11/13/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-Hessian%E5%8D%8F%E8%AE%AE%E8%AF%A6%E8%A7%A3/"/>
+    <id>https://changeyourway.github.io/2024/11/13/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-Hessian%E5%8D%8F%E8%AE%AE%E8%AF%A6%E8%A7%A3/</id>
+    <published>2024-11-13T01:40:36.653Z</published>
+    <updated>2024-11-13T01:42:05.914Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h2 id=&quot;Hessian-协议介绍&quot;&gt;&lt;a href=&quot;#Hessian-协议介绍&quot; class=&quot;headerlink&quot; title=&quot;Hessian 协议介绍&quot;&gt;&lt;/a&gt;Hessian 协议介绍&lt;/h2&gt;&lt;p&gt;Hessian 协议是一种高效、跨语言的二进制 RPC（Remote Procedure Call，远程过程调用）协议，由 Caucho 公司设计，最早应用于 Java 和 Java 之间的远程调用。其主要特点是使用紧凑的二进制格式传输数据，提供高性能的序列化和反序列化操作，因此适合在网络带宽较低或数据传输效率要求较高的场景中使用。&lt;/p&gt;
+&lt;h6 id=&quot;Hessian-协议的特点&quot;&gt;&lt;a href=&quot;#Hessian-协议的特点&quot; class=&quot;headerlink&quot; title=&quot;Hessian 协议的特点&quot;&gt;&lt;/a&gt;Hessian 协议的特点&lt;/h6&gt;&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;跨语言支持&lt;/strong&gt;：Hessian 协议设计为跨平台的，支持多种语言，如 Java、Python、C#、PHP 等。不同语言的系统可以通过 Hessian 协议实现远程调用，达到语言无关的通信目的。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;高效的二进制序列化&lt;/strong&gt;：与 XML 或 JSON 相比，Hessian 采用二进制格式，不仅能减少数据体积，还能降低解析的开销，从而提升性能。Hessian 使用较少的字节来表示复杂的数据结构，尤其适合需要频繁远程调用的分布式系统。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;轻量化&lt;/strong&gt;：Hessian 协议比传统的 SOAP 和 XML-RPC 更轻量，不依赖任何外部配置文件，序列化和反序列化开销低，适合在资源有限的环境中使用。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;良好的兼容性和扩展性&lt;/strong&gt;：Hess</summary>
+      
+    
+    
+    
+    <category term="Java 安全" scheme="https://changeyourway.github.io/categories/Java-%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>漏洞篇 - JavaAgent 内存马</title>
+    <link href="https://changeyourway.github.io/2024/10/31/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-JavaAgent%E5%86%85%E5%AD%98%E9%A9%AC/"/>
+    <id>https://changeyourway.github.io/2024/10/31/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-JavaAgent%E5%86%85%E5%AD%98%E9%A9%AC/</id>
+    <published>2024-10-31T08:26:02.055Z</published>
+    <updated>2024-10-31T08:27:31.695Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;本文的前置知识：&lt;a href=&quot;https://changeyourway.github.io/2024/10/23/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-JavaAgent%E8%AF%A6%E8%A7%A3/&quot;&gt;基础篇 - Java Agent 详解&lt;/a&gt; 。&lt;/p&gt;
+&lt;p&gt;Java Agent 允许开发者在 JVM 运行时通过修改类的字节码，那么它其实就相当于 JVM 层面的一个拦截器或者说增强代理（类似于 AOP），既然如此，我们就可以在一些类中插入我们想要的代码逻辑。&lt;/p&gt;
+&lt;h2 id=&quot;实现思路&quot;&gt;&lt;a href=&quot;#实现思路&quot; class=&quot;headerlink&quot; title=&quot;实现思路&quot;&gt;&lt;/a&gt;实现思路&lt;/h2&gt;&lt;h3 id=&quot;注入-ApplicationFilterChain&quot;&gt;&lt;a href=&quot;#注入-ApplicationFilterChain&quot; class=&quot;headerlink&quot; title=&quot;注入 ApplicationFilterChain&quot;&gt;&lt;/a&gt;注入 ApplicationFilterChain&lt;/h3&gt;&lt;p&gt;冰蝎作者 rebeyond 师傅的内存马项目（&lt;a href=&quot;https://github.com/rebeyond/memShell%EF%BC%89%E9%80%89%E5%8F%96&quot;&gt;https://github.com/rebeyond/memShell）选取&lt;/a&gt; ApplicationFilterChain 的 internalDoFilter 方法作为 hook 点，在 Tomcat 的运行过程中，ApplicationFilterChain 的 internalDoFilter 方法会被反复调用以执行过滤器的 DoFilter</summary>
+      
+    
+    
+    
+    <category term="Java 安全" scheme="https://changeyourway.github.io/categories/Java-%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>基础篇 - Java Agent 详解</title>
+    <link href="https://changeyourway.github.io/2024/10/23/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-JavaAgent%E8%AF%A6%E8%A7%A3/"/>
+    <id>https://changeyourway.github.io/2024/10/23/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-JavaAgent%E8%AF%A6%E8%A7%A3/</id>
+    <published>2024-10-23T10:14:22.171Z</published>
+    <updated>2024-10-30T07:23:04.510Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h2 id=&quot;Java-Agent-介绍&quot;&gt;&lt;a href=&quot;#Java-Agent-介绍&quot; class=&quot;headerlink&quot; title=&quot;Java Agent 介绍&quot;&gt;&lt;/a&gt;Java Agent 介绍&lt;/h2&gt;&lt;p&gt;Java Agent 是一种允许开发者在 JVM 运行时通过修改类的字节码来动态增强 Java 应用程序的工具。它基于 &lt;code&gt;Instrumentation&lt;/code&gt; 接口，可以使用 &lt;code&gt;ClassFileTransformer&lt;/code&gt; 来拦截和修改字节码。在 Java Agent 中，&lt;code&gt;Instrumentation.addTransformer()&lt;/code&gt; 可以用来添加一个字节码转换器，它将在类加载时对字节码进行操作。&lt;/p&gt;
+&lt;p&gt;我们平时接触到的很多地方都用到了这个 Java Agent ：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;各个 Java IDE 的调试功能，例如 eclipse、IntelliJ IDEA；&lt;/li&gt;
+&lt;li&gt;热部署功能，例如 JRebel、XRebel、 spring-loaded；&lt;/li&gt;
+&lt;li&gt;各种线上诊断工具，例如 Btrace、Greys，还有阿里的 Arthas；&lt;/li&gt;
+&lt;li&gt;各种性能分析工具，例如 Visual VM、JConsole 等；&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Java Agent 最终以 jar 包的形式存在，我们也只能以调用 jar 包的方式去调用它。&lt;/p&gt;
+&lt;h2 id=&quot;Java-Agent-快速入门&quot;&gt;&lt;a href=&quot;#Java-Agent-快速入门&quot; class=&quot;headerlink&quot; title=&quot;Java Agent 快速入门&quot;&gt;&lt;/a&gt;Java Agent 快速入门&lt;/h2&gt;&lt;p&gt;接下来就来实现一个简单的 Java Agent，基于 J</summary>
+      
+    
+    
+    
+    <category term="Java 安全" scheme="https://changeyourway.github.io/categories/Java-%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>漏洞篇 - Spring 内存马</title>
+    <link href="https://changeyourway.github.io/2024/10/21/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Spring%E5%86%85%E5%AD%98%E9%A9%AC/"/>
+    <id>https://changeyourway.github.io/2024/10/21/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Spring%E5%86%85%E5%AD%98%E9%A9%AC/</id>
+    <published>2024-10-21T12:14:00.715Z</published>
+    <updated>2024-10-21T12:15:05.069Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h2 id=&quot;Spring-概念总结&quot;&gt;&lt;a href=&quot;#Spring-概念总结&quot; class=&quot;headerlink&quot; title=&quot;Spring 概念总结&quot;&gt;&lt;/a&gt;Spring 概念总结&lt;/h2&gt;&lt;p&gt;本节的前置知识是 Spring、SpringBoot、SpringMVC 。这里总结一下基本问题：&lt;/p&gt;
+&lt;h3 id=&quot;Spring-Framework&quot;&gt;&lt;a href=&quot;#Spring-Framework&quot; class=&quot;headerlink&quot; title=&quot;Spring Framework&quot;&gt;&lt;/a&gt;&lt;strong&gt;Spring Framework&lt;/strong&gt;&lt;/h3&gt;&lt;p&gt;Spring 是一个全功能的 Java 应用开发框架，提供核心容器功能、AOP、数据访问等模块。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;IoC（控制反转）容器&lt;/strong&gt;：对 Java 对象的控制权由用户转移到 Spring IOC 容器，通过依赖注入（DI）管理对象的创建和依赖关系。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;AOP（面向切面编程）&lt;/strong&gt;：通过定义通知无侵入式的对切入点方法进行功能增强。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;事务管理&lt;/strong&gt;：提供声明式和编程式事务管理，支持数据库事务和其他资源的管理。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;DAO 支持&lt;/strong&gt;：整合 JDBC、Hibernate、JPA 等数据访问框架。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Context&lt;/strong&gt;：ApplicationContext 作为核心容器，管理 Bean 的生命周期和依赖注入。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&quot;Spring-常用注解&quot;&gt;&lt;a href=&quot;#Spring-常用注解&quot; class=&quot;headerlink&quot; title</summary>
+      
+    
+    
+    
+    <category term="Java 安全" scheme="https://changeyourway.github.io/categories/Java-%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>漏洞篇 - Tomcat 内存马</title>
+    <link href="https://changeyourway.github.io/2024/09/26/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Tomcat%E5%86%85%E5%AD%98%E9%A9%AC/"/>
+    <id>https://changeyourway.github.io/2024/09/26/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Tomcat%E5%86%85%E5%AD%98%E9%A9%AC/</id>
+    <published>2024-09-26T07:31:11.138Z</published>
+    <updated>2024-09-26T10:57:05.832Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h2 id=&quot;Servlet-动态注册机制&quot;&gt;&lt;a href=&quot;#Servlet-动态注册机制&quot; class=&quot;headerlink&quot; title=&quot;Servlet 动态注册机制&quot;&gt;&lt;/a&gt;Servlet 动态注册机制&lt;/h2&gt;&lt;p&gt;Servlet API 提供了动态注册机制，允许在运行时动态注册 Servlets、Filters 和 Listeners，而不需要通过 &lt;code&gt;web.xml&lt;/code&gt; 文件或者注解进行静态配置。这种机制从 Servlet 3.0 开始引入，提供了更灵活的方式来配置 Web 应用组件，特别是对于基于注解和自动配置的现代 Web 应用非常有用。&lt;/p&gt;
+&lt;p&gt;在 ServletContext 类中提供了一系列 addServlet、addFilter、addListener 方法来提供动态注册功能。&lt;/p&gt;
+&lt;h2 id=&quot;内存马初探&quot;&gt;&lt;a href=&quot;#内存马初探&quot; class=&quot;headerlink&quot; title=&quot;内存马初探&quot;&gt;&lt;/a&gt;内存马初探&lt;/h2&gt;&lt;p&gt;学习内存马需要先掌握 JavaWeb ，尤其是三大组件（Servlet、Filter、Listener）和 jsp 的知识。这部分因为我已经学过了，我就不再写博客来说明了。&lt;/p&gt;
+&lt;p&gt;此外建议看完前一篇文章 Tomcat 架构再来哦~&lt;/p&gt;
+&lt;p&gt;那么先来展示一个简单的内存马：&lt;/p&gt;
+&lt;figure class=&quot;highlight plaintext&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;</summary>
+      
+    
+    
+    
+    <category term="Java 安全" scheme="https://changeyourway.github.io/categories/Java-%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>基础篇 - Tomcat 架构</title>
+    <link href="https://changeyourway.github.io/2024/09/26/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-Tomcat%E6%9E%B6%E6%9E%84/"/>
+    <id>https://changeyourway.github.io/2024/09/26/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-Tomcat%E6%9E%B6%E6%9E%84/</id>
+    <published>2024-09-26T07:28:22.567Z</published>
+    <updated>2024-09-26T10:20:52.315Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h2 id=&quot;Tomcat-介绍&quot;&gt;&lt;a href=&quot;#Tomcat-介绍&quot; class=&quot;headerlink&quot; title=&quot;Tomcat 介绍&quot;&gt;&lt;/a&gt;Tomcat 介绍&lt;/h2&gt;&lt;p&gt;Tomcat 是 Apache 软件基金会开发的一个开源 Java Servlet 容器，用于运行 Java Web 应用程序。它实现了多个 Java EE 规范，如 Servlet、JSP（Java Server Pages）和 WebSocket 等，主要用于处理动态网页请求。作为一个轻量级的应用服务器，Tomcat 常用于开发和测试环境中，同时也适用于生产环境中的中小型应用。&lt;/p&gt;
+&lt;h2 id=&quot;Tomcat-架构&quot;&gt;&lt;a href=&quot;#Tomcat-架构&quot; class=&quot;headerlink&quot; title=&quot;Tomcat 架构&quot;&gt;&lt;/a&gt;Tomcat 架构&lt;/h2&gt;&lt;p&gt;在 Tomcat Server 中，核心架构主要由三个组件组成：&lt;strong&gt;Service&lt;/strong&gt;、&lt;strong&gt;Connector&lt;/strong&gt; 和 &lt;strong&gt;Container&lt;/strong&gt;。它们共同构成了 Tomcat 的请求处理和应用管理机制。&lt;/p&gt;
+&lt;img src=&quot;/images/Tomcat-2.png&quot;&gt;
+
+&lt;p&gt;以下是对这三个组件的介绍：&lt;/p&gt;
+&lt;h3 id=&quot;Service-服务&quot;&gt;&lt;a href=&quot;#Service-服务&quot; class=&quot;headerlink&quot; title=&quot;Service (服务)&quot;&gt;&lt;/a&gt;Service (服务)&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;功能&lt;/strong&gt;：&lt;code&gt;Service&lt;/code&gt; 是 Tomcat 中用于组织和管理多个 &lt;code&gt;Connector&lt;/code&gt; 和一个 &lt;code&gt;</summary>
+      
+    
+    
+    
+    <category term="Java 安全" scheme="https://changeyourway.github.io/categories/Java-%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>漏洞篇 - Fastjson 反序列化</title>
+    <link href="https://changeyourway.github.io/2024/09/18/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Fastjson%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"/>
+    <id>https://changeyourway.github.io/2024/09/18/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Fastjson%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/</id>
+    <published>2024-09-18T02:22:44.238Z</published>
+    <updated>2024-09-26T10:40:12.395Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h2 id=&quot;Fastjson-介绍&quot;&gt;&lt;a href=&quot;#Fastjson-介绍&quot; class=&quot;headerlink&quot; title=&quot;Fastjson 介绍&quot;&gt;&lt;/a&gt;Fastjson 介绍&lt;/h2&gt;&lt;p&gt;Fastjson 是阿里巴巴开发的一个高性能 JSON 解析库，广泛应用于 Java 项目中。它的主要功能是对 JSON 数据进行序列化和反序列化，即将 Java 对象转换为 JSON 字符串，或者将 JSON 字符串解析为 Java 对象。Fastjson 的优势在于其速度和灵活性，特别是在处理大规模数据时性能表现良好。&lt;/p&gt;
+&lt;h3 id=&quot;快速入门&quot;&gt;&lt;a href=&quot;#快速入门&quot; class=&quot;headerlink&quot; title=&quot;快速入门&quot;&gt;&lt;/a&gt;快速入门&lt;/h3&gt;&lt;p&gt;导入如下依赖：&lt;/p&gt;
+&lt;figure class=&quot;highlight plaintext&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;6&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;7&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;&amp;lt;dependencies&amp;gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;     &amp;lt;dependency&amp;gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;</summary>
+      
+    
+    
+    
+    <category term="Java 安全" scheme="https://changeyourway.github.io/categories/Java-%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>漏洞篇 - 关于 JEP 290</title>
+    <link href="https://changeyourway.github.io/2024/09/08/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-%E5%85%B3%E4%BA%8EJEP290/"/>
+    <id>https://changeyourway.github.io/2024/09/08/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-%E5%85%B3%E4%BA%8EJEP290/</id>
+    <published>2024-09-08T09:22:02.807Z</published>
+    <updated>2024-09-26T10:23:58.077Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h2 id=&quot;JEP-290&quot;&gt;&lt;a href=&quot;#JEP-290&quot; class=&quot;headerlink&quot; title=&quot;JEP 290&quot;&gt;&lt;/a&gt;JEP 290&lt;/h2&gt;&lt;p&gt;JEP290 是 Java 底层为了缓解反序列化攻击提出的一种解决方案。这是一个针对 JAVA 9 提出的安全特性，但同时对 JDK 6,7,8 都进行了支持，在 JDK 6u141、JDK 7u131、JDK 8u121 版本进行了更新。&lt;/p&gt;
+&lt;p&gt;JEP 290 主要提供了以下几个机制：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;用黑白名单的方式限制可反序列化的类；&lt;/li&gt;
+&lt;li&gt;限制反序列化的调用深度和复杂度；&lt;/li&gt;
+&lt;li&gt;为 RMI export 的对象设置了验证机制；&lt;/li&gt;
+&lt;li&gt;提供一个全局过滤器，可以在 properties 或配置文件中进行配置；&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;现在使用 JDK 8u392 ，再次运行 ysoserial 中的 payloads&amp;#x2F;JRMPListener 和 exploit&amp;#x2F;JRMPClient ，会爆出如下错误：&lt;/p&gt;
+&lt;img src=&quot;/images/image-20240908125709750.png&quot;&gt;
+
+&lt;p&gt;这在我之前的分析文章中也提到过，是由于 JEP 290 机制阻止了我反序列化 HashSet 类。&lt;/p&gt;
+&lt;p&gt;从报错信息中，可以发现一个 ObjectInputFilter 接口，其中定义了三种状态，分别是未定义、接受和拒绝：&lt;/p&gt;
+&lt;img src=&quot;/images/image-20240908125941036.png&quot;&gt;
+
+&lt;p&gt;另外从报错信息中发现 ObjectInputStream 有一个 filterCheck 方法，这个方法与反序列化的检查相关：&lt;/p&gt;
+&lt;figure class=&quot;h</summary>
+      
+    
+    
+    
+    <category term="Java 安全" scheme="https://changeyourway.github.io/categories/Java-%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>漏洞篇 - JNDI 注入详解</title>
+    <link href="https://changeyourway.github.io/2024/09/06/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-JNDI%E6%B3%A8%E5%85%A5%E8%AF%A6%E8%A7%A3/"/>
+    <id>https://changeyourway.github.io/2024/09/06/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-JNDI%E6%B3%A8%E5%85%A5%E8%AF%A6%E8%A7%A3/</id>
+    <published>2024-09-06T07:52:13.151Z</published>
+    <updated>2024-09-26T10:26:20.526Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h2 id=&quot;JNDI-基础&quot;&gt;&lt;a href=&quot;#JNDI-基础&quot; class=&quot;headerlink&quot; title=&quot;JNDI 基础&quot;&gt;&lt;/a&gt;JNDI 基础&lt;/h2&gt;&lt;p&gt;JNDI 全称为 &lt;strong&gt;Java Naming and Directory Interface&lt;/strong&gt;，即 Java 名称与目录接口。JNDI 提供了一种统一的接口来访问不同的命名和目录服务。它被广泛应用于企业级 Java 应用程序中，用于查找和访问各种资源，如数据库连接、EJB（Enterprise JavaBeans）组件、消息队列、环境变量等。&lt;/p&gt;
+&lt;p&gt;那么提到命名和目录服务，就有一些名词需要了解一下。&lt;/p&gt;
+&lt;h3 id=&quot;命名服务（Naming-Service）&quot;&gt;&lt;a href=&quot;#命名服务（Naming-Service）&quot; class=&quot;headerlink&quot; title=&quot;命名服务（Naming Service）&quot;&gt;&lt;/a&gt;命名服务（Naming Service）&lt;/h3&gt;&lt;p&gt;所谓命名服务，就是通过名称查找实际对象的服务。比如：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;DNS：通过域名查找实际的 IP 地址；&lt;/li&gt;
+&lt;li&gt;文件系统：通过文件名定位到具体的文件；&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;在命名服务中有一些重要的概念：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Bindings&lt;/strong&gt;：表示一个名称和对应对象的绑定关系。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Context&lt;/strong&gt;：上下文，它是一个容器，代表了一个命名空间或环境，用户可以在其中查找、绑定和管理名字与对象之间的关联。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;References&lt;/strong&gt;：引用，它用于表示某个名字所对应的对象的“指针”或“引用路径”。通过引用，命名服务能够提供对</summary>
+      
+    
+    
+    
+    <category term="Java 安全" scheme="https://changeyourway.github.io/categories/Java-%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>漏洞篇 - ysoserial 的 JRMP 模块分析</title>
+    <link href="https://changeyourway.github.io/2024/08/28/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-ysoserial%E7%9A%84JRMP%E6%A8%A1%E5%9D%97%E5%88%86%E6%9E%90/"/>
+    <id>https://changeyourway.github.io/2024/08/28/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-ysoserial%E7%9A%84JRMP%E6%A8%A1%E5%9D%97%E5%88%86%E6%9E%90/</id>
+    <published>2024-08-28T03:30:25.761Z</published>
+    <updated>2024-08-28T03:31:53.041Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h2 id=&quot;JRMP-协议介绍&quot;&gt;&lt;a href=&quot;#JRMP-协议介绍&quot; class=&quot;headerlink&quot; title=&quot;JRMP 协议介绍&quot;&gt;&lt;/a&gt;JRMP 协议介绍&lt;/h2&gt;&lt;p&gt;JRMP（Java Remote Method Protocol）是为 Java RMI 设计的专有协议，负责处理 RMI 调用的实际网络传输。它是基于 TCP 的，确保了通信的可靠性和有序性。也就是说：RMI 使用 JRMP 协议来处理网络通信。&lt;/p&gt;
+&lt;p&gt;当然，RMI 并不止支持 JRMP 这一种协议，还可以使用比如 IIOP 协议来进行网络通信。&lt;/p&gt;
+&lt;h2 id=&quot;ysoserial-中的-JRMP-模块&quot;&gt;&lt;a href=&quot;#ysoserial-中的-JRMP-模块&quot; class=&quot;headerlink&quot; title=&quot;ysoserial 中的 JRMP 模块&quot;&gt;&lt;/a&gt;ysoserial 中的 JRMP 模块&lt;/h2&gt;&lt;p&gt;通常有两种利用方式。&lt;/p&gt;
+&lt;p&gt;第一种：payloads&amp;#x2F;JRMPListener + exploit&amp;#x2F;JRMPClient &lt;/p&gt;
+&lt;p&gt;第二种：exploit&amp;#x2F;JRMPListener + payloads&amp;#x2F;JRMPClient &lt;/p&gt;
+&lt;p&gt;接下来我们会逐个分析这四个类。&lt;/p&gt;
+&lt;h3 id=&quot;payloads-JRMPListener-exploit-JRMPClient&quot;&gt;&lt;a href=&quot;#payloads-JRMPListener-exploit-JRMPClient&quot; class=&quot;headerlink&quot; title=&quot;payloads&amp;#x2F;JRMPListener + exploit&amp;#x2F;JRMPClient&quot;&gt;&lt;/a&gt;payloads&amp;#x2F;JRMPList</summary>
+      
+    
+    
+    
+    <category term="Java 安全" scheme="https://changeyourway.github.io/categories/Java-%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>漏洞篇 - RMI 相关的攻击</title>
+    <link href="https://changeyourway.github.io/2024/08/28/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-RMI%E7%9B%B8%E5%85%B3%E7%9A%84%E6%94%BB%E5%87%BB/"/>
+    <id>https://changeyourway.github.io/2024/08/28/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-RMI%E7%9B%B8%E5%85%B3%E7%9A%84%E6%94%BB%E5%87%BB/</id>
+    <published>2024-08-28T03:26:44.848Z</published>
+    <updated>2024-08-28T03:30:01.568Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h2 id=&quot;攻击-RMI&quot;&gt;&lt;a href=&quot;#攻击-RMI&quot; class=&quot;headerlink&quot; title=&quot;攻击 RMI&quot;&gt;&lt;/a&gt;攻击 RMI&lt;/h2&gt;&lt;p&gt;前置知识：&lt;a href=&quot;https://changeyourway.github.io/2024/07/08/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-RMI%E8%BF%9C%E7%A8%8B%E6%96%B9%E6%B3%95%E8%B0%83%E7%94%A8%E5%8D%8F%E8%AE%AE/#%E6%9C%8D%E5%8A%A1%E7%AB%AF%E8%8E%B7%E5%8F%96-Registry-%E4%BB%A3%E7%90%86%E5%AF%B9%E8%B1%A1&quot;&gt;基础篇 - RMI 协议详解&lt;/a&gt; &lt;/p&gt;
+&lt;p&gt;我们可以将参与 RMI 远程调用的角色分为三个：Server 端、Registry 端、Client 端（一般来说 Server 端和 Registry 端在一起），它们三者之间都会进行通信，并且全部的通信流程均通过序列化与反序列化实现。基于此，我们可以实现反序列化攻击。&lt;/p&gt;
+&lt;h3 id=&quot;攻击-Server-端&quot;&gt;&lt;a href=&quot;#攻击-Server-端&quot; class=&quot;headerlink&quot; title=&quot;攻击 Server 端&quot;&gt;&lt;/a&gt;攻击 Server 端&lt;/h3&gt;&lt;h4 id=&quot;参数反序列化&quot;&gt;&lt;a href=&quot;#参数反序列化&quot; class=&quot;headerlink&quot; title=&quot;参数反序列化&quot;&gt;&lt;/a&gt;参数反序列化&lt;/h4&gt;&lt;p&gt;如果服务端提供的服务对象参数是 Object 类型，那么意味着客户端远程调用时可以传递任意类型的参数，这个参数将会被序列化发送到服务端，然后在服务端反序</summary>
+      
+    
+    
+    
+    <category term="Java 安全" scheme="https://changeyourway.github.io/categories/Java-%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>基础篇 - RMI 协议详解</title>
+    <link href="https://changeyourway.github.io/2024/07/08/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-RMI%E8%BF%9C%E7%A8%8B%E6%96%B9%E6%B3%95%E8%B0%83%E7%94%A8%E5%8D%8F%E8%AE%AE/"/>
+    <id>https://changeyourway.github.io/2024/07/08/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-RMI%E8%BF%9C%E7%A8%8B%E6%96%B9%E6%B3%95%E8%B0%83%E7%94%A8%E5%8D%8F%E8%AE%AE/</id>
+    <published>2024-07-08T08:09:08.067Z</published>
+    <updated>2024-09-26T10:28:24.362Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;RMI 入门案例及源码分析&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="Java 安全" scheme="https://changeyourway.github.io/categories/Java-%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>漏洞篇 - Java 反序列化之 Rome 链</title>
+    <link href="https://changeyourway.github.io/2024/06/07/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Rome%E5%88%A9%E7%94%A8%E9%93%BE%E5%88%86%E6%9E%90/"/>
+    <id>https://changeyourway.github.io/2024/06/07/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Rome%E5%88%A9%E7%94%A8%E9%93%BE%E5%88%86%E6%9E%90/</id>
+    <published>2024-06-07T09:44:56.493Z</published>
+    <updated>2024-10-14T06:25:01.025Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;ROME 是一个强大的 Java 库，用于解析和生成各种格式的 RSS 和 Atom feeds 。它兼容多种版本的 RSS（包括 RSS 0.90、0.91、0.92、0.93、0.94、1.0 和 2.0 ）和 Atom（包括 0.3 和 1.0 ）。ROME 提供了一个统一的 API ，简化了处理不同 feed 格式的复杂性。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="Java 安全" scheme="https://changeyourway.github.io/categories/Java-%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>基础篇 - Javassist 使用指南</title>
+    <link href="https://changeyourway.github.io/2024/06/07/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-javassist%E7%94%A8%E6%B3%95%E6%8C%87%E5%8D%97/"/>
+    <id>https://changeyourway.github.io/2024/06/07/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-javassist%E7%94%A8%E6%B3%95%E6%8C%87%E5%8D%97/</id>
+    <published>2024-06-07T09:44:56.492Z</published>
+    <updated>2024-09-26T10:32:19.507Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;Javassist 是一个用于操作 Java 字节码的类库。Java 字节码存储在类文件的二进制文件中。每个类文件都包含一个 Java 类或接口。&lt;br&gt;类 Javassist.CtClass 是对类文件的抽象表示。（编译时类 CtClass ）对象是处理类文件的句柄（句柄 Handle 是一个是用来标识对象或者项目的标识符）。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="Java 安全" scheme="https://changeyourway.github.io/categories/Java-%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>漏洞篇 - Rome 链之 HotSwappableTargetSource 利用链</title>
+    <link href="https://changeyourway.github.io/2024/06/07/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Rome%E9%93%BE%E4%B9%8BHotSwappableTargetSource%E9%93%BE/"/>
+    <id>https://changeyourway.github.io/2024/06/07/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Rome%E9%93%BE%E4%B9%8BHotSwappableTargetSource%E9%93%BE/</id>
+    <published>2024-06-07T09:44:56.491Z</published>
+    <updated>2024-10-14T06:07:34.297Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;HotSwappableTargetSource 是在 Spring AOP 中出现的一个类。作用是可以在代理 bean 运行过程中，动态更新实际 bean 对象。HotSwappableTargetSource 类实现了 TargetSource 接口。对外暴露 getTarget 方法，提供真正的 target 对象。再说的明白一点，HotSwappableTargetSource 是对真正 target 对象的封装。在 Spring 的源码中，体现在 JdkDynamicAopProxy 中的 invoke 方法中。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="Java 安全" scheme="https://changeyourway.github.io/categories/Java-%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>漏洞篇 - Java 反序列化之 CC4+CC2+CC5+CC7 链</title>
+    <link href="https://changeyourway.github.io/2024/06/05/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-CC4+CC2+CC5+CC7%E9%93%BE%E5%88%86%E6%9E%90/"/>
+    <id>https://changeyourway.github.io/2024/06/05/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-CC4+CC2+CC5+CC7%E9%93%BE%E5%88%86%E6%9E%90/</id>
+    <published>2024-06-05T06:03:01.842Z</published>
+    <updated>2024-09-26T10:35:07.863Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h2 id=&quot;CC4-链&quot;&gt;&lt;a href=&quot;#CC4-链&quot; class=&quot;headerlink&quot; title=&quot;CC4 链&quot;&gt;&lt;/a&gt;CC4 链&lt;/h2&gt;&lt;p&gt;在 Commons Collections 版本为 3.2.1 的背景下，可以使用 TransformedMap 或者 LazyMap 来执行 transform 方法，但当 Commons Collections 的版本提升到 4.0 时，就又多出了一种办法：利用 TransformingComparator 来执行 transform 方法。&lt;/p&gt;
+&lt;p&gt;先前我们将 AnnotationInvocationHandler 和 HashMap 作为入口类，利用它们的 readObject 方法来反序列化，但是现在我们还可以利用 PriorityQueue 的 readObject 来反序列化。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;实验环境&lt;/strong&gt; &lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;java &amp;#x3D; 8u65&lt;/li&gt;
+&lt;li&gt;CommonsCollections &amp;#x3D; 4.0&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;pom.xml 中导入如下依赖：&lt;/p&gt;
+&lt;figure class=&quot;highlight plaintext&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;&amp;lt</summary>
+      
+    
+    
+    
+    <category term="Java 安全" scheme="https://changeyourway.github.io/categories/Java-%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>漏洞篇 - Java 反序列化之 CC3 链</title>
+    <link href="https://changeyourway.github.io/2024/05/27/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-CC3%E9%93%BE%E5%88%86%E6%9E%90/"/>
+    <id>https://changeyourway.github.io/2024/05/27/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-CC3%E9%93%BE%E5%88%86%E6%9E%90/</id>
+    <published>2024-05-27T02:55:47.408Z</published>
+    <updated>2024-10-06T08:22:40.691Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;CC3 链的核心在于利用 TemplatesImpl 加载恶意类时执行静态代码块。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="Java 安全" scheme="https://changeyourway.github.io/categories/Java-%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>内网渗透 03 - 隧道通信</title>
+    <link href="https://changeyourway.github.io/2024/05/16/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F03-%E9%9A%A7%E9%81%93%E9%80%9A%E4%BF%A1/"/>
+    <id>https://changeyourway.github.io/2024/05/16/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F03-%E9%9A%A7%E9%81%93%E9%80%9A%E4%BF%A1/</id>
+    <published>2024-05-16T07:07:30.219Z</published>
+    <updated>2024-10-06T08:14:34.737Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;网络隧道技术指的是利用一种网络协议来传输另一种网络协议，它主要利用网络隧道协议来实现这种功能。网络隧道技术涉及了三种网络协议，即网络隧道协议、隧道协议下面的承载协议和隧道协议所承载的被承载协议。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="内网渗透" scheme="https://changeyourway.github.io/categories/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>内网渗透 02 - 端口扫描</title>
+    <link href="https://changeyourway.github.io/2024/05/16/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F02-%E5%86%85%E7%BD%91%E6%89%AB%E6%8F%8F/"/>
+    <id>https://changeyourway.github.io/2024/05/16/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F02-%E5%86%85%E7%BD%91%E6%89%AB%E6%8F%8F/</id>
+    <published>2024-05-16T03:27:02.888Z</published>
+    <updated>2024-10-06T08:06:49.105Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;收集内网 IP ，进行端口扫描。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="内网渗透" scheme="https://changeyourway.github.io/categories/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>内网渗透 01 - 端口转发</title>
+    <link href="https://changeyourway.github.io/2024/05/16/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F01-%E7%AB%AF%E5%8F%A3%E8%BD%AC%E5%8F%91/"/>
+    <id>https://changeyourway.github.io/2024/05/16/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F01-%E7%AB%AF%E5%8F%A3%E8%BD%AC%E5%8F%91/</id>
+    <published>2024-05-16T02:55:28.868Z</published>
+    <updated>2024-10-06T07:54:27.066Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;在进行渗透测试过程中会遇到内网中的其他机器是不允许外网机器访问的，因此需要通过端口转发(即隧道)或将得到的外网服务器设置为代理，使得攻击机可以直接访问并操作内网中的其他机器，这一过程就叫做内网转发。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="内网渗透" scheme="https://changeyourway.github.io/categories/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>漏洞篇 - Java 反序列化之 CC6 链</title>
+    <link href="https://changeyourway.github.io/2024/05/13/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-CC6%E9%93%BE%E5%88%86%E6%9E%90/"/>
+    <id>https://changeyourway.github.io/2024/05/13/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-CC6%E9%93%BE%E5%88%86%E6%9E%90/</id>
+    <published>2024-05-13T09:15:09.329Z</published>
+    <updated>2024-10-06T07:28:40.809Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;前面在分析 CC1链 的 ysoserial 版时，我们知道 LazyMap 的 get 方法会调用成员属性 factory 的 transform 方法，而我们上一次是通过 AnnotationInvocationHandler 的 invoke 方法来调用这个 get 方法的。那么还有哪里能调用 LazyMap 的 get 方法呢？我们的 CC6 链给出了另一条路径：TiedMapEntry 类的 getValue 方法会调用成员属性的 get 方法。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="Java 安全" scheme="https://changeyourway.github.io/categories/Java-%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>漏洞篇 - CC1 链之 ysoserial 版</title>
+    <link href="https://changeyourway.github.io/2024/05/12/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-CC1%E9%93%BEysoserial%E7%89%88/"/>
+    <id>https://changeyourway.github.io/2024/05/12/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-CC1%E9%93%BEysoserial%E7%89%88/</id>
+    <published>2024-05-12T10:20:51.663Z</published>
+    <updated>2024-10-06T07:15:20.717Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;在前面学习 CC1 链时，我们使用 TransformedMap 作为利用链，但其实除了 TransformedMap 之外，还有 DefaultedMap 和 LazyMap  也可以作为利用链，它们都在 org.apache.commons.collections.map 包下。这一节我们来分析 ysoserial 工具中利用的 CC1 链，它是将 LazyMap 作为利用链的。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="Java 安全" scheme="https://changeyourway.github.io/categories/Java-%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>配置篇 - IDEA 查看带 sun 包的 JDK 源码</title>
+    <link href="https://changeyourway.github.io/2024/05/12/Java%20%E5%AE%89%E5%85%A8/%E9%85%8D%E7%BD%AE%E7%AF%87-idea%E6%9F%A5%E7%9C%8BJDK%E5%92%8C%E4%BE%9D%E8%B5%96%E7%9A%84%E6%BA%90%E7%A0%81/"/>
+    <id>https://changeyourway.github.io/2024/05/12/Java%20%E5%AE%89%E5%85%A8/%E9%85%8D%E7%BD%AE%E7%AF%87-idea%E6%9F%A5%E7%9C%8BJDK%E5%92%8C%E4%BE%9D%E8%B5%96%E7%9A%84%E6%BA%90%E7%A0%81/</id>
+    <published>2024-05-12T10:16:39.906Z</published>
+    <updated>2024-05-12T10:20:35.477Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;前言：前面在分析初始版本 CC1 链的时候，查看 sun 包里的 AnnotationInvocationHandler 类的源码，发现变量名全都是 var 开头，非常不便于阅读，接下来将介绍如何使用 IDEA 查看带 sun 包的 JDK 源码，以及导入的依赖源码，这里的源码指的是 .java 文件。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="Java 安全" scheme="https://changeyourway.github.io/categories/Java-%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>基础篇 - Java 动态代理</title>
+    <link href="https://changeyourway.github.io/2024/05/11/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-Java%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/"/>
+    <id>https://changeyourway.github.io/2024/05/11/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-Java%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/</id>
+    <published>2024-05-11T11:41:10.919Z</published>
+    <updated>2024-10-06T07:04:40.522Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;在 Java 动态代理中，代理对象能够通过调用 invoke 方法来增强被代理对象的原始方法。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="Java 安全" scheme="https://changeyourway.github.io/categories/Java-%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>配置篇 - Maven 手动下载与导入依赖</title>
+    <link href="https://changeyourway.github.io/2024/05/10/Java%20%E5%AE%89%E5%85%A8/%E9%85%8D%E7%BD%AE%E7%AF%87-Maven%E6%89%8B%E5%8A%A8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E5%AF%BC%E5%85%A5%E4%BE%9D%E8%B5%96/"/>
+    <id>https://changeyourway.github.io/2024/05/10/Java%20%E5%AE%89%E5%85%A8/%E9%85%8D%E7%BD%AE%E7%AF%87-Maven%E6%89%8B%E5%8A%A8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E5%AF%BC%E5%85%A5%E4%BE%9D%E8%B5%96/</id>
+    <published>2024-05-10T11:53:40.081Z</published>
+    <updated>2024-10-06T07:03:35.211Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;遇到 maven 无法自动导入的依赖怎么办，本文介绍了如何手动下载与导入 maven 依赖&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="Java 安全" scheme="https://changeyourway.github.io/categories/Java-%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>漏洞篇 - URLDNS 利用链分析</title>
+    <link href="https://changeyourway.github.io/2024/05/10/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-URLDNS%E5%88%A9%E7%94%A8%E9%93%BE%E5%88%86%E6%9E%90/"/>
+    <id>https://changeyourway.github.io/2024/05/10/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-URLDNS%E5%88%A9%E7%94%A8%E9%93%BE%E5%88%86%E6%9E%90/</id>
+    <published>2024-05-10T11:53:40.080Z</published>
+    <updated>2024-10-06T06:57:34.845Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;本文详尽地讲述了 URLDNS 反序列化利用链的原理&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="Java 安全" scheme="https://changeyourway.github.io/categories/Java-%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>漏洞篇 - Java 反序列化之 CC1 链</title>
+    <link href="https://changeyourway.github.io/2024/05/10/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-CC1%E9%93%BE%E5%88%86%E6%9E%90/"/>
+    <id>https://changeyourway.github.io/2024/05/10/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-CC1%E9%93%BE%E5%88%86%E6%9E%90/</id>
+    <published>2024-05-10T11:53:40.079Z</published>
+    <updated>2024-10-06T06:31:00.654Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;Apache Commons Collections 是对 java.util.Collection 的扩展，对常用的集合操作进行了很好的封装、抽象和补充，在保证性能的同时大大简化代码。CC 链正是在 Commons Collections 包中的反序列化利用链，本次介绍的是 CC1 链。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="Java 安全" scheme="https://changeyourway.github.io/categories/Java-%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>基础篇 - Java 的类加载与反射</title>
+    <link href="https://changeyourway.github.io/2024/05/10/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-Java%E7%9A%84%E7%B1%BB%E5%8A%A0%E8%BD%BD%E4%B8%8E%E5%8F%8D%E5%B0%84/"/>
+    <id>https://changeyourway.github.io/2024/05/10/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-Java%E7%9A%84%E7%B1%BB%E5%8A%A0%E8%BD%BD%E4%B8%8E%E5%8F%8D%E5%B0%84/</id>
+    <published>2024-05-10T11:53:40.078Z</published>
+    <updated>2024-06-11T02:17:08.093Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;本文介绍了 Java 的类加载与反射机制，概括了获得 Class 对象的几种方式，以及总结了反射获取类信息的方法。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="Java 安全" scheme="https://changeyourway.github.io/categories/Java-%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>基础篇 - Java 序列化与反序列化</title>
+    <link href="https://changeyourway.github.io/2024/05/10/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-Java%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"/>
+    <id>https://changeyourway.github.io/2024/05/10/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-Java%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/</id>
+    <published>2024-05-10T11:53:40.077Z</published>
+    <updated>2024-05-02T06:20:56.563Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;Java 序列化是指把 Java 对象转换为字节序列的过程，而 Java 反序列化是指把字节序列恢复为 Java 对象的过程。本文详细讲解了 Java 序列化与反序列化的实现。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="Java 安全" scheme="https://changeyourway.github.io/categories/Java-%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
+  
+</feed>
