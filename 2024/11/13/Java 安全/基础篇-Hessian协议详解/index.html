@@ -70,7 +70,7 @@
 <meta property="og:image" content="https://changeyourway.github.io/images/image-20241112115009089.png">
 <meta property="og:image" content="https://changeyourway.github.io/images/image-20241112115040424.png">
 <meta property="article:published_time" content="2024-11-13T01:40:36.653Z">
-<meta property="article:modified_time" content="2024-11-14T06:07:26.392Z">
+<meta property="article:modified_time" content="2024-12-17T03:05:31.644Z">
 <meta property="article:author" content="妙尽璇机">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://changeyourway.github.io/images/image-20241105160904482.png">
@@ -132,7 +132,7 @@
     
 <div class="top bread-nav footnote"><div class="left"><div class="flex-row" id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a>
 <span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Java-%E5%AE%89%E5%85%A8/">Java 安全</a></div>
-<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2024-11-13T01:40:36.653Z">2024-11-13</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2024-11-14T06:07:26.392Z">2024-11-14</time></span></div></div>
+<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2024-11-13T01:40:36.653Z">2024-11-13</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2024-12-17T03:05:31.644Z">2024-12-17</time></span></div></div>
 </div>
 
     
@@ -180,7 +180,7 @@
 <li><strong>移动和 IoT 设备</strong>：对于网络带宽受限的场景（如移动网络或 IoT设 备），Hessian 能显著减少传输的数据量。</li>
 <li><strong>高频调用的企业系统</strong>：在需要频繁调用的场景下，Hessian 协议比 JSON 或 XML 序列化更为高效，能提高系统的整体性能。</li>
 </ul>
-<h2 id="Hessian-基本使用"><a href="#Hessian-基本使用" class="headerlink" title="Hessian 基本使用"></a>Hessian 基本使用</h2><h3 id="基于-Servlet"><a href="#基于-Servlet" class="headerlink" title="基于 Servlet"></a>基于 Servlet</h3><p>Hessian 提供了一个类 com.caucho.hessian.server.HessianServlet ，将 Hessian 服务实现暴露为 Servlet 。因此我们可以通过让一个 Servlet 通过继承 HessianServlet 来提供 hessian 服务。</p>
+<h2 id="Hessian-基本使用"><a href="#Hessian-基本使用" class="headerlink" title="Hessian 基本使用"></a>Hessian 基本使用</h2><h3 id="基于-Servlet"><a href="#基于-Servlet" class="headerlink" title="基于 Servlet"></a>基于 Servlet</h3><p>Hessian 提供了一个类 com.caucho.hessian.server.HessianServlet ，将 Hessian 服务实现暴露为 Servlet 。因此我们可以让一个 Servlet 通过继承 HessianServlet 来提供 hessian 服务。</p>
 <p>以下是基于注解的实现步骤，首先需要用 maven 创建一个 web 项目：</p>
 <h6 id="添加依赖"><a href="#添加依赖" class="headerlink" title="添加依赖"></a>添加依赖</h6><p>在 <code>pom.xml</code> 中添加 Hessian 依赖，这里使用目前的最新版本 4.0.66 ，以及 Servlet 依赖，4.0 以前是 javax.servlet 包下：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;com.caucho&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;hessian&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;4.0.66&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;javax.servlet&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;javax.servlet-api&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;4.0.1&lt;/version&gt;</span><br><span class="line">    &lt;scope&gt;provided&lt;/scope&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
@@ -380,7 +380,7 @@
 <p>而在序列化器中，对于基本类型的属性的序列化，事实上最终还是调用到 Hessian2Output 的 writeXxx ：</p>
 <img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241111155832988.png">
 
-<p>对于对象的序列化，最终调用 Hessian2Output 的 writeObject ，又是一个新的轮回，再次结构字段的字段。</p>
+<p>对于对象的序列化，最终调用 Hessian2Output 的 writeObject ，又是一个新的轮回，再次解构字段的字段。</p>
 <p>AbstractHessianOutput 其实提供了 writeObjectBegin 方法，只不过里面是直接调用 writeMapBegin ：</p>
 <img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241112093518661.png">
 
