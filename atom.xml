@@ -6,7 +6,7 @@
   <link href="https://changeyourway.github.io/atom.xml" rel="self"/>
   
   <link href="https://changeyourway.github.io/"/>
-  <updated>2024-12-17T03:05:31.644Z</updated>
+  <updated>2025-01-03T08:56:45.360Z</updated>
   <id>https://changeyourway.github.io/</id>
   
   <author>
@@ -15,6 +15,31 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>CVE-2024-52046 - Apache Mina 漏洞分析</title>
+    <link href="https://changeyourway.github.io/2025/01/03/CVE%20%E5%88%86%E6%9E%90/CVE-2024-52046%20Apache%20mina%20%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/"/>
+    <id>https://changeyourway.github.io/2025/01/03/CVE%20%E5%88%86%E6%9E%90/CVE-2024-52046%20Apache%20mina%20%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/</id>
+    <published>2025-01-03T08:54:25.542Z</published>
+    <updated>2025-01-03T08:56:45.360Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h2 id=&quot;漏洞描述&quot;&gt;&lt;a href=&quot;#漏洞描述&quot; class=&quot;headerlink&quot; title=&quot;漏洞描述&quot;&gt;&lt;/a&gt;漏洞描述&lt;/h2&gt;&lt;p&gt;Apache MINA（Multipurpose Infrastructure for Network Applications）是一个开源的网络通信框架，它为开发网络应用程序提供了高效、可扩展的解决方案。MINA 封装了许多底层网络通信的细节，简化了开发网络应用所需的工作。它的设计目标是使开发者能够轻松地构建基于高性能、低延迟的网络协议的应用程序。&lt;/p&gt;
+&lt;p&gt;Apache MINA 中的 ObjectSerializationDecoder 使用 Java 的原生反序列化协议来处理传入的序列化数据，但缺乏必要的安全检查和防御。此漏洞允许攻击者通过发送特制的恶意序列化数据来利用反序列化过程，从而可能导致远程代码执行 (RCE) 攻击。同样需要注意的是，使用 MINA 核心库的应用程序只有在调用 IoBuffer#getObject() 方法时才会受到影响，并且当使用 ObjectSerializationCodecFactory 类在过滤器链中添加 ProtocolCodecFilter 实例时可能会调用此特定方法。&lt;/p&gt;
+&lt;h2 id=&quot;影响范围&quot;&gt;&lt;a href=&quot;#影响范围&quot; class=&quot;headerlink&quot; title=&quot;影响范围&quot;&gt;&lt;/a&gt;影响范围&lt;/h2&gt;&lt;p&gt;Apache MINA 2.0.X &amp;lt; 2.0.27&lt;/p&gt;
+&lt;p&gt;Apache MINA 2.1.X &amp;lt; 2.1.10&lt;/p&gt;
+&lt;p&gt;Apache MINA 2.2.X &amp;lt; 2.2.4&lt;/p&gt;
+&lt;h2 id=&quot;环境搭建&quot;&gt;&lt;a href=&quot;#环境搭建&quot; class=&quot;headerlink&quot; title=&quot;环境搭建&quot;&gt;&lt;/a</summary>
+      
+    
+    
+    
+    <category term="CVE 分析" scheme="https://changeyourway.github.io/categories/CVE-%E5%88%86%E6%9E%90/"/>
+    
+    
+  </entry>
   
   <entry>
     <title>基础篇 - Hessian 协议详解</title>
