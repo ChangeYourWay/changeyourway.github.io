@@ -6,7 +6,7 @@
   <link href="https://changeyourway.github.io/atom.xml" rel="self"/>
   
   <link href="https://changeyourway.github.io/"/>
-  <updated>2025-01-04T09:59:08.562Z</updated>
+  <updated>2025-02-20T12:34:51.667Z</updated>
   <id>https://changeyourway.github.io/</id>
   
   <author>
@@ -15,6 +15,58 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>CVE-2024-50379 - Tomcat 远程 RCE</title>
+    <link href="https://changeyourway.github.io/2025/02/20/CVE%20%E5%88%86%E6%9E%90/CVE-2024-50379%20Tomcat%E8%BF%9C%E7%A8%8BRCE/"/>
+    <id>https://changeyourway.github.io/2025/02/20/CVE%20%E5%88%86%E6%9E%90/CVE-2024-50379%20Tomcat%E8%BF%9C%E7%A8%8BRCE/</id>
+    <published>2025-02-20T12:33:41.474Z</published>
+    <updated>2025-02-20T12:34:51.667Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h2 id=&quot;漏洞描述&quot;&gt;&lt;a href=&quot;#漏洞描述&quot; class=&quot;headerlink&quot; title=&quot;漏洞描述&quot;&gt;&lt;/a&gt;漏洞描述&lt;/h2&gt;&lt;p&gt;Apache Tomcat 中 JSP 编译期间的检查时间使用时间 (TOCTOU) 竞争条件漏洞允许在默认 servlet 启用写入时（非默认配置）对不区分大小写的文件系统进行 RCE。由于 Apache Tomcat 的 JSP 编译过程存在条件竞争漏洞，当在不区分大小写的系统上启用了 default servlet 的写入功能（默认关闭）时，并发同时读取和上传同一个文件可以绕过 Tomcat 的大小写敏感检查，将可能造成远程代码执行，漏洞利用需要条件竞争，对网络以及机器性能环境等有一定要求。&lt;/p&gt;
+&lt;h2 id=&quot;影响版本&quot;&gt;&lt;a href=&quot;#影响版本&quot; class=&quot;headerlink&quot; title=&quot;影响版本&quot;&gt;&lt;/a&gt;影响版本&lt;/h2&gt;&lt;p&gt;11.0.0-M1 &amp;lt;&amp;#x3D; Apache Tomcat &amp;lt; 11.0.2&lt;/p&gt;
+&lt;p&gt;10.1.0-M1 &amp;lt;&amp;#x3D; Apache Tomcat &amp;lt; 10.1.34&lt;/p&gt;
+&lt;p&gt;9.0.0.M1 &amp;lt;&amp;#x3D;  Apache Tomcat &amp;lt; 9.0.98&lt;/p&gt;
+&lt;h2 id=&quot;快速复现&quot;&gt;&lt;a href=&quot;#快速复现&quot; class=&quot;headerlink&quot; title=&quot;快速复现&quot;&gt;&lt;/a&gt;快速复现&lt;/h2&gt;&lt;p&gt;下面我们快速搭建环境，并用给定的脚本测试一下。&lt;/p&gt;
+&lt;h3 id=&quot;环境搭建&quot;&gt;&lt;a href=&quot;#环境搭建&quot; class=&quot;headerlink&quot; title=&quot;环境搭建&quot;&gt;&lt;/a&gt;环境搭建&lt;/h3&gt;&lt;p&gt;我使用的是 Tomcat 10.1.19 ，需要搭配 JDK 11 。&lt;/p&gt;
+&lt;p&gt;在</summary>
+      
+    
+    
+    
+    <category term="CVE 分析" scheme="https://changeyourway.github.io/categories/CVE-%E5%88%86%E6%9E%90/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>漏洞篇 - Hessian 反序列化详解</title>
+    <link href="https://changeyourway.github.io/2025/02/20/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Hessian%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"/>
+    <id>https://changeyourway.github.io/2025/02/20/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Hessian%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/</id>
+    <published>2025-02-20T12:31:53.386Z</published>
+    <updated>2025-02-20T12:33:14.543Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;本文前置知识：&lt;a href=&quot;https://changeyourway.github.io/2024/11/13/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-Hessian%E5%8D%8F%E8%AE%AE%E8%AF%A6%E8%A7%A3/&quot;&gt;基础篇 - Hessian 协议详解&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&quot;细节补充&quot;&gt;&lt;a href=&quot;#细节补充&quot; class=&quot;headerlink&quot; title=&quot;细节补充&quot;&gt;&lt;/a&gt;细节补充&lt;/h2&gt;&lt;p&gt;在学习漏洞利用之前，还需要补充一些细节，以更好的理解。这些细节算是在前面的原理分析中漏掉的部分，并且也需要特别强调一下。&lt;/p&gt;
+&lt;h3 id=&quot;协议版本&quot;&gt;&lt;a href=&quot;#协议版本&quot; class=&quot;headerlink&quot; title=&quot;协议版本&quot;&gt;&lt;/a&gt;协议版本&lt;/h3&gt;&lt;p&gt;su18 师傅提到目前的 Hessian 协议同时兼容两种版本，并且&lt;strong&gt;默认情况下，客户端向服务端发送序列化数据时采用 1.0 版本，而服务端向客户端发送序列化响应数据时采用 2.0 版本&lt;/strong&gt;，并且指出控制位在 HessianProxyFactory 的 &lt;code&gt;_isHessian2Reply &lt;/code&gt; 和 &lt;code&gt;_isHessian2Request&lt;/code&gt;  两个属性中：&lt;/p&gt;
+&lt;img src=&quot;/images/image-20241114150330418.png&quot;&gt;
+
+&lt;p&gt;为了弄清楚这两个控制点究竟在何处发挥作用，我重新调试了客户端代码，并找到了它们最终发挥作用的点。&lt;/p&gt;
+&lt;p&gt;我们曾说客户端主要是调用 HessianProxy 的 sendRequest 发送请求，sendRequest 方法中又主要是</summary>
+      
+    
+    
+    
+    <category term="Java 安全" scheme="https://changeyourway.github.io/categories/Java-%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
   
   <entry>
     <title>CVE-2024-52046 - Apache Mina 漏洞分析</title>
