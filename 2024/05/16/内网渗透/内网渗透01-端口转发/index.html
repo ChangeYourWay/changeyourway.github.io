@@ -30,7 +30,7 @@
 <meta property="og:image" content="https://changeyourway.github.io/images/image-20240406132728218.png">
 <meta property="og:image" content="https://changeyourway.github.io/images/image-20240407090636373.png">
 <meta property="article:published_time" content="2024-05-16T02:55:28.868Z">
-<meta property="article:modified_time" content="2025-03-13T06:03:14.873Z">
+<meta property="article:modified_time" content="2025-03-13T06:34:32.991Z">
 <meta property="article:author" content="妙尽璇机">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://changeyourway.github.io/images/image-20240406132032083.png">
@@ -60,7 +60,7 @@
 <div class="l_body content tech" id="start" layout="post" ><aside class="l_left"><div class="sidebar-container">
 
 
-<header class="header"><div class="logo-wrap"><a class="avatar" href="/about/"><div class="bg" style="opacity:0;background-image:url(https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="https://avatars.githubusercontent.com/u/167730365?s=96&v=4" onerror="javascript:this.classList.add('error');this.src='https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/image/2659360.svg';"></a><a class="title" href="/"><div class="main" ff="title">妙尽璇机</div><div class="sub cap">以真理之名，超越往昔</div></a></div></header>
+<header class="header"><div class="logo-wrap"><a class="avatar" href="/about/"><div class="bg" style="opacity:0;background-image:url(https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="https://avatars.githubusercontent.com/u/167730365?s=96&v=4" onerror="javascript:this.classList.add('error');this.src='https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/image/2659360.svg';"></a><a class="title" href="/"><div class="main" ff="title">妙尽璇机</div><div class="sub cap">命途为茧，此身为烛</div></a></div></header>
 
 <div class="nav-area">
 <div class="search-wrapper" id="search-wrapper"><form class="search-form"><a class="search-button" onclick="document.getElementById(&quot;search-input&quot;).focus();"><svg t="1705074644177" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1560" width="200" height="200"><path d="M1008.839137 935.96571L792.364903 719.491476a56.783488 56.783488 0 0 0-80.152866 0 358.53545 358.53545 0 1 1 100.857314-335.166073 362.840335 362.840335 0 0 1-3.689902 170.145468 51.248635 51.248635 0 1 0 99.217358 26.444296 462.057693 462.057693 0 1 0-158.255785 242.303546l185.930047 185.725053a51.248635 51.248635 0 0 0 72.568068 0 51.248635 51.248635 0 0 0 0-72.978056z" p-id="1561"></path><path d="M616.479587 615.969233a50.428657 50.428657 0 0 0-61.498362-5.534852 174.655348 174.655348 0 0 1-177.525271 3.484907 49.403684 49.403684 0 0 0-58.833433 6.76482l-3.074918 2.869923a49.403684 49.403684 0 0 0 8.609771 78.10292 277.767601 277.767601 0 0 0 286.992355-5.739847 49.403684 49.403684 0 0 0 8.404776-76.667958z" p-id="1562"></path></svg></a><input type="text" class="search-input" id="search-input" placeholder="站内搜索"></form><div id="search-result"></div><div class="search-no-result">没有找到内容！</div></div>
@@ -92,7 +92,7 @@
     
 <div class="top bread-nav footnote"><div class="left"><div class="flex-row" id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a>
 <span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/">内网渗透</a></div>
-<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2024-05-16T02:55:28.868Z">2024-05-16</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2025-03-13T06:03:14.873Z">2025-03-13</time></span></div></div>
+<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2024-05-16T02:55:28.868Z">2024-05-16</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2025-03-13T06:34:32.991Z">2025-03-13</time></span></div></div>
 </div>
 
     
@@ -275,7 +275,8 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netsh interface portproxy reset</span><br></pre></td></tr></table></figure>
 
 <p><strong>重要：</strong>以上端口转发仅适用于 TCP 端口，对于 UDP 端口将不起作用，并且不能使用 127.0.0.1 作为连接地址。</p>
-<p><strong>将其他机器的端口转发至本机端口，比如将 192.168.100.101 的 3389 端口转发至本机的 3389 端口：</strong> </p>
+<p><strong>本地端口转发到远程端口示例</strong></p>
+<p>例如端口转发将本机 3389 → 远程 192.168.100.101:3389 ：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netsh interface portproxy add v4tov4 listenport=3389 connectport=3389 connectaddress=192.168.100.101</span><br></pre></td></tr></table></figure>
 
 <p>这样执行完以后，访问本机的 3389 端口就可以访问到 192.168.100.101 的 3389 端口了。</p>
@@ -288,7 +289,7 @@
 
 
 <h3 id="MSF-portfwd-端口转发与端口映射"><a href="#MSF-portfwd-端口转发与端口映射" class="headerlink" title="MSF portfwd 端口转发与端口映射"></a>MSF portfwd 端口转发与端口映射</h3><p>portfwd 是借用 meterpreter shell 建立的连接进行数据传输，达到端口转发的目的。</p>
-<p>使用 portwd 进行端口转发：</p>
+<p>使用 portfwd 进行端口转发：</p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; portfwd add -l 1111  -r 127.0.0.1 -p 3389</span><br></pre></td></tr></table></figure>
 
 <p>-l 表示 localhost ，即 kali 本机；</p>
@@ -298,7 +299,7 @@
 <p>查看是否建立端口转发连接：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">portfwd list</span><br></pre></td></tr></table></figure>
 
-<p>按本地端口号删除删除连接：</p>
+<p>根据本地端口号删除连接：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">portfwd delete -l 1111</span><br></pre></td></tr></table></figure>
 
 
@@ -312,7 +313,7 @@
 <p>查看帮助文档：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">┌──(root㉿kali)-[~/lcx_vuln.cn]</span><br><span class="line">└─# ./portmap --help</span><br><span class="line">Socket data transport tool</span><br><span class="line"></span><br><span class="line">by Sofia(www.vuln.cn)</span><br><span class="line">Usage:./portmap -m method [-h1 host1] -p1 port1 [-h2 host2] -p2 port2 [-v] [-log filename]</span><br><span class="line"> -v: version</span><br><span class="line"> -h1: host1</span><br><span class="line"> -h2: host2</span><br><span class="line"> -p1: port1</span><br><span class="line"> -p2: port2</span><br><span class="line"> -log: log the data</span><br><span class="line"> -m: the action method for this tool</span><br><span class="line"> 1: listen on PORT1 and connect to HOST2:PORT2</span><br><span class="line"> 2: listen on PORT1 and PORT2</span><br><span class="line"> 3: connect to HOST1:PORT1 and HOST2:PORT2</span><br><span class="line">Let me exit...all overd</span><br></pre></td></tr></table></figure>
 
-<p>这里有一个 -m 参数这个参数的解释：以哪种方式来用这个工具，然后下面有三个方式：<br>1.监听 port1 端口并且连接主机 2 的 port2 端口<br>2.监听 port1 和 port2 端口<br>3.连接主机 1 对应的端口和主机 2 对应的端口</p>
+<p>这里有一个 -m 参数，表示以哪种方式来用这个工具，有下面三个方式：<br>1.监听 port1 端口并且连接主机 2 的 port2 端口<br>2.监听 port1 和 port2 端口<br>3.连接主机 1 对应的端口和主机 2 对应的端口</p>
 <p><strong>示例</strong> </p>
 <p>将本机的 6666 端口映射到 192.168.164.8 主机的 22 端口：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./portmap -m 1 -p1 6666 -h2 192.168.164.8 -p2 22</span><br></pre></td></tr></table></figure>
