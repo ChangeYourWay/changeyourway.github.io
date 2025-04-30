@@ -6,7 +6,7 @@
   <link href="https://changeyourway.github.io/atom.xml" rel="self"/>
   
   <link href="https://changeyourway.github.io/"/>
-  <updated>2025-02-20T12:34:51.667Z</updated>
+  <updated>2025-04-30T09:37:14.048Z</updated>
   <id>https://changeyourway.github.io/</id>
   
   <author>
@@ -15,6 +15,39 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>2025 ACTF Web 复现</title>
+    <link href="https://changeyourway.github.io/2025/04/30/CTF/2025%20ACTF%20Web%20WP/"/>
+    <id>https://changeyourway.github.io/2025/04/30/CTF/2025%20ACTF%20Web%20WP/</id>
+    <published>2025-04-30T09:27:55.659Z</published>
+    <updated>2025-04-30T09:37:14.048Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h2 id=&quot;2025-ACTF-Web-WP&quot;&gt;&lt;a href=&quot;#2025-ACTF-Web-WP&quot; class=&quot;headerlink&quot; title=&quot;2025 ACTF Web WP&quot;&gt;&lt;/a&gt;2025 ACTF Web WP&lt;/h2&gt;&lt;p&gt;感谢 &lt;a href=&quot;https://www.cnblogs.com/F12-blog&quot;&gt;F12&lt;/a&gt; 师傅提供的源码和指导，感谢其他 NK 师傅的帮助。&lt;/p&gt;
+&lt;p&gt;下面的 wp 全部为自己搭环境赛后复测的，所以没有 flag ，仅展示过程。（本人因为某些原因错过了本场比赛，同时又决定现在开始好好打 CTF ）&lt;/p&gt;
+&lt;h3 id=&quot;ACTF-upload&quot;&gt;&lt;a href=&quot;#ACTF-upload&quot; class=&quot;headerlink&quot; title=&quot;ACTF upload&quot;&gt;&lt;/a&gt;ACTF upload&lt;/h3&gt;&lt;p&gt;核心考点：文件读取，命令执行&lt;/p&gt;
+&lt;p&gt;由于本题我在 Windows 上复现环境，部分地方可能与实际比赛不同。&lt;/p&gt;
+&lt;p&gt;进入主页，看到如下画面，提示 “无需注册” ：&lt;/p&gt;
+&lt;img src=&quot;/images/image-20250427215500-a64z3wa.png&quot;&gt;
+
+&lt;p&gt;随便输入一个普通用户名 test:test ，来到文件上传界面：&lt;/p&gt;
+&lt;img src=&quot;/images/image-20250427215540-82cas62.png&quot;&gt;
+
+&lt;p&gt;随便选择一个文件上传，会跳转到这个图片对应的路径：&lt;/p&gt;
+&lt;img src=&quot;/images/image-20250427215628-iaxeb0t.png&quot;&gt;
+
+&lt;p&gt;根据路径中的 ?file_path&amp;#x3D;xxx 猜测存在任意文件读取，响应头里写了是 python 环境，这边是通过读取 app&amp;#x2F</summary>
+      
+    
+    
+    
+    <category term="内网渗透" scheme="https://changeyourway.github.io/categories/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/"/>
+    
+    
+  </entry>
   
   <entry>
     <title>CVE-2024-50379 - Tomcat 远程 RCE</title>
