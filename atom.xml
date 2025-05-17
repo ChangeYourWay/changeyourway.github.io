@@ -6,7 +6,7 @@
   <link href="https://changeyourway.github.io/atom.xml" rel="self"/>
   
   <link href="https://changeyourway.github.io/"/>
-  <updated>2025-04-30T10:02:41.833Z</updated>
+  <updated>2025-05-17T15:59:41.701Z</updated>
   <id>https://changeyourway.github.io/</id>
   
   <author>
@@ -15,6 +15,41 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>漏洞篇 - SnakeYaml 反序列化</title>
+    <link href="https://changeyourway.github.io/2025/05/17/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-SnakeYaml%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"/>
+    <id>https://changeyourway.github.io/2025/05/17/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-SnakeYaml%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/</id>
+    <published>2025-05-17T15:57:00.988Z</published>
+    <updated>2025-05-17T15:59:41.701Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h2 id=&quot;SnakeYaml-反序列化&quot;&gt;&lt;a href=&quot;#SnakeYaml-反序列化&quot; class=&quot;headerlink&quot; title=&quot;SnakeYaml 反序列化&quot;&gt;&lt;/a&gt;SnakeYaml 反序列化&lt;/h2&gt;&lt;p&gt;又来炒冷饭了伙计们。&lt;/p&gt;
+&lt;h2 id=&quot;一、SnakeYaml-简介&quot;&gt;&lt;a href=&quot;#一、SnakeYaml-简介&quot; class=&quot;headerlink&quot; title=&quot;一、SnakeYaml 简介&quot;&gt;&lt;/a&gt;一、SnakeYaml 简介&lt;/h2&gt;&lt;p&gt;SnakeYaml 是 Java 中解析 yaml 的库，而 yaml 是一种人类可读的数据序列化语言，通常用于编写配置文件等。&lt;/p&gt;
+&lt;p&gt;YAML 的语法和其他高级语言类似，并且可以简单表达清单、散列表，标量等数据形态。它使用空白符号缩进和大量依赖外观的特色，特别适合用来表达或编辑数据结构、各种配置文件、倾印调试内容、文件大纲（例如：许多电子邮件标题格式和 YAML 非常接近）。&lt;/p&gt;
+&lt;h3 id=&quot;0x1：yaml-基本语法&quot;&gt;&lt;a href=&quot;#0x1：yaml-基本语法&quot; class=&quot;headerlink&quot; title=&quot;0x1：yaml 基本语法&quot;&gt;&lt;/a&gt;0x1：yaml 基本语法&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;大小写敏感&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;使用缩进表示层级关系&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;缩进只允许使用空格&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;code&gt;#&lt;/code&gt;​ 表示注释&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;支持对象、数组、纯量这 3 种数据结构&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;对象：键值对的集合，又称为映射（mapping）&amp;#x2F; 哈希（hashes） &amp;#x2F; 字典（dictionary）&lt;/li&gt;
+&lt;li&gt;数组：一组</summary>
+      
+    
+    
+    
+    <category term="Java 安全" scheme="https://changeyourway.github.io/categories/Java-%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
   
   <entry>
     <title>2025 ACTF Web 复现</title>
@@ -80,7 +115,7 @@
     <link href="https://changeyourway.github.io/2025/02/20/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Hessian%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"/>
     <id>https://changeyourway.github.io/2025/02/20/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Hessian%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/</id>
     <published>2025-02-20T12:31:53.386Z</published>
-    <updated>2025-02-20T12:33:14.543Z</updated>
+    <updated>2025-05-17T16:00:09.099Z</updated>
     
     
       
