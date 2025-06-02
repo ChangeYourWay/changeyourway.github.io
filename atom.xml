@@ -6,7 +6,7 @@
   <link href="https://changeyourway.github.io/atom.xml" rel="self"/>
   
   <link href="https://changeyourway.github.io/"/>
-  <updated>2025-05-17T15:59:41.701Z</updated>
+  <updated>2025-06-02T13:11:26.470Z</updated>
   <id>https://changeyourway.github.io/</id>
   
   <author>
@@ -15,6 +15,29 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>2025 D^3CTF Web WP</title>
+    <link href="https://changeyourway.github.io/2025/06/02/CTF/2025%20D^3CTF%20Web%20WP/"/>
+    <id>https://changeyourway.github.io/2025/06/02/CTF/2025%20D^3CTF%20Web%20WP/</id>
+    <published>2025-06-02T13:02:53.619Z</published>
+    <updated>2025-06-02T13:11:26.470Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h2 id=&quot;d3model&quot;&gt;&lt;a href=&quot;#d3model&quot; class=&quot;headerlink&quot; title=&quot;d3model&quot;&gt;&lt;/a&gt;d3model&lt;/h2&gt;&lt;h3 id=&quot;CVE-2025-1550&quot;&gt;&lt;a href=&quot;#CVE-2025-1550&quot; class=&quot;headerlink&quot; title=&quot;CVE-2025-1550&quot;&gt;&lt;/a&gt;CVE-2025-1550&lt;/h3&gt;&lt;p&gt;考察 CVE-2025-1550 ，参考文章：&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://blog.huntr.com/inside-cve-2025-1550-remote-code-execution-via-keras-models&quot;&gt;https://blog.huntr.com/inside-cve-2025-1550-remote-code-execution-via-keras-models&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://jfrog.com/blog/keras-safe_mode-bypass-vulnerability/&quot;&gt;https://jfrog.com/blog/keras-safe_mode-bypass-vulnerability/&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;CVE-2025-1550 大致讲的是 Keras 模型的一个反序列化任意代码执行漏洞。Keras 的模型加载流程由 load_model 函数启动。该函数会根据模型类型和文件扩展名执行不同的加载路径。当调用 &lt;code&gt;_load_model_from_fileobj&lt;/code&gt;​ 函数时，会提取 ZIP 文件的内容并开始重建模型。在此阶段，会检查 &lt;code&gt;config.json&lt;/code&gt;​ 文件，并调用 &lt;code&gt;_model_from_config&lt;/c</summary>
+      
+    
+    
+    
+    <category term="CTF" scheme="https://changeyourway.github.io/categories/CTF/"/>
+    
+    
+  </entry>
   
   <entry>
     <title>漏洞篇 - SnakeYaml 反序列化</title>
@@ -380,7 +403,7 @@
     <link href="https://changeyourway.github.io/2024/09/06/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-JNDI%E6%B3%A8%E5%85%A5%E8%AF%A6%E8%A7%A3/"/>
     <id>https://changeyourway.github.io/2024/09/06/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-JNDI%E6%B3%A8%E5%85%A5%E8%AF%A6%E8%A7%A3/</id>
     <published>2024-09-06T07:52:13.151Z</published>
-    <updated>2024-09-26T10:26:20.526Z</updated>
+    <updated>2025-05-22T07:44:20.146Z</updated>
     
     
       
