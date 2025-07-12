@@ -1,62 +1,644 @@
-.l_body {
-  display: flex;
-  margin: auto;
-  padding: 0 var(--gap-l);
-  justify-content: center;
-  font-size: var(--fsp);
-}
-.l_body .l_left {
-  z-index: 8;
-  width: var(--width-left);
-  flex-shrink: 0;
-  position: sticky;
-  position: -webkit-sticky;
-  top: 8px;
-}
-.l_body .l_main {
-  flex-shrink: 1;
-  flex-grow: 1;
-  width: 320px;
-  max-width: var(--width-main);
-}
-.main-mask {
-  position: fixed;
-  pointer-events: none;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.2);
-  z-index: 9;
-  opacity: 0;
-  trans1: opacity;
-}
-@media screen and (max-width: $device-mobile-max) {
-  .mobile-only {
-    display: block !important;
+
+<!DOCTYPE html><html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="hexo-theme" content="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.26.8" theme-name="Stellar" theme-version="1.26.8">
+  
+  <meta name="generator" content="Hexo 7.1.0">
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel="preconnect" href="https://gcore.jsdelivr.net" crossorigin><link rel="preconnect" href="https://unpkg.com" crossorigin><link rel="preconnect" href="https://cdn.bootcdn.net" crossorigin>
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  
+  <title>基础篇 - Hessian 协议详解 - 妙尽璇机</title>
+
+  
+    <meta name="description" content="Hessian 协议介绍Hessian 协议是一种高效、跨语言的二进制 RPC（Remote Procedure Call，远程过程调用）协议，由 Caucho 公司设计，最早应用于 Java 和 Java 之间的远程调用。其主要特点是使用紧凑的二进制格式传输数据，提供高性能的序列化和反序列化操作，因此适合在网络带宽较低或数据传输效率要求较高的场景中使用。 Hessian 协议的特点 跨语言支持：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基础篇 - Hessian 协议详解">
+<meta property="og:url" content="https://changeyourway.github.io/2024/11/13/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-Hessian%E5%8D%8F%E8%AE%AE%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:site_name" content="妙尽璇机">
+<meta property="og:description" content="Hessian 协议介绍Hessian 协议是一种高效、跨语言的二进制 RPC（Remote Procedure Call，远程过程调用）协议，由 Caucho 公司设计，最早应用于 Java 和 Java 之间的远程调用。其主要特点是使用紧凑的二进制格式传输数据，提供高性能的序列化和反序列化操作，因此适合在网络带宽较低或数据传输效率要求较高的场景中使用。 Hessian 协议的特点 跨语言支持：">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241105160904482.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241106100115715.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241106103716595.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241106104021790.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241106105255460.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241114140333798.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241111094058638.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241111094727197.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241111095814183.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241111100531570.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241111104527959.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241111104553015.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241111105152079.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241111105117568.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241111105705482.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241111134750780.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241111134946571.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241111135754296.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241111142119754.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241111142613240.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241111143915414.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241111150124292.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241111153534047.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241111154018739.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241111155404664.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241111155832988.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241112093518661.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241112094932794.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241112100627079.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241112100824184.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241112101157737.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241112101507726.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241112101603733.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241112101700816.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241112101753969.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241112102632257.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241112102821104.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241112103058339.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241112104844519.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241112113048224.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241112114455239.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241112115009089.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20241112115040424.png">
+<meta property="article:published_time" content="2024-11-13T01:40:36.653Z">
+<meta property="article:modified_time" content="2024-12-17T03:05:31.644Z">
+<meta property="article:author" content="妙尽璇机">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://changeyourway.github.io/images/image-20241105160904482.png">
+  
+  
+  
+  
+
+  <!-- feed -->
+  
+    <link rel="alternate" href="/atom.xml" title="妙尽璇机" type="application/atom+xml">
+  
+
+  <link rel="stylesheet" href="/css/main.css?v=1.26.8">
+
+  
+    <link rel="shortcut icon" href="/assets/favicon/favicon.ico">
+  
+
+  
+
+  
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/xaoxuu/favicon/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/assets/xaoxuu/favicon/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/assets/xaoxuu/favicon/favicon-16x16.png"><link rel="manifest" href="/assets/xaoxuu/favicon/site.webmanifest"><link rel="shortcut icon" href="/assets/xaoxuu/favicon/favicon.ico"><meta name="theme-color" content="#f8f8f8"><link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/lxgw-wenkai-screen-webfont/1.7.0/style.min.css" media="all" />
+</head>
+<body>
+
+<div class="l_body content tech" id="start" layout="post" ><aside class="l_left"><div class="sidebar-container">
+
+
+<header class="header"><div class="logo-wrap"><a class="avatar" href="/about/"><div class="bg" style="opacity:0;background-image:url(https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="https://raw.githubusercontent.com/ChangeYourWay/changeyourway.github.io/refs/heads/main/assets/20210722092640_f61bd.jpg" onerror="javascript:this.classList.add('error');this.src='https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/image/2659360.svg';"></a><a class="title" href="/"><div class="main" ff="title">妙尽璇机</div><div class="sub cap">真理所致，吾心所向</div></a></div></header>
+
+<div class="nav-area">
+<div class="search-wrapper" id="search-wrapper"><form class="search-form"><a class="search-button" onclick="document.getElementById(&quot;search-input&quot;).focus();"><svg t="1705074644177" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1560" width="200" height="200"><path d="M1008.839137 935.96571L792.364903 719.491476a56.783488 56.783488 0 0 0-80.152866 0 358.53545 358.53545 0 1 1 100.857314-335.166073 362.840335 362.840335 0 0 1-3.689902 170.145468 51.248635 51.248635 0 1 0 99.217358 26.444296 462.057693 462.057693 0 1 0-158.255785 242.303546l185.930047 185.725053a51.248635 51.248635 0 0 0 72.568068 0 51.248635 51.248635 0 0 0 0-72.978056z" p-id="1561"></path><path d="M616.479587 615.969233a50.428657 50.428657 0 0 0-61.498362-5.534852 174.655348 174.655348 0 0 1-177.525271 3.484907 49.403684 49.403684 0 0 0-58.833433 6.76482l-3.074918 2.869923a49.403684 49.403684 0 0 0 8.609771 78.10292 277.767601 277.767601 0 0 0 286.992355-5.739847 49.403684 49.403684 0 0 0 8.404776-76.667958z" p-id="1562"></path></svg></a><input type="text" class="search-input" id="search-input" placeholder="站内搜索"></form><div id="search-result"></div><div class="search-no-result">没有找到内容！</div></div>
+
+
+<nav class="menu dis-select"><a class="nav-item active" title="博客" href="/" style="color:#1BCDFC"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M5.879 2.879C5 3.757 5 5.172 5 8v8c0 2.828 0 4.243.879 5.121C6.757 22 8.172 22 11 22h2c2.828 0 4.243 0 5.121-.879C19 20.243 19 18.828 19 16V8c0-2.828 0-4.243-.879-5.121C17.243 2 15.828 2 13 2h-2c-2.828 0-4.243 0-5.121.879M8.25 17a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 0 1.5H9a.75.75 0 0 1-.75-.75M9 12.25a.75.75 0 0 0 0 1.5h6a.75.75 0 0 0 0-1.5zM8.25 9A.75.75 0 0 1 9 8.25h6a.75.75 0 0 1 0 1.5H9A.75.75 0 0 1 8.25 9" clip-rule="evenodd"/><path fill="currentColor" d="M5.235 4.058C5 4.941 5 6.177 5 8v8c0 1.823 0 3.058.235 3.942L5 19.924c-.975-.096-1.631-.313-2.121-.803C2 18.243 2 16.828 2 14v-4c0-2.829 0-4.243.879-5.121c.49-.49 1.146-.707 2.121-.803zm13.53 15.884C19 19.058 19 17.822 19 16V8c0-1.823 0-3.059-.235-3.942l.235.018c.975.096 1.631.313 2.121.803C22 5.757 22 7.17 22 9.999v4c0 2.83 0 4.243-.879 5.122c-.49.49-1.146.707-2.121.803z" opacity=".5"/></svg></a><a class="nav-item" title="专栏" href="/topic/" style="color:#3DC550"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M14.25 4.48v3.057c0 .111 0 .27.02.406a.936.936 0 0 0 .445.683a.96.96 0 0 0 .783.072c.13-.04.272-.108.378-.159L17 8.005l1.124.534c.106.05.248.119.378.16a.958.958 0 0 0 .783-.073a.936.936 0 0 0 .444-.683c.021-.136.021-.295.021-.406V3.031c.113-.005.224-.01.332-.013C21.154 2.98 22 3.86 22 4.933v11.21c0 1.112-.906 2.01-2.015 2.08c-.97.06-2.108.179-2.985.41c-1.082.286-1.99 1.068-3.373 1.436c-.626.167-1.324.257-1.627.323V5.174c.32-.079 1.382-.203 1.674-.371c.184-.107.377-.216.576-.323m5.478 8.338a.75.75 0 0 1-.546.91l-4 1a.75.75 0 0 1-.364-1.456l4-1a.75.75 0 0 1 .91.546" clip-rule="evenodd"/><path fill="currentColor" d="M18.25 3.151c-.62.073-1.23.18-1.75.336a8.2 8.2 0 0 0-.75.27v3.182l.75-.356l.008-.005a1.13 1.13 0 0 1 .492-.13c.047 0 .094.004.138.01c.175.029.315.1.354.12l.009.005l.749.356V3.647z"/><path fill="currentColor" d="M12 5.214c-.334-.064-1.057-.161-1.718-.339C8.938 4.515 8.05 3.765 7 3.487c-.887-.234-2.041-.352-3.018-.412C2.886 3.007 2 3.9 2 4.998v11.146c0 1.11.906 2.01 2.015 2.079c.97.06 2.108.179 2.985.41c.486.129 1.216.431 1.873.726c1.005.451 2.052.797 3.127 1.034z" opacity=".5"/><path fill="currentColor" d="M4.273 12.818a.75.75 0 0 1 .91-.545l4 1a.75.75 0 1 1-.365 1.455l-4-1a.75.75 0 0 1-.545-.91m.909-4.545a.75.75 0 1 0-.364 1.455l4 1a.75.75 0 0 0 .364-1.455z"/></svg></a><a class="nav-item" title="探索" href="/explore/" style="color:#FA6400"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M20 12a8 8 0 1 1-16 0a8 8 0 0 1 16 0" opacity=".5"/><path fill="currentColor" d="M17.712 5.453c1.047-.193 2.006-.259 2.797-.152c.77.103 1.536.393 1.956 1.064c.446.714.312 1.542-.012 2.258c-.33.728-.918 1.499-1.672 2.268c-1.516 1.547-3.836 3.226-6.597 4.697c-2.763 1.472-5.495 2.484-7.694 2.92c-1.095.217-2.098.299-2.923.201c-.8-.095-1.6-.383-2.032-1.075c-.47-.752-.296-1.63.07-2.379c.375-.768 1.032-1.586 1.872-2.403L4 12.416c0 .219.083.71.168 1.146c.045.23.09.444.123.596c-.652.666-1.098 1.263-1.339 1.756c-.277.567-.208.825-.145.925c.072.116.305.305.937.38c.609.073 1.44.018 2.455-.183c2.02-.4 4.613-1.351 7.28-2.772c2.667-1.42 4.85-3.015 6.23-4.423c.694-.707 1.15-1.334 1.377-1.836c.233-.515.167-.75.107-.844c-.07-.112-.289-.294-.883-.374c-.542-.072-1.272-.041-2.163.112L16.87 5.656c.338-.101.658-.17.842-.203"/></svg></a><a class="nav-item" title="社交" href="/friends/" style="color:#F44336"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="m13.629 20.472l-.542.916c-.483.816-1.69.816-2.174 0l-.542-.916c-.42-.71-.63-1.066-.968-1.262c-.338-.197-.763-.204-1.613-.219c-1.256-.021-2.043-.098-2.703-.372a5 5 0 0 1-2.706-2.706C2 14.995 2 13.83 2 11.5v-1c0-3.273 0-4.91.737-6.112a5 5 0 0 1 1.65-1.651C5.59 2 7.228 2 10.5 2h3c3.273 0 4.91 0 6.113.737a5 5 0 0 1 1.65 1.65C22 5.59 22 7.228 22 10.5v1c0 2.33 0 3.495-.38 4.413a5 5 0 0 1-2.707 2.706c-.66.274-1.447.35-2.703.372c-.85.015-1.275.022-1.613.219c-.338.196-.548.551-.968 1.262" opacity=".5"/><path fill="currentColor" d="M10.99 14.308c-1.327-.978-3.49-2.84-3.49-4.593c0-2.677 2.475-3.677 4.5-1.609c2.025-2.068 4.5-1.068 4.5 1.609c0 1.752-2.163 3.615-3.49 4.593c-.454.335-.681.502-1.01.502c-.329 0-.556-.167-1.01-.502"/></svg></a></nav>
+</div>
+<div class="widgets">
+
+<widget class="widget-wrapper toc single" id="data-toc" collapse="false"><div class="widget-header dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Hessian-%E5%8D%8F%E8%AE%AE%E4%BB%8B%E7%BB%8D"><span class="toc-text">Hessian 协议介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Hessian-%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8"><span class="toc-text">Hessian 基本使用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E4%BA%8E-Servlet"><span class="toc-text">基于 Servlet</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B4%E5%90%88-Spring"><span class="toc-text">整合 Spring</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9C%8D%E5%8A%A1%E7%AB%AF%E9%A1%B9%E7%9B%AE"><span class="toc-text">服务端项目</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%A2%E6%88%B7%E7%AB%AF%E9%A1%B9%E7%9B%AE"><span class="toc-text">客户端项目</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BF%90%E8%A1%8C%E5%B9%B6%E6%B5%8B%E8%AF%95"><span class="toc-text">运行并测试</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%87%AA%E5%B0%81%E8%A3%85%E8%B0%83%E7%94%A8"><span class="toc-text">自封装调用</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Hessian"><span class="toc-text">Hessian</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Hessian2"><span class="toc-text">Hessian2</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Burlap"><span class="toc-text">Burlap</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E4%B8%BA-JNDI-%E8%B5%84%E6%BA%90"><span class="toc-text">配置为 JNDI 资源</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Hessian-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90"><span class="toc-text">Hessian 源码解析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#HessianServlet-%E8%A7%A3%E6%9E%90"><span class="toc-text">HessianServlet 解析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#HessianSkeleton-%E8%A7%A3%E6%9E%90"><span class="toc-text">HessianSkeleton 解析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#HessianServiceExporter-%E8%A7%A3%E6%9E%90"><span class="toc-text">HessianServiceExporter 解析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E8%A7%A3%E6%9E%90"><span class="toc-text">序列化与反序列化解析</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BA%8F%E5%88%97%E5%8C%96"><span class="toc-text">序列化</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96"><span class="toc-text">反序列化</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9C%E7%A8%8B%E8%B0%83%E7%94%A8%E8%BF%87%E7%A8%8B%E8%A7%A3%E6%9E%90"><span class="toc-text">远程调用过程解析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B0%83%E7%94%A8%E6%A0%88%E6%80%BB%E7%BB%93"><span class="toc-text">调用栈总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%AB%A0"><span class="toc-text">参考文章</span></a></li></ol></div></div></widget>
+
+
+
+
+
+
+
+<widget class="widget-wrapper post-list"><div class="widget-header dis-select"><span class="name">最近更新</span><a class="cap-action" id="rss" title="Subscribe" href="/atom.xml"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M5 21q-.825 0-1.412-.587T3 19q0-.825.588-1.412T5 17q.825 0 1.413.588T7 19q0 .825-.587 1.413T5 21m13.5 0q-.65 0-1.088-.475T16.9 19.4q-.275-2.425-1.312-4.537T12.9 11.1q-1.65-1.65-3.762-2.687T4.6 7.1q-.65-.075-1.125-.512T3 5.5q0-.65.45-1.062t1.075-.363q3.075.275 5.763 1.563t4.737 3.337q2.05 2.05 3.338 4.738t1.562 5.762q.05.625-.363 1.075T18.5 21m-6 0q-.625 0-1.075-.437T10.85 19.5q-.225-1.225-.787-2.262T8.65 15.35q-.85-.85-1.888-1.412T4.5 13.15q-.625-.125-1.062-.575T3 11.5q0-.65.45-1.075t1.075-.325q1.825.25 3.413 1.063t2.837 2.062q1.25 1.25 2.063 2.838t1.062 3.412q.1.625-.325 1.075T12.5 21"/></svg></a></div><div class="widget-body fs14"><a class="item title" href="/2025/07/12/Java%20%E5%AE%89%E5%85%A8/RASP%20%E7%A0%94%E7%A9%B6%EF%BC%8COpenRasp%20%E5%8E%9F%E7%90%86%E4%B8%8E%E7%BB%95%E8%BF%87/"><span class="title">RASP 研究，OpenRasp 原理与绕过</span></a><a class="item title" href="/2025/06/02/CTF/2025%20D%5E3CTF%20Web%20WP/"><span class="title">2025 D^3CTF Web WP</span></a><a class="item title" href="/2024/09/06/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-JNDI%E6%B3%A8%E5%85%A5%E8%AF%A6%E8%A7%A3/"><span class="title">漏洞篇 - JNDI 注入详解</span></a><a class="item title" href="/2025/02/20/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Hessian%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"><span class="title">漏洞篇 - Hessian 反序列化详解</span></a><a class="item title" href="/2025/05/17/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-SnakeYaml%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"><span class="title">漏洞篇 - SnakeYaml 反序列化</span></a></div></widget>
+</div>
+
+</div></aside><div class="l_main" id="main">
+
+
+
+
+
+<div class="article banner top">
+  <div class="content">
+    
+<div class="top bread-nav footnote"><div class="left"><div class="flex-row" id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a>
+<span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Java-%E5%AE%89%E5%85%A8/">Java 安全</a></div>
+<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2024-11-13T01:40:36.653Z">2024-11-13</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2024-12-17T03:05:31.644Z">2024-12-17</time></span></div></div>
+</div>
+
+    
+    <div class="bottom">
+      <div class="text-area">
+        <h1 class="text title"><span>基础篇 - Hessian 协议详解</span></h1>
+      </div>
+    </div>
+    
+  </div>
+  </div><article class="md-text content"><h2 id="Hessian-协议介绍"><a href="#Hessian-协议介绍" class="headerlink" title="Hessian 协议介绍"></a>Hessian 协议介绍</h2><p>Hessian 协议是一种高效、跨语言的二进制 RPC（Remote Procedure Call，远程过程调用）协议，由 Caucho 公司设计，最早应用于 Java 和 Java 之间的远程调用。其主要特点是使用紧凑的二进制格式传输数据，提供高性能的序列化和反序列化操作，因此适合在网络带宽较低或数据传输效率要求较高的场景中使用。</p>
+<h6 id="Hessian-协议的特点"><a href="#Hessian-协议的特点" class="headerlink" title="Hessian 协议的特点"></a>Hessian 协议的特点</h6><ol>
+<li><strong>跨语言支持</strong>：Hessian 协议设计为跨平台的，支持多种语言，如 Java、Python、C#、PHP 等。不同语言的系统可以通过 Hessian 协议实现远程调用，达到语言无关的通信目的。</li>
+<li><strong>高效的二进制序列化</strong>：与 XML 或 JSON 相比，Hessian 采用二进制格式，不仅能减少数据体积，还能降低解析的开销，从而提升性能。Hessian 使用较少的字节来表示复杂的数据结构，尤其适合需要频繁远程调用的分布式系统。</li>
+<li><strong>轻量化</strong>：Hessian 协议比传统的 SOAP 和 XML-RPC 更轻量，不依赖任何外部配置文件，序列化和反序列化开销低，适合在资源有限的环境中使用。</li>
+<li><strong>良好的兼容性和扩展性</strong>：Hessian 协议设计得非常简单，易于实现，并且可以在不同版本间保持兼容。协议还允许扩展，因此可以添加新类型的数据或特性，而不破坏现有的协议实现。</li>
+</ol>
+<h6 id="Hessian-协议的工作流程"><a href="#Hessian-协议的工作流程" class="headerlink" title="Hessian 协议的工作流程"></a>Hessian 协议的工作流程</h6><ol>
+<li><strong>接口定义</strong>：Hessian 协议一般通过接口来定义服务。服务端实现接口的具体方法，客户端通过代理对象来调用接口的方法，客户端和服务端可以使用相同的接口定义。</li>
+<li><strong>数据编码和传输</strong>：客户端将方法调用和参数编码为二进制流，并通过 HTTP 等协议传输给服务端。服务端接收到数据后，进行解码，然后根据接口调用对应的方法。</li>
+<li><strong>结果返回</strong>：服务端将方法的返回值编码为二进制流，传回客户端，客户端解码后得到返回结果。</li>
+</ol>
+<h6 id="Hessian-协议的数据类型"><a href="#Hessian-协议的数据类型" class="headerlink" title="Hessian 协议的数据类型"></a>Hessian 协议的数据类型</h6><p>Hessian 协议支持多种基本数据类型和复杂数据类型，包括：</p>
+<ul>
+<li>基本类型：<code>int</code>、<code>long</code>、<code>boolean</code>、<code>double</code>等。</li>
+<li>字符串和二进制数据：字符串以 UTF-8 格式编码，二进制数据可以用于传输字节流。</li>
+<li>集合和数组：支持 List、Map、数组等。</li>
+<li>自定义对象：可以将 Java 对象序列化为二进制流传输，前提是客户端和服务端的类结构一致。</li>
+</ul>
+<h6 id="Hessian-协议的优缺点"><a href="#Hessian-协议的优缺点" class="headerlink" title="Hessian 协议的优缺点"></a>Hessian 协议的优缺点</h6><p><strong>优点</strong>：</p>
+<ul>
+<li><strong>性能高</strong>：由于采用二进制序列化，数据传输速度快，适合高频调用的场景。</li>
+<li><strong>跨语言性</strong>：支持多种编程语言间的互通，便于异构系统的集成。</li>
+<li><strong>轻量级</strong>：协议设计简单，序列化和反序列化效率高，占用资源少。</li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li><strong>可读性差</strong>：由于采用二进制格式，数据不可读，调试和排查问题可能较困难。</li>
+<li><strong>生态系统有限</strong>：相较于 gRPC、Thrift 等更广泛的 RPC 框架，Hessian 的支持和使用范围相对较窄。</li>
+<li><strong>复杂性</strong>：自定义对象的序列化要求客户端和服务端具有一致的类结构，可能导致版本兼容性问题。</li>
+</ul>
+<h6 id="使用场景"><a href="#使用场景" class="headerlink" title="使用场景"></a>使用场景</h6><p>Hessian 协议适用于以下场景：</p>
+<ul>
+<li><strong>微服务</strong>：在微服务架构中，通过 Hessian 协议实现服务之间的高效调用。</li>
+<li><strong>移动和 IoT 设备</strong>：对于网络带宽受限的场景（如移动网络或 IoT设 备），Hessian 能显著减少传输的数据量。</li>
+<li><strong>高频调用的企业系统</strong>：在需要频繁调用的场景下，Hessian 协议比 JSON 或 XML 序列化更为高效，能提高系统的整体性能。</li>
+</ul>
+<h2 id="Hessian-基本使用"><a href="#Hessian-基本使用" class="headerlink" title="Hessian 基本使用"></a>Hessian 基本使用</h2><h3 id="基于-Servlet"><a href="#基于-Servlet" class="headerlink" title="基于 Servlet"></a>基于 Servlet</h3><p>Hessian 提供了一个类 com.caucho.hessian.server.HessianServlet ，将 Hessian 服务实现暴露为 Servlet 。因此我们可以让一个 Servlet 通过继承 HessianServlet 来提供 hessian 服务。</p>
+<p>以下是基于注解的实现步骤，首先需要用 maven 创建一个 web 项目：</p>
+<h6 id="添加依赖"><a href="#添加依赖" class="headerlink" title="添加依赖"></a>添加依赖</h6><p>在 <code>pom.xml</code> 中添加 Hessian 依赖，这里使用目前的最新版本 4.0.66 ，以及 Servlet 依赖，4.0 以前是 javax.servlet 包下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;com.caucho&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;hessian&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;4.0.66&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;javax.servlet&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;javax.servlet-api&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;4.0.1&lt;/version&gt;</span><br><span class="line">    &lt;scope&gt;provided&lt;/scope&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+
+<h6 id="定义服务接口"><a href="#定义服务接口" class="headerlink" title="定义服务接口"></a>定义服务接口</h6><p>定义一个远程调用接口，例如 <code>GreetingService</code>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public interface GreetingService &#123;</span><br><span class="line">    String sayHello(String name);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h6 id="实现服务接口"><a href="#实现服务接口" class="headerlink" title="实现服务接口"></a>实现服务接口</h6><p>创建接口的实现类，例如 <code>GreetingServiceImpl</code>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public class GreetingServiceImpl implements GreetingService &#123;</span><br><span class="line">    @Override</span><br><span class="line">    public String sayHello(String name) &#123;</span><br><span class="line">        return &quot;Hello, &quot; + name + &quot;!&quot;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h6 id="创建继承-HessianServlet-的-Servlet"><a href="#创建继承-HessianServlet-的-Servlet" class="headerlink" title="创建继承 HessianServlet 的 Servlet"></a>创建继承 HessianServlet 的 Servlet</h6><p>使用 <code>@WebServlet</code> 注解配置 Servlet，并在 Servlet 中继承 <code>HessianServlet</code> 类来实现 Hessian 服务接口：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">import com.caucho.hessian.server.HessianServlet;</span><br><span class="line">import jakarta.servlet.annotation.WebServlet;</span><br><span class="line"></span><br><span class="line">@WebServlet(&quot;/greeting&quot;)</span><br><span class="line">public class GreetingServiceServlet extends HessianServlet implements GreetingService &#123;</span><br><span class="line">    private final GreetingService greetingService = new GreetingServiceImpl();</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public String sayHello(String name) &#123;</span><br><span class="line">        return greetingService.sayHello(name);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这个类中：</p>
+<ul>
+<li><code>@WebServlet(&quot;/greeting&quot;)</code> 注解将 Servlet 映射到 <code>/greeting</code> URL，客户端可以通过该 URL 调用 Hessian 服务。</li>
+<li><code>GreetingServiceServlet</code> 继承了 <code>HessianServlet</code> 并实现 <code>GreetingService</code> 接口，使得该类既是一个 Servlet，又是一个 Hessian 服务的实现。</li>
+</ul>
+<h6 id="编写客户端代码"><a href="#编写客户端代码" class="headerlink" title="编写客户端代码"></a>编写客户端代码</h6><p>客户端可以使用 <code>HessianProxyFactory</code> 来访问该 Hessian 服务，客户端也需要有一个和服务端一样的 GreetingService 接口：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">import com.caucho.hessian.client.HessianProxyFactory;</span><br><span class="line"></span><br><span class="line">public class HessianClient &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        String url = &quot;http://localhost:8080/ServletBase_war/greeting&quot;; // 替换为实际服务地址</span><br><span class="line">        HessianProxyFactory factory = new HessianProxyFactory();</span><br><span class="line">        try &#123;</span><br><span class="line">            GreetingService service = (GreetingService) factory.create(GreetingService.class, url);</span><br><span class="line">            String result = service.sayHello(&quot;World&quot;);</span><br><span class="line">            System.out.println(result); // 输出: Hello, World!</span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h6 id="部署和运行"><a href="#部署和运行" class="headerlink" title="部署和运行"></a>部署和运行</h6><ol>
+<li>将项目部署到支持 Servlet 的 Web 容器（如 Tomcat）。</li>
+<li>启动服务器，确保服务在 <code>/greeting</code> 路径上发布。</li>
+<li>运行客户端代码，通过 Hessian 协议调用服务端的 <code>sayHello</code> 方法，并接收返回结果。</li>
+</ol>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241105160904482.png">
+
+
+
+<h3 id="整合-Spring"><a href="#整合-Spring" class="headerlink" title="整合 Spring"></a>整合 Spring</h3><p>Spring-web 包内提供了 org.springframework.remoting.caucho.HessianServiceExporter 用来暴露远程调用的接口和实现类。使用该类 export 的 Hessian Service 可以被任何 Hessian Client 访问，因为 Spring 中间没有进行任何特殊处理。</p>
+<p>使用纯注解方式开发基于 Hessian 的 Spring 项目，以下是具体步骤，首先需要用 maven 创建一个 web 项目：</p>
+<h4 id="服务端项目"><a href="#服务端项目" class="headerlink" title="服务端项目"></a>服务端项目</h4><h6 id="1-添加依赖"><a href="#1-添加依赖" class="headerlink" title="1. 添加依赖"></a>1. 添加依赖</h6><p>在服务端项目的 <code>pom.xml</code> 中添加 Spring 和 Hessian 依赖：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- Servlet API --&gt;</span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;javax.servlet&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;javax.servlet-api&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;4.0.1&lt;/version&gt;</span><br><span class="line">    &lt;scope&gt;provided&lt;/scope&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br><span class="line"></span><br><span class="line">&lt;!-- Spring Context --&gt;</span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.springframework&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;spring-context&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;5.2.10.RELEASE&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br><span class="line"></span><br><span class="line">&lt;!-- Spring Web --&gt;</span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.springframework&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;spring-web&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;5.2.10.RELEASE&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br><span class="line"></span><br><span class="line">&lt;!-- Spring Web MVC --&gt;</span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.springframework&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;spring-webmvc&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;5.2.10.RELEASE&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br><span class="line"></span><br><span class="line">&lt;!-- Hessian --&gt;</span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;com.caucho&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;hessian&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;4.0.66&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+
+<h6 id="2-定义服务接口"><a href="#2-定义服务接口" class="headerlink" title="2. 定义服务接口"></a>2. 定义服务接口</h6><p>创建一个服务接口 <code>HelloService</code>，用于定义客户端和服务端共用的接口：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public interface HelloService &#123;</span><br><span class="line">    String sayHello(String name);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h6 id="3-实现服务接口"><a href="#3-实现服务接口" class="headerlink" title="3. 实现服务接口"></a>3. 实现服务接口</h6><p>在服务端项目中，创建 <code>HelloServiceImpl</code> 实现接口：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">import org.springframework.stereotype.Service;</span><br><span class="line"></span><br><span class="line">@Service</span><br><span class="line">public class HelloServiceImpl implements HelloService &#123;</span><br><span class="line">    @Override</span><br><span class="line">    public String sayHello(String name) &#123;</span><br><span class="line">        return &quot;Hello, &quot; + name;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h6 id="4-创建-Spring-配置类"><a href="#4-创建-Spring-配置类" class="headerlink" title="4. 创建 Spring 配置类"></a>4. 创建 Spring 配置类</h6><p>创建 <code>HessianServerConfig</code> 配置类，用于将 <code>HelloService</code> 暴露为 Hessian 服务：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">import org.springframework.context.annotation.Bean;</span><br><span class="line">import org.springframework.context.annotation.ComponentScan;</span><br><span class="line">import org.springframework.context.annotation.Configuration;</span><br><span class="line">import org.springframework.remoting.caucho.HessianServiceExporter;</span><br><span class="line"></span><br><span class="line">@Configuration</span><br><span class="line">@ComponentScan(basePackages = &quot;com.example&quot;) // 使用实际包名</span><br><span class="line">public class HessianServerConfig &#123;</span><br><span class="line"></span><br><span class="line">    private final HelloService helloService;</span><br><span class="line"></span><br><span class="line">    public HessianServerConfig(HelloService helloService) &#123;</span><br><span class="line">        this.helloService = helloService;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Bean(name = &quot;/helloService&quot;)</span><br><span class="line">    public HessianServiceExporter hessianServiceExporter() &#123;</span><br><span class="line">        HessianServiceExporter exporter = new HessianServiceExporter();</span><br><span class="line">        exporter.setService(helloService);</span><br><span class="line">        exporter.setServiceInterface(HelloService.class);</span><br><span class="line">        return exporter;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h6 id="5-配置-Web-启动类"><a href="#5-配置-Web-启动类" class="headerlink" title="5. 配置 Web 启动类"></a>5. 配置 Web 启动类</h6><p>使用 <code>WebApplicationInitializer</code> 配置 <code>DispatcherServlet</code> 并加载 Spring 配置类：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;</span><br><span class="line">import org.springframework.web.servlet.DispatcherServlet;</span><br><span class="line"></span><br><span class="line">import javax.servlet.ServletContext;</span><br><span class="line">import javax.servlet.ServletException;</span><br><span class="line">import javax.servlet.ServletRegistration;</span><br><span class="line">import org.springframework.web.WebApplicationInitializer;</span><br><span class="line"></span><br><span class="line">public class HessianServerInitializer implements WebApplicationInitializer &#123;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void onStartup(ServletContext servletContext) throws ServletException &#123;</span><br><span class="line">        // 初始化 Spring Web 上下文</span><br><span class="line">        AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();</span><br><span class="line">        context.register(HessianServerConfig.class);</span><br><span class="line"></span><br><span class="line">        // 注册 DispatcherServlet</span><br><span class="line">        ServletRegistration.Dynamic dispatcher = servletContext.addServlet(&quot;dispatcher&quot;, new DispatcherServlet(context));</span><br><span class="line">        dispatcher.setLoadOnStartup(1);</span><br><span class="line">        dispatcher.addMapping(&quot;/&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h6 id="6-部署服务端项目"><a href="#6-部署服务端项目" class="headerlink" title="6. 部署服务端项目"></a>6. 部署服务端项目</h6><p>将服务端项目打包并部署到外部的 Tomcat 或其他 Servlet 容器中。</p>
+<ul>
+<li>将项目打包为 <code>.war</code> 文件（如 <code>hessian-server.war</code>），并放置到 Tomcat 的 <code>webapps</code> 目录中。</li>
+<li>启动 Tomcat，确认服务在 <code>/helloService</code> 路径下成功暴露。</li>
+</ul>
+<hr>
+<h4 id="客户端项目"><a href="#客户端项目" class="headerlink" title="客户端项目"></a>客户端项目</h4><h6 id="1-定义服务接口"><a href="#1-定义服务接口" class="headerlink" title="1. 定义服务接口"></a>1. 定义服务接口</h6><p>在客户端项目中，定义与服务端相同的接口 <code>HelloService</code>，以便客户端能识别远程接口：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public interface HelloService &#123;</span><br><span class="line">    String sayHello(String name);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h6 id="2-创建-Spring-配置类"><a href="#2-创建-Spring-配置类" class="headerlink" title="2. 创建 Spring 配置类"></a>2. 创建 Spring 配置类</h6><p>在客户端项目中创建 <code>HessianClientConfig</code> 配置类，使用 <code>HessianProxyFactoryBean</code> 配置远程服务接口：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">import org.springframework.context.annotation.Bean;</span><br><span class="line">import org.springframework.context.annotation.Configuration;</span><br><span class="line">import org.springframework.remoting.caucho.HessianProxyFactoryBean;</span><br><span class="line"></span><br><span class="line">@Configuration</span><br><span class="line">public class HessianClientConfig &#123;</span><br><span class="line"></span><br><span class="line">    @Bean</span><br><span class="line">    public HessianProxyFactoryBean helloService() &#123;</span><br><span class="line">        HessianProxyFactoryBean factory = new HessianProxyFactoryBean();</span><br><span class="line">        factory.setServiceUrl(&quot;http://localhost:8080/SpringWebBase_war/helloService&quot;); // 根据实际服务地址调整</span><br><span class="line">        factory.setServiceInterface(HelloService.class);</span><br><span class="line">        return factory;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h6 id="3-创建客户端启动类"><a href="#3-创建客户端启动类" class="headerlink" title="3. 创建客户端启动类"></a>3. 创建客户端启动类</h6><p>在客户端项目中编写主类，通过 <code>AnnotationConfigApplicationContext</code> 启动 Spring 上下文，并调用远程服务：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">import org.springframework.context.ApplicationContext;</span><br><span class="line">import org.springframework.context.annotation.AnnotationConfigApplicationContext;</span><br><span class="line">import pojo.HelloService;</span><br><span class="line"></span><br><span class="line">public class HessianClientApplication &#123;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        // 初始化 Spring 上下文</span><br><span class="line">        ApplicationContext context = new AnnotationConfigApplicationContext(HessianClientConfig.class);</span><br><span class="line"></span><br><span class="line">        // 获取并调用远程服务</span><br><span class="line">        HelloService helloService = context.getBean(HelloService.class);</span><br><span class="line">        String response = helloService.sayHello(&quot;World&quot;);</span><br><span class="line">        System.out.println(response);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h4 id="运行并测试"><a href="#运行并测试" class="headerlink" title="运行并测试"></a>运行并测试</h4><ol>
+<li><strong>启动服务端</strong>：将服务端项目部署在 Tomcat 或其他支持 Servlet 的容器中。</li>
+<li><strong>启动客户端</strong>：运行 <code>HessianClientApplication</code> 主类。应该会在控制台上看到从远程服务返回的消息。</li>
+</ol>
+<p>这样，就完成了 Hessian 在 Spring 项目中的集成，实现了一个完整的 RPC 调用系统。</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241106100115715.png">
+
+<p>同样的，也可以选择用 SpringBoot 方式启动，其他代码不变，只更改启动类即可。</p>
+<h3 id="自封装调用"><a href="#自封装调用" class="headerlink" title="自封装调用"></a>自封装调用</h3><p>我们可以通过直接使用 <code>HessianInput</code>、<code>HessianOutput</code> 及其变体（如 <code>Hessian2Input</code> 和 <code>Hessian2Output</code>）来实现 Hessian 的序列化和反序列化，从而自定义数据的传输或存储逻辑。</p>
+<h4 id="Hessian"><a href="#Hessian" class="headerlink" title="Hessian"></a>Hessian</h4><p>创建一个 <code>HessianSerializer</code> 工具类，提供 <code>serialize</code> 和 <code>deserialize</code> 方法，利用 <code>HessianOutput</code> 和 <code>HessianInput</code> 来完成序列化和反序列化：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">import com.caucho.hessian.io.HessianInput;</span><br><span class="line">import com.caucho.hessian.io.HessianOutput;</span><br><span class="line"></span><br><span class="line">import java.io.ByteArrayInputStream;</span><br><span class="line">import java.io.ByteArrayOutputStream;</span><br><span class="line">import java.io.IOException;</span><br><span class="line"></span><br><span class="line">public class HessianSerializer &#123;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 将对象序列化为字节数组</span><br><span class="line">     *</span><br><span class="line">     * @param object 要序列化的对象</span><br><span class="line">     * @return 序列化后的字节数组</span><br><span class="line">     * @throws IOException 如果序列化失败</span><br><span class="line">     */</span><br><span class="line">    public static byte[] serialize(Object object) throws IOException &#123;</span><br><span class="line">        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) &#123;</span><br><span class="line">            HessianOutput hessianOutput = new HessianOutput(byteArrayOutputStream);</span><br><span class="line">            hessianOutput.writeObject(object);</span><br><span class="line">            return byteArrayOutputStream.toByteArray();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 将字节数组反序列化为对象</span><br><span class="line">     *</span><br><span class="line">     * @param data 字节数组</span><br><span class="line">     * @return 反序列化后的对象</span><br><span class="line">     * @throws IOException 如果反序列化失败</span><br><span class="line">     */</span><br><span class="line">    public static Object deserialize(byte[] data) throws IOException &#123;</span><br><span class="line">        try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data)) &#123;</span><br><span class="line">            HessianInput hessianInput = new HessianInput(byteArrayInputStream);</span><br><span class="line">            return hessianInput.readObject();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从中可以看出这个 HessianInput&#x2F;HessianOutput 在这种情况下可以替代 ObjectInputStream&#x2F;ObjectOutputStream。</p>
+<p>然后我们来定义一个类，用于序列化和反序列化：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">import java.io.Serializable;</span><br><span class="line"></span><br><span class="line">public class User implements Serializable &#123;</span><br><span class="line">    private String name;</span><br><span class="line">    private int age;</span><br><span class="line"></span><br><span class="line">    // Constructors, Getters, and Setters</span><br><span class="line"></span><br><span class="line">    public User(String name, int age) &#123;</span><br><span class="line">        this.name = name;</span><br><span class="line">        this.age = age;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public String getName() &#123;</span><br><span class="line">        return name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void setName(String name) &#123;</span><br><span class="line">        this.name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public int getAge() &#123;</span><br><span class="line">        return age;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void setAge(int age) &#123;</span><br><span class="line">        this.age = age;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public String toString() &#123;</span><br><span class="line">        return &quot;User&#123;name=&#x27;&quot; + name + &quot;&#x27;, age=&quot; + age + &#x27;&#125;&#x27;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最后是一个主类，调用 HessianSerializer 中的方法，实现序列化和反序列化：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">import java.io.IOException;</span><br><span class="line">import java.util.Arrays;</span><br><span class="line"></span><br><span class="line">public class Main &#123;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            // 创建一个 User 对象</span><br><span class="line">            User user = new User(&quot;Alice&quot;, 30);</span><br><span class="line"></span><br><span class="line">            // 将 User 对象序列化为字节数组</span><br><span class="line">            byte[] serializedData = HessianSerializer.serialize(user);</span><br><span class="line">            System.out.println(&quot;Serialized data: &quot; + serializedData);</span><br><span class="line"></span><br><span class="line">            // 以 Arrays.toString() 的方式输出字节数组内容</span><br><span class="line">            System.out.println(&quot;Serialized data (byte array): &quot; + Arrays.toString(serializedData));</span><br><span class="line"></span><br><span class="line">            // 将字节数组反序列化为 User 对象</span><br><span class="line">            User deserializedUser = (User) HessianSerializer.deserialize(serializedData);</span><br><span class="line">            System.out.println(&quot;Deserialized User: &quot; + deserializedUser);</span><br><span class="line"></span><br><span class="line">        &#125; catch (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行结果：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241106103716595.png">
+
+<p>除了 <code>HessianInput</code> 和 <code>HessianOutput</code>，Hessian 还提供了 <code>Hessian2Input</code> 和 <code>Hessian2Output</code>，以及 Burlap（XML 序列化）方式。</p>
+<h4 id="Hessian2"><a href="#Hessian2" class="headerlink" title="Hessian2"></a>Hessian2</h4><p>同样的来实现一个序列化和反序列化工具类，将 <code>HessianOutput</code> 替换为 <code>Hessian2Output</code>，<code>HessianInput</code> 替换为 <code>Hessian2Input</code> 即可：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">import com.caucho.hessian.io.Hessian2Input;</span><br><span class="line">import com.caucho.hessian.io.Hessian2Output;</span><br><span class="line"></span><br><span class="line">import java.io.ByteArrayInputStream;</span><br><span class="line">import java.io.ByteArrayOutputStream;</span><br><span class="line">import java.io.IOException;</span><br><span class="line"></span><br><span class="line">public class Hessian2Serializer &#123;</span><br><span class="line"></span><br><span class="line">    public static byte[] serialize(Object object) throws IOException &#123;</span><br><span class="line">        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) &#123;</span><br><span class="line">            Hessian2Output hessian2Output = new Hessian2Output(byteArrayOutputStream);</span><br><span class="line">            hessian2Output.writeObject(object);</span><br><span class="line">            hessian2Output.close();</span><br><span class="line">            return byteArrayOutputStream.toByteArray();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static Object deserialize(byte[] data) throws IOException &#123;</span><br><span class="line">        try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data)) &#123;</span><br><span class="line">            Hessian2Input hessian2Input = new Hessian2Input(byteArrayInputStream);</span><br><span class="line">            return hessian2Input.readObject();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>结果：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241106104021790.png">
+
+<p>依然可以成功的序列化和反序列化，只不过序列化数据不一样。</p>
+<h4 id="Burlap"><a href="#Burlap" class="headerlink" title="Burlap"></a>Burlap</h4><p>Burlap 是 Hessian 的一种 XML 格式，可以用于跨语言环境的兼容性。它序列化后的数据是 xml 格式，所以我们用流的 toString 方法来获取序列化数据的字符串格式。</p>
+<p>实现一个序列化和反序列化工具类：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">import java.io.ByteArrayInputStream;</span><br><span class="line">import java.io.ByteArrayOutputStream;</span><br><span class="line">import java.io.IOException;</span><br><span class="line">import java.nio.charset.StandardCharsets;</span><br><span class="line"></span><br><span class="line">import com.caucho.burlap.io.BurlapInput;</span><br><span class="line">import com.caucho.burlap.io.BurlapOutput;</span><br><span class="line"></span><br><span class="line">public class BurlapSerializer &#123;</span><br><span class="line"></span><br><span class="line">    public static String serializeToXmlString(Object object) throws IOException &#123;</span><br><span class="line">        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) &#123;</span><br><span class="line">            BurlapOutput burlapOutput = new BurlapOutput(byteArrayOutputStream);</span><br><span class="line">            burlapOutput.writeObject(object);</span><br><span class="line">            burlapOutput.flush();</span><br><span class="line"></span><br><span class="line">            // 将字节数组转换为字符串</span><br><span class="line">            return byteArrayOutputStream.toString(String.valueOf(StandardCharsets.UTF_8));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static Object deserializeFromXmlString(String xmlData) throws IOException &#123;</span><br><span class="line">        try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(xmlData.getBytes(StandardCharsets.UTF_8))) &#123;</span><br><span class="line">            BurlapInput burlapInput = new BurlapInput(byteArrayInputStream);</span><br><span class="line">            return burlapInput.readObject();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>测试主类：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">import java.io.IOException;</span><br><span class="line"></span><br><span class="line">public class Main &#123;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            // 创建一个 User 对象</span><br><span class="line">            User user = new User(&quot;Alice&quot;, 30);</span><br><span class="line"></span><br><span class="line">            // 将 User 对象序列化为 XML 字符串</span><br><span class="line">            String xmlData = BurlapSerializer.serializeToXmlString(user);</span><br><span class="line">            System.out.println(&quot;Serialized XML data:\n&quot; + xmlData);</span><br><span class="line"></span><br><span class="line">            // 将 XML 字符串反序列化为 User 对象</span><br><span class="line">            User deserializedUser = (User) BurlapSerializer.deserializeFromXmlString(xmlData);</span><br><span class="line">            System.out.println(&quot;Deserialized User: &quot; + deserializedUser);</span><br><span class="line"></span><br><span class="line">        &#125; catch (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>结果：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241106105255460.png">
+
+<p>可以看到序列化后的结果是 xml 格式。</p>
+<h3 id="配置为-JNDI-资源"><a href="#配置为-JNDI-资源" class="headerlink" title="配置为 JNDI 资源"></a>配置为 JNDI 资源</h3><p>还有其他的一些调用方式比如通过 web 服务器（例如 Tomcat ）自带的配置功能用 JNDI 的方式获取 hessian 服务，这里就不做详细介绍了，可以参考：<a target="_blank" rel="noopener" href="https://tomcat.apache.org/tomcat-9.0-doc/jndi-resources-howto.html#web.xml_configuration">Tomcat - JNDI 资源使用方法</a> 。</p>
+<p>在 HessianProxyFactory 的说明文档中也给出了在 Resin 服务器下配置为 JNDI 资源的示例：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241114140333798.png">
+
+<p>这里就不再演示了。</p>
+<h2 id="Hessian-源码解析"><a href="#Hessian-源码解析" class="headerlink" title="Hessian 源码解析"></a>Hessian 源码解析</h2><p>简单的分析一下 Hessian 服务的源码，版本为 4.0.66 。</p>
+<h3 id="HessianServlet-解析"><a href="#HessianServlet-解析" class="headerlink" title="HessianServlet 解析"></a>HessianServlet 解析</h3><p>com.caucho.hessian.server.HessianServlet 是在 Servlet 项目中用到的类，下面来分析一下。</p>
+<p>HessianServlet 继承了 HttpServlet ，却没有重写 doGet 与 doPost 方法，而是 service 方法在发挥作用。init 方法用于初始化。</p>
+<p>init 方法主要是初始化 HessianServlet 的各成员变量：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241111094058638.png"></p>
+<p>我们注意到这里其实有两套相似的成员变量，分别是：</p>
+<p><code>_homeAPI</code>、<code>_homeImpl</code> 和 <code>_homeSkeleton</code> </p>
+<p>以及</p>
+<p><code>_objectAPI</code>、<code>_objectImpl</code> 和 <code>_objectSkeleton</code> </p>
+<p>事实上，它们各自代表了一组与服务端对象相关的接口、实现类和骨架类。这样设计的意义在于为 Hessian 服务支持两种不同类型的远程调用场景，在某些情况下，Hessian 服务可能既需要一个主接口（<code>_homeAPI</code>），也需要一个附加接口（<code>_objectAPI</code>）来扩展主服务的功能。</p>
+<p>通过定义两组接口和实现类，HessianServlet 既可以为主服务（<code>_home</code>）提供基本功能，又可以通过附加服务（<code>_object</code>）扩展服务接口。同时，它确保了每个接口都有专门的骨架类（<code>Skeleton</code>）来处理特定类型的请求，从而使 Hessian 能够灵活地应对复杂的远程调用需求。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br></pre></td><td class="code"><pre><span class="line">public void init(ServletConfig config)</span><br><span class="line">  throws ServletException</span><br><span class="line">&#123;</span><br><span class="line">  super.init(config);</span><br><span class="line">  </span><br><span class="line">  try &#123;</span><br><span class="line">  	// 初始化 _homeImpl</span><br><span class="line">    if (_homeImpl != null) &#123;</span><br><span class="line">    &#125;</span><br><span class="line">    else if (getInitParameter(&quot;home-class&quot;) != null) &#123;</span><br><span class="line">      String className = getInitParameter(&quot;home-class&quot;);</span><br><span class="line"></span><br><span class="line">      Class&lt;?&gt; homeClass = loadClass(className);</span><br><span class="line"></span><br><span class="line">      _homeImpl = homeClass.newInstance();</span><br><span class="line"></span><br><span class="line">      init(_homeImpl);</span><br><span class="line">    &#125;</span><br><span class="line">    else if (getInitParameter(&quot;service-class&quot;) != null) &#123;</span><br><span class="line">      String className = getInitParameter(&quot;service-class&quot;);</span><br><span class="line"></span><br><span class="line">      Class&lt;?&gt; homeClass = loadClass(className);</span><br><span class="line"></span><br><span class="line">      _homeImpl = homeClass.newInstance();</span><br><span class="line"></span><br><span class="line">      init(_homeImpl);</span><br><span class="line">    &#125;</span><br><span class="line">    else &#123;</span><br><span class="line">      if (getClass().equals(HessianServlet.class))</span><br><span class="line">        throw new ServletException(&quot;server must extend HessianServlet&quot;);</span><br><span class="line"></span><br><span class="line">      _homeImpl = this;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">	// 初始化 _homeAPI</span><br><span class="line">    if (_homeAPI != null) &#123;</span><br><span class="line">    &#125;</span><br><span class="line">    else if (getInitParameter(&quot;home-api&quot;) != null) &#123;</span><br><span class="line">      String className = getInitParameter(&quot;home-api&quot;);</span><br><span class="line"></span><br><span class="line">      _homeAPI = loadClass(className);</span><br><span class="line">    &#125;</span><br><span class="line">    else if (getInitParameter(&quot;api-class&quot;) != null) &#123;</span><br><span class="line">      String className = getInitParameter(&quot;api-class&quot;);</span><br><span class="line"></span><br><span class="line">      _homeAPI = loadClass(className);</span><br><span class="line">    &#125;</span><br><span class="line">    else if (_homeImpl != null) &#123;</span><br><span class="line">      _homeAPI = findRemoteAPI(_homeImpl.getClass());</span><br><span class="line"></span><br><span class="line">      if (_homeAPI == null)</span><br><span class="line">        _homeAPI = _homeImpl.getClass();</span><br><span class="line">      </span><br><span class="line">      _homeAPI = _homeImpl.getClass();</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    // 初始化 _objectImpl</span><br><span class="line">    if (_objectImpl != null) &#123;</span><br><span class="line">    &#125;</span><br><span class="line">    else if (getInitParameter(&quot;object-class&quot;) != null) &#123;</span><br><span class="line">      String className = getInitParameter(&quot;object-class&quot;);</span><br><span class="line"></span><br><span class="line">      Class&lt;?&gt; objectClass = loadClass(className);</span><br><span class="line"></span><br><span class="line">      _objectImpl = objectClass.newInstance();</span><br><span class="line"></span><br><span class="line">      init(_objectImpl);</span><br><span class="line">    &#125;</span><br><span class="line">	// 初始化 _objectAPI</span><br><span class="line">    if (_objectAPI != null) &#123;</span><br><span class="line">    &#125;</span><br><span class="line">    else if (getInitParameter(&quot;object-api&quot;) != null) &#123;</span><br><span class="line">      String className = getInitParameter(&quot;object-api&quot;);</span><br><span class="line"></span><br><span class="line">      _objectAPI = loadClass(className);</span><br><span class="line">    &#125;</span><br><span class="line">    else if (_objectImpl != null)</span><br><span class="line">      _objectAPI = _objectImpl.getClass();</span><br><span class="line"></span><br><span class="line">	// 初始化 _homeSkeleton</span><br><span class="line">    _homeSkeleton = new HessianSkeleton(_homeImpl, _homeAPI);</span><br><span class="line">    </span><br><span class="line">    if (_objectAPI != null)</span><br><span class="line">      _homeSkeleton.setObjectClass(_objectAPI);</span><br><span class="line"></span><br><span class="line">	// 初始化 _objectSkeleton</span><br><span class="line">    if (_objectImpl != null) &#123;</span><br><span class="line">      _objectSkeleton = new HessianSkeleton(_objectImpl, _objectAPI);</span><br><span class="line">      _objectSkeleton.setHomeClass(_homeAPI);</span><br><span class="line">    &#125;</span><br><span class="line">    else</span><br><span class="line">      _objectSkeleton = _homeSkeleton;</span><br><span class="line"></span><br><span class="line">    if (&quot;true&quot;.equals(getInitParameter(&quot;debug&quot;))) &#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    if (&quot;false&quot;.equals(getInitParameter(&quot;send-collection-type&quot;)))</span><br><span class="line">      setSendCollectionType(false);</span><br><span class="line">  &#125; catch (ServletException e) &#123;</span><br><span class="line">    throw e;</span><br><span class="line">  &#125; catch (Exception e) &#123;</span><br><span class="line">    throw new ServletException(e);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里使用了 HessianServlet 自定义的 loadClass 和 getContextClassLoader 方法，从当前线程中获取类加载器：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241111094727197.png"></p>
+<p>如 su18 师傅所说，主要是有两个原因：</p>
+<ol>
+<li><p><strong>保证类加载的一致性</strong>： 在一些复杂环境下，尤其是应用服务器或容器中，系统可能会引入自定义的类加载器来对类进行重新加载、隔离或增强。比如在微服务、插件式架构或其他需要动态加载的场景中，用户的类可能会被不同的类加载器重新加载，造成类不一致的问题。这种自定义的 <code>loadClass</code> 方法通过指定类加载器的来源，确保加载到的是期望的类，而不是可能被“魔改”的类。</p>
+</li>
+<li><p><strong>利用线程上下文的类加载器快速定位用户的类</strong>： 在 Java 应用中，通常可以通过 <code>Thread.currentThread().getContextClassLoader()</code> 来获取当前线程的上下文类加载器（通常是 <code>AppClassLoader</code>），这是加载用户类的默认类加载器。相比直接使用 <code>SystemClassLoader</code>，这种方式会更快速地找到当前应用需要的类。由于 <code>AppClassLoader</code> 通常直接与用户代码绑定，这种方法保证了 <code>HessianServlet</code> 能快速、准确地访问到应用中定义的类，而不必依赖于更高层次的类加载器（如 <code>BootStrapClassLoader</code> 或 <code>ExtClassLoader</code>），从而减少不必要的加载和可能的冲突。</p>
+</li>
+</ol>
+<p>这种设计可以让 HessianServlet 在不同的类加载器环境中工作时更稳定，同时更高效地访问应用的自定义类。</p>
+<p>接下来是 HessianServlet 的 service 方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241111095814183.png">
+
+<p>可以看到，如果请求方式不是 POST ，直接返回 500 状态码，也就是说这边只能用 POST 方式来请求服务。在获取了 objectId 和 serializerFactory 之后，实际调用 invoke 方法来进行处理。</p>
+<p>HessianServlet 的 invoke 方法根据 objectId 的不同，选择调用其成员属性 _objectSkeleton 还是 _homeSkeleton 来处理：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241111100531570.png">
+
+<p>而这两者都是 HessianSkeleton 类型，所以接下来毫无疑问会进入 HessianSkeleton 的 invoke 方法。Skeleton 一般表示服务端用于处理客户端请求的“骨架”。</p>
+<h3 id="HessianSkeleton-解析"><a href="#HessianSkeleton-解析" class="headerlink" title="HessianSkeleton 解析"></a>HessianSkeleton 解析</h3><p>HessianSkeleton 初始化时先调用父类 AbstractSkeleton 的初始化方法，然后将当前提供远程服务的 Servlet 类封装到成员变量 _service 中：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241111104527959.png">
+
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241111104553015.png">
+
+<p>而其父类 AbstractSkeleton 初始化时则会将当前提供服务的 Servlet 类的所有方法和参数放进成员变量 _methodMap 中：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241111105152079.png">
+
+<p>调试起来可以知道这里的 apiClass 就是 GreetingServiceServlet ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241111105117568.png">
+
+<p>接着来看 HessianSkeleton 的 invoke 方法，HessianServlet 最终是调用到 HessianSkeleton 的 invoke(InputStream, OutputStream, SerializerFactory) 方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241111105705482.png">
+
+<p>这个方法主要是根据 header 字段的不同，通过不同的方式获取到序列化与反序列化字节流，并最终调用 <code>invoke(Object, AbstractHessianInput, AbstractHessianOutput)</code> 来处理。从处理方式也可以看出是兼容了 hessian 1.0 和 hessian 2.0 。</p>
+<p>invoke(Object, AbstractHessianInput, AbstractHessianOutput) 方法则是将参数反序列化，进行远程方法的调用并将结果写入序列化字节流：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br></pre></td><td class="code"><pre><span class="line">public void invoke(Object service,</span><br><span class="line">                   AbstractHessianInput in,</span><br><span class="line">                   AbstractHessianOutput out)</span><br><span class="line">  throws Exception</span><br><span class="line">&#123;</span><br><span class="line">  ServiceContext context = ServiceContext.getContext();</span><br><span class="line"></span><br><span class="line">  // backward compatibility for some frameworks that don&#x27;t read</span><br><span class="line">  // the call type first</span><br><span class="line">  in.skipOptionalCall();</span><br><span class="line"></span><br><span class="line">  // Hessian 1.0 backward compatibility</span><br><span class="line">  // Hessian 1.0 向后兼容性处理，循环读取客户端传递的请求头信息并存储在 ServiceContext 中。</span><br><span class="line">  String header;</span><br><span class="line">  while ((header = in.readHeader()) != null) &#123;</span><br><span class="line">    Object value = in.readObject();</span><br><span class="line"></span><br><span class="line">    context.addHeader(header, value);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  // 读取客户端请求的远程方法名 methodName 和参数个数 argLength</span><br><span class="line">  String methodName = in.readMethod();</span><br><span class="line">  int argLength = in.readMethodArgLength();</span><br><span class="line"></span><br><span class="line">  Method method;</span><br><span class="line"></span><br><span class="line">  // 尝试根据方法名和参数数量组合（如 methodName__argLength）查找对应的方法</span><br><span class="line">  method = getMethod(methodName + &quot;__&quot; + argLength);</span><br><span class="line">  // 如果没有找到，则仅使用方法名进行查找，以便兼容不同参数的重载方法。</span><br><span class="line">  if (method == null)</span><br><span class="line">    method = getMethod(methodName);</span><br><span class="line"></span><br><span class="line">  if (method != null) &#123;</span><br><span class="line">  &#125;</span><br><span class="line">  // 如果请求的方法名为 _hessian_getAttribute，则认为这是一个特殊的系统调用，</span><br><span class="line">  // 用于获取服务的特定属性（如 java.api.class、java.home.class 等），返回相应的属性值。</span><br><span class="line">  else if (&quot;_hessian_getAttribute&quot;.equals(methodName)) &#123;</span><br><span class="line">    String attrName = in.readString();</span><br><span class="line">    in.completeCall();</span><br><span class="line"></span><br><span class="line">    String value = null;</span><br><span class="line"></span><br><span class="line">    if (&quot;java.api.class&quot;.equals(attrName))</span><br><span class="line">      value = getAPIClassName();</span><br><span class="line">    else if (&quot;java.home.class&quot;.equals(attrName))</span><br><span class="line">      value = getHomeClassName();</span><br><span class="line">    else if (&quot;java.object.class&quot;.equals(attrName))</span><br><span class="line">      value = getObjectClassName();</span><br><span class="line"></span><br><span class="line">    out.writeReply(value);</span><br><span class="line">    out.close();</span><br><span class="line">    return;</span><br><span class="line">  &#125;</span><br><span class="line">  else if (method == null) &#123;</span><br><span class="line">    out.writeFault(&quot;NoSuchMethodException&quot;,</span><br><span class="line">                   escapeMessage(&quot;The service has no method named: &quot; + in.getMethod()),</span><br><span class="line">                   null);</span><br><span class="line">    out.close();</span><br><span class="line">    return;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  Class&lt;?&gt; []args = method.getParameterTypes();</span><br><span class="line"></span><br><span class="line">  if (argLength != args.length &amp;&amp; argLength &gt;= 0) &#123;</span><br><span class="line">    out.writeFault(&quot;NoSuchMethod&quot;,</span><br><span class="line">                   escapeMessage(&quot;method &quot; + method + &quot; argument length mismatch, received length=&quot; + argLength),</span><br><span class="line">                   null);</span><br><span class="line">    out.close();</span><br><span class="line">    return;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  Object []values = new Object[args.length];</span><br><span class="line"></span><br><span class="line">  // 将参数值反序列化保存在 values 数组中。</span><br><span class="line">  for (int i = 0; i &lt; args.length; i++) &#123;</span><br><span class="line">    // XXX: needs Marshal object</span><br><span class="line">    values[i] = in.readObject(args[i]);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  Object result = null;</span><br><span class="line"></span><br><span class="line">  try &#123;</span><br><span class="line">    // 方法调用</span><br><span class="line">    result = method.invoke(service, values);</span><br><span class="line">  &#125; catch (Exception e) &#123;</span><br><span class="line">    Throwable e1 = e;</span><br><span class="line">    if (e1 instanceof InvocationTargetException)</span><br><span class="line">      e1 = ((InvocationTargetException) e).getTargetException();</span><br><span class="line"></span><br><span class="line">    log.log(Level.FINE, this + &quot; &quot; + e1.toString(), e1);</span><br><span class="line"></span><br><span class="line">    out.writeFault(&quot;ServiceException&quot;, </span><br><span class="line">                   escapeMessage(e1.getMessage()), </span><br><span class="line">                   e1);</span><br><span class="line">    out.close();</span><br><span class="line">    return;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  // The complete call needs to be after the invoke to handle a</span><br><span class="line">  // trailing InputStream</span><br><span class="line">  in.completeCall();</span><br><span class="line"></span><br><span class="line">  // 结果写入序列化字节流</span><br><span class="line">  out.writeReply(result);</span><br><span class="line"></span><br><span class="line">  out.close();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="HessianServiceExporter-解析"><a href="#HessianServiceExporter-解析" class="headerlink" title="HessianServiceExporter 解析"></a>HessianServiceExporter 解析</h3><p>org.springframework.remoting.caucho.HessianServiceExporter 是在 Spring 项目中用来提供 hessian 服务的关键类，下面来看它的源码。</p>
+<p>HessianServiceExporter 实现了 HttpRequestHandler 接口，重写了 handleRequest 方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241111134750780.png">
+
+<p>这边也是一样只能用 POST 方式请求。然后将请求和响应的字节流传入父类的 invoke 方法进行处理。</p>
+<p>父类 HessianExporter 的 invoke 方法也是直接调用 doInvoke ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241111134946571.png">
+
+<p>HessianExporter 的 doInvoke 方法流程其实跟 HessianSkeleton 的 invoke(InputStream, OutputStream, SerializerFactory) 方法差不多，最后调用到 HessianSkeleton 的 invoke(AbstractHessianInput, AbstractHessianOutput) 方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241111135754296.png">
+
+<p>后续就是调 HessianSkeleton 的 invoke(Object, AbstractHessianInput, AbstractHessianOutput) 方法，前面已经分析过了。</p>
+<h3 id="序列化与反序列化解析"><a href="#序列化与反序列化解析" class="headerlink" title="序列化与反序列化解析"></a>序列化与反序列化解析</h3><p>Hessian 提供了 AbstractHessianInput&#x2F;AbstractHessianOutput 两个接口来实现序列化和反序列化功能。Hessian&#x2F;Hessian2&#x2F;Burlap 都有各自的实现逻辑。</p>
+<h4 id="序列化"><a href="#序列化" class="headerlink" title="序列化"></a>序列化</h4><p>先来看序列化，AbstractHessianOutput 提供了一系列 writeXxx 方法来将不同类型的数据序列化：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241111142119754.png">
+
+<p>以其实现类 Hessian2Output 为例，writeObject 方法实现了将对象序列化的功能：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241111142613240.png">
+
+<p>这里是先根据对象的类型获取了一个序列化器 Serializer ，然后调用其 writeObject 方法。</p>
+<p>查看 com.caucho.hessian.io.Serializer 的继承关系可知，一共有这么些序列化器用来处理不同类型的数据：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241111143915414.png">
+
+<p>不过对于自定义的类，将会使用 JavaSerializer&#x2F;UnsafeSerializer&#x2F;JavaUnsharedSerializer 进行相关的序列化动作，默认情况下是 UnsafeSerializer ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241111150124292.png">
+
+<p>既然默认调用到的是 UnsafeSerializer 的 writeObject 方法，我们就来关注一下它：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public void writeObject(Object obj, AbstractHessianOutput out) throws IOException &#123;</span><br><span class="line">  // 检查是否已经序列化过该对象</span><br><span class="line">  if (out.addRef(obj)) &#123;  // 如果已序列化过则直接写引用（避免重复序列化相同对象）</span><br><span class="line">    return;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  // 获取对象的类信息</span><br><span class="line">  Class&lt;?&gt; cl = obj.getClass();</span><br><span class="line"></span><br><span class="line">  // 写入对象的初始定义并获取引用</span><br><span class="line">  int ref = out.writeObjectBegin(cl.getName());</span><br><span class="line"></span><br><span class="line">  // 根据 Hessian 协议版本做不同处理</span><br><span class="line">  if (ref &gt;= 0) &#123;</span><br><span class="line">    // 如果 ref &gt;= 0，表示该对象已经写入过结构定义，仅需要写入实例</span><br><span class="line">    writeInstance(obj, out);</span><br><span class="line">  &#125; else if (ref == -1) &#123;</span><br><span class="line">    // 如果 ref == -1，表示是 Hessian 2.0 的初次定义，需写入对象的结构定义</span><br><span class="line">    writeDefinition20(out);         // 定义对象结构（字段名和类型）</span><br><span class="line">    out.writeObjectBegin(cl.getName());  // 再次标记对象起始</span><br><span class="line">    writeInstance(obj, out);             // 写入实例字段值</span><br><span class="line">  &#125; else &#123;</span><br><span class="line">    // 如果 ref &lt; 0，表示使用 Hessian 1.0 协议格式进行序列化</span><br><span class="line">    writeObject10(obj, out);        // 使用 Hessian 1.0 写入完整对象数据</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Hessian2Output 是调用 writeObjectBegin 将对象标记为 Object 类型，也即在开头写入 Object 标识符，并最终调用 writeInstance 来处理。而在  Hessian 1.0 和 Burlap 中，写入自定义数据类型（Object）时，都会调用 writeMapBegin 方法将其标记为 Map 类型，也即在开头写入 Map 标识符。从序列化的差异也能猜出反序列化的不同。</p>
+<p>UnsafeSerializer 的 writeInstance 方法则是遍历其成员属性 _fieldSerializers 中的每一个序列化器，都调用其 serialize 方法处理一遍：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241111153534047.png">
+
+<p>成员属性 _fieldSerializers 中的序列化器则可以是其内部定义的任何序列化器：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241111154018739.png"></p>
+<p>那么 _fieldSerializers 是如何赋值的呢？</p>
+<p>构造方法 -&gt; introspect(Class&lt;?&gt; cl) -&gt; getFieldSerializer(Field field) 根据不同的字段类型获取不同的内部 Serializer 。</p>
+<p>字段类型从哪来？</p>
+<p>字段类型来自于类的属性类型，比如一个序列化的类有 String 和 int 两种类型的属性，那么就会获取到 StringFieldSerializer 和 IntFieldSerializer 两种序列化器。</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241111155404664.png">
+
+<p>而在序列化器中，对于基本类型的属性的序列化，事实上最终还是调用到 Hessian2Output 的 writeXxx ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241111155832988.png">
+
+<p>对于对象的序列化，最终调用 Hessian2Output 的 writeObject ，又是一个新的轮回，再次解构字段的字段。</p>
+<p>AbstractHessianOutput 其实提供了 writeObjectBegin 方法，只不过里面是直接调用 writeMapBegin ：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241112093518661.png">
+
+<p>Hessian2Output 重写了此 writeObjectBegin 方法，给出了具体的实现。而在 hessian 1.0 版本中，HessianOutput 并没有重写此方法，所以当 UnsafeSerializer 的 writeObject 方法调用 HessianOutput 的 writeObjectBegin 方法时，实际上是调用 writeMapBegin 写入 Map 标识符。</p>
+<h4 id="反序列化"><a href="#反序列化" class="headerlink" title="反序列化"></a>反序列化</h4><p>反序列化的关键方法是 AbstractHessianInput#readObject() ，我们主要关注其实现类 Hessian2Input 的 readObject() 方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241112094932794.png">
+
+<p>先从流中读取第一个字符，根据不同的首字符调用不同的处理逻辑。比如第一个字符是 C ，则进入对象的处理逻辑：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241112100627079.png"></p>
+<p>再一次进入 readObject ，根据运算得到 tag 为 96 ，进入下面的处理逻辑：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241112100824184.png">
+
+<p>于是接着调用 readObjectInstance 方法，从流中获取类型和字段：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241112101157737.png">
+
+<p>接着调用 readObject(AbstractHessianInput, Object[]) 方法，实例化该对象：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241112101507726.png">
+
+<p>instantiate() 中使用 _unsafe 直接创建类实例：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241112101603733.png">
+
+<p>最后调用 readObject(AbstractHessianInput, Object, FieldDeserializer2[]) 反序列化字段值：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241112101700816.png">
+
+<p>这里面实际上也是用 unsafe 写入字段值：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241112101753969.png">
+
+<p>至此，Hessian2Input 的反序列化就完成了。</p>
+<p>那么 HessianInput 跟它的差异在哪里呢？</p>
+<p>前面提到，对于自定义对象，HessianOutput 会调用 writeMapBegin 写入 Map 标识符。所以反序列化时读到的第一个字符也是 Map 标识。实际上 HessianInput 是调用 readMap 来处理的，也就是说 hessian 1.0 把对象看作 Map 集合来序列化和反序列化：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241112102632257.png">
+
+<p>而 SerializerFactory#readMap(AbstractHessianInput, String) 也是直接调到 UnsafeDeserializer#readMap(AbstractHessianInput)：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241112102821104.png">
+
+<p>UnsafeDeserializer#readMap(AbstractHessianInput) 实际上跟前面相似，先用 unsafe 创建对象，再调用 readMap(AbstractHessianInput, Object) 通过 unsafe 注入字段值：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241112103058339.png">
+
+<p>readMap(AbstractHessianInput, Object) 从流中获取 key（即字段名） ，从 _fieldMap 中根据 key 获取 value（即字段值），然后通过 unsafe 将值注入：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241112104844519.png">
+
+<p>这就是 hessain 1.0 的反序列化流程。</p>
+<h3 id="远程调用过程解析"><a href="#远程调用过程解析" class="headerlink" title="远程调用过程解析"></a>远程调用过程解析</h3><p>就以 Servlet 方式为例，我们来分析一下客户端的远程调用逻辑，客户端代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">import com.caucho.hessian.client.HessianProxyFactory;</span><br><span class="line"></span><br><span class="line">public class HessianClient &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        String url = &quot;http://localhost:8080/ServletBase_war/greeting&quot;; // 替换为实际服务地址</span><br><span class="line">        HessianProxyFactory factory = new HessianProxyFactory();</span><br><span class="line">        try &#123;</span><br><span class="line">            GreetingService service = (GreetingService) factory.create(GreetingService.class, url);</span><br><span class="line">            String result = service.sayHello(&quot;World&quot;);</span><br><span class="line">            System.out.println(result); // 输出: Hello, World!</span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里关键的类是 HessianProxyFactory ，我们用它的 create 方法就获取到了远程对象。</p>
+<p>经过一系列重构方法的调用，最终是调用到 create(Class&lt;?&gt;, URL, ClassLoader) 方法，可以看到是利用 HessianProxy 创建了一个代理对象并返回：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241112113048224.png">
+
+<p>那么这个代理对象的任意方法被调用都会触发 HessianProxy 的 invoke 方法。</p>
+<p>在客户端代码中，接下来就会调用这个代理对象的方法，所以 invoke 方法一定会被触发，我们来关注一下 HessianProxy 的 invoke 方法，只需要关注几个重点就可以了。</p>
+<p>主要是调用 sendRequest 发送请求，然后接收响应并反序列化字节流：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241112114455239.png">
+
+<p>而 sendRequest 方法中主要是调用 call 方法将参数序列化写入字节流，最后调用 conn.sendRequest() 将请求发送至服务器：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241112115009089.png">
+
+<p>call 方法：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20241112115040424.png">
+
+<p>大致的过程就是这样。</p>
+<p>服务端的处理逻辑就是调用 HessianServlet 的 service 方法来处理请求 ，前面已经分析过了。</p>
+<h3 id="调用栈总结"><a href="#调用栈总结" class="headerlink" title="调用栈总结"></a>调用栈总结</h3><p>Servlet Hessian 客户端调用栈：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">-&gt; HessianProxyFactory#create(Class, String)</span><br><span class="line">   HessianProxyFactory#create(Class&lt;?&gt;, String, ClassLoader)</span><br><span class="line">   HessianProxyFactory#create(Class&lt;?&gt;, URL, ClassLoader) # 返回代理对象</span><br><span class="line">-&gt; HessianProxy#invoke(Object, Method, Object[]) # 建立连接，发送请求并接收响应</span><br><span class="line">   HessianProxy#sendRequest(String, Object[])</span><br><span class="line">   -&gt; HessianOutput#call(String, Object[]) # 参数序列化</span><br><span class="line">   -&gt; HessianURLConnection#sendRequest() # 向服务端发送请求</span><br></pre></td></tr></table></figure>
+
+<p>Servlet Hessian 服务端调用栈：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">HessianServlet#service(ServletRequest, ServletResponse)</span><br><span class="line">HessianServlet#invoke(InputStream, OutputStream, String, SerializerFactory)</span><br><span class="line">HessianSkeleton#invoke(InputStream, OutputStream, SerializerFactory)</span><br><span class="line">HessianSkeleton#invoke(Object, AbstractHessianInput, AbstractHessianOutput) # 参数反序列化，方法执行，结果返回</span><br></pre></td></tr></table></figure>
+
+<p>Spring Hessian 服务端调用栈：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">HessianServiceExporter#handleRequest(HttpServletRequest, HttpServletResponse)</span><br><span class="line">HessianExporter#invoke(InputStream, OutputStream)</span><br><span class="line">HessianExporter#doInvoke(HessianSkeleton, InputStream, OutputStream)</span><br><span class="line">HessianSkeleton#invoke(AbstractHessianInput, AbstractHessianOutput)</span><br><span class="line">HessianSkeleton#invoke(Object, AbstractHessianInput, AbstractHessianOutput) # 参数反序列化，方法执行，结果返回</span><br></pre></td></tr></table></figure>
+
+<p>Hessian2Output 序列化调用栈：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Hessian2Output#writeObject(Object)</span><br><span class="line">UnsafeSerializer#writeObject(Object, AbstractHessianOutput)</span><br><span class="line">-&gt; Hessian2Output#writeObjectBegin(String) # 开头写入对象标识符</span><br><span class="line">-&gt; UnsafeSerializer#writeInstance(Object, AbstractHessianOutput) # 序列化字段值</span><br></pre></td></tr></table></figure>
+
+<p>Hessian2Output 反序列化调用栈：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Hessian2Input#readObject()</span><br><span class="line">Hessian2Input#readObject() # 再次调用</span><br><span class="line">Hessian2Input#readObjectInstance(Class&lt;?&gt;, ObjectDefinition)</span><br><span class="line">UnsafeDeserializer#readObject(AbstractHessianInput, Object[])</span><br><span class="line">-&gt; UnsafeDeserializer#instantiate() # 使用 unsafe 创建类实例</span><br><span class="line">-&gt; UnsafeDeserializer#readObject(AbstractHessianInput, Object, FieldDeserializer2[])</span><br><span class="line">   FieldDeserializer2FactoryUnsafe$XxxFieldDeserializer#deserialize(AbstractHessianInput, Object) # 使用 unsafe 写入字段值</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><p><a target="_blank" rel="noopener" href="https://www.javasec.org/java-vuls/Hessian.html">su18 - Hessian 反序列化漏洞</a></p>
+<p><a target="_blank" rel="noopener" href="https://tomcat.apache.org/tomcat-9.0-doc/jndi-resources-howto.html#web.xml_configuration">Tomcat - JNDI 资源使用方法</a></p>
+
+
+</article>
+<div class="related-wrap" id="read-next"><section class="body"><div class="item" id="prev"><div class="note">较新文章</div><a href="/2025/01/03/CVE%20%E5%88%86%E6%9E%90/CVE-2024-52046%20Apache%20mina%20%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/">CVE-2024-52046 - Apache Mina 漏洞分析</a></div><div class="item" id="next"><div class="note">较早文章</div><a href="/2024/10/31/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-JavaAgent%E5%86%85%E5%AD%98%E9%A9%AC/">漏洞篇 - JavaAgent 内存马</a></div></section></div>
+
+
+
+
+
+
+<footer class="page-footer footnote"><hr><div class="text"><p>本站由 <a href="/">妙尽璇机</a> 使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.26.8">Stellar 1.26.8</a> 主题创建。<br>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+</div></footer>
+<div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 11c0-3.771 0-5.657 1.172-6.828C4.343 3 6.229 3 10 3h4c3.771 0 5.657 0 6.828 1.172C22 5.343 22 7.229 22 11v2c0 3.771 0 5.657-1.172 6.828C19.657 21 17.771 21 14 21h-4c-3.771 0-5.657 0-6.828-1.172C2 18.657 2 16.771 2 13z"/><path id="sep" stroke-linecap="round" d="M5.5 10h6m-5 4h4m4.5 7V3"/></g></svg>
+  </button>
+</div>
+<div class="main-mask" onclick="sidebar.toggle()"></div></div></div><div class="scripts">
+<script type="text/javascript">
+  const stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      if (src.startsWith('/')){
+        src = stellar.config.root + src.substring(1);
+      }
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.version = '1.26.8';
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.26.8';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+    root : '/',
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js'
+  };
+
+  if ('local_search') {
+    stellar.search = {};
+    stellar.search.service = 'local_search';
+    if (stellar.search.service == 'local_search') {
+      let service_obj = Object.assign({}, {"field":"all","path":"/search.json","content":true,"sort":"-date"});
+      stellar.search[stellar.search.service] = service_obj;
+    }
   }
-  .l_body {
-    padding: 0;
+
+  // stellar js
+  stellar.plugins.stellar = Object.assign({"sites":"/js/plugins/sites.js","friends":"/js/plugins/friends.js","ghinfo":"/js/plugins/ghinfo.js","timeline":"/js/plugins/timeline.js","linkcard":"/js/plugins/linkcard.js","fcircle":"/js/plugins/fcircle.js","weibo":"/js/plugins/weibo.js","memos":"/js/plugins/memos.js","marked":"/js/plugins/marked.js"});
+
+  stellar.plugins.marked = Object.assign("https://cdn.bootcdn.net/ajax/libs/marked/4.0.18/marked.min.js");
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.bootcdn.net/ajax/libs/vanilla-lazyload/17.8.4/lazyload.min.js","transition":"fade"});
   }
-  .l_body .l_left {
-    position: fixed;
-    transform: translateX(-320px);
-    margin: 0;
-    left: 8px;
-    box-shadow: $boxshadow-card-float;
-    z-index: 10;
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@10.3/swiper-bundle.min.css","js":"https://unpkg.com/swiper@10.3/swiper-bundle.min.js"});
   }
-  .l_body .l_main {
-    max-width: 100%;
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.bootcdn.net/ajax/libs/scrollReveal.js/4.0.9/scrollreveal.min.js","distance":"16px","duration":800,"interval":100,"scale":1});
   }
-  .l_body.mobile .l_left {
-    transition: transform 0.38s ease-out;
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","flying_pages":"https://cdn.bootcdn.net/ajax/libs/flying-pages/2.1.2/flying-pages.min.js"});
   }
-  .l_body.mobile.sidebar .l_left {
-    transform: translateX(0px);
+  if ('true' == 'true') {
+    stellar.plugins.fancybox = Object.assign({"enable":true,"js":"https://cdn.bootcdn.net/ajax/libs/fancyapps-ui/5.0.22/fancybox/fancybox.umd.min.js","css":"https://cdn.bootcdn.net/ajax/libs/fancyapps-ui/5.0.22/fancybox/fancybox.min.css","selector":null});
   }
-  .l_body.mobile.sidebar .main-mask {
-    opacity: 1;
-    pointer-events: inherit;
+  if ('false' == 'true') {
+    stellar.plugins.heti = Object.assign({"enable":false,"css":"https://unpkg.com/heti@0.9.2/umd/heti.min.css","js":"https://unpkg.com/heti@0.9.2/umd/heti-addon.min.js"});
   }
-}
+  if ('true' == 'true') {
+    stellar.plugins.copycode = Object.assign({"enable":true,"js":"/js/plugins/copycode.js","default_text":"Copy","success_text":"Copied","toast":"复制成功"});
+  }
+</script>
+
+<!-- required -->
+<script src="/js/main.js?v=1.26.8" async></script>
+
+<!-- optional -->
+
+
+
+
+
+
+<!-- inject -->
+<script type="text/javascript" src="/custom/js/ZYCode.js"></script>
+</div></body></html>

