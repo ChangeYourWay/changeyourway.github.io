@@ -70,7 +70,7 @@
     <link href="https://changeyourway.github.io/2025/05/17/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-SnakeYaml%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"/>
     <id>https://changeyourway.github.io/2025/05/17/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-SnakeYaml%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/</id>
     <published>2025-05-17T15:57:00.988Z</published>
-    <updated>2025-07-23T02:25:34.366Z</updated>
+    <updated>2025-07-23T02:42:24.665Z</updated>
     
     
       
@@ -429,7 +429,7 @@
     <link href="https://changeyourway.github.io/2024/09/06/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-JNDI%E6%B3%A8%E5%85%A5%E8%AF%A6%E8%A7%A3/"/>
     <id>https://changeyourway.github.io/2024/09/06/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-JNDI%E6%B3%A8%E5%85%A5%E8%AF%A6%E8%A7%A3/</id>
     <published>2024-09-06T07:52:13.151Z</published>
-    <updated>2025-05-22T07:44:20.146Z</updated>
+    <updated>2025-07-26T02:48:48.663Z</updated>
     
     
       
@@ -460,7 +460,7 @@
     <link href="https://changeyourway.github.io/2024/08/28/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-ysoserial%E7%9A%84JRMP%E6%A8%A1%E5%9D%97%E5%88%86%E6%9E%90/"/>
     <id>https://changeyourway.github.io/2024/08/28/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-ysoserial%E7%9A%84JRMP%E6%A8%A1%E5%9D%97%E5%88%86%E6%9E%90/</id>
     <published>2024-08-28T03:30:25.761Z</published>
-    <updated>2024-08-28T03:31:53.041Z</updated>
+    <updated>2025-07-25T15:00:19.566Z</updated>
     
     
       
@@ -486,7 +486,7 @@
     <link href="https://changeyourway.github.io/2024/08/28/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-RMI%E7%9B%B8%E5%85%B3%E7%9A%84%E6%94%BB%E5%87%BB/"/>
     <id>https://changeyourway.github.io/2024/08/28/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-RMI%E7%9B%B8%E5%85%B3%E7%9A%84%E6%94%BB%E5%87%BB/</id>
     <published>2024-08-28T03:26:44.848Z</published>
-    <updated>2024-08-28T03:30:01.568Z</updated>
+    <updated>2025-07-25T09:28:23.391Z</updated>
     
     
       
@@ -508,7 +508,7 @@
     <link href="https://changeyourway.github.io/2024/07/08/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-RMI%E8%BF%9C%E7%A8%8B%E6%96%B9%E6%B3%95%E8%B0%83%E7%94%A8%E5%8D%8F%E8%AE%AE/"/>
     <id>https://changeyourway.github.io/2024/07/08/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-RMI%E8%BF%9C%E7%A8%8B%E6%96%B9%E6%B3%95%E8%B0%83%E7%94%A8%E5%8D%8F%E8%AE%AE/</id>
     <published>2024-07-08T08:09:08.067Z</published>
-    <updated>2024-09-26T10:28:24.362Z</updated>
+    <updated>2025-07-25T07:51:06.968Z</updated>
     
     
     <summary type="html">&lt;p&gt;RMI 入门案例及源码分析&lt;/p&gt;</summary>
@@ -542,10 +542,10 @@
     <link href="https://changeyourway.github.io/2024/06/07/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-javassist%E7%94%A8%E6%B3%95%E6%8C%87%E5%8D%97/"/>
     <id>https://changeyourway.github.io/2024/06/07/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-javassist%E7%94%A8%E6%B3%95%E6%8C%87%E5%8D%97/</id>
     <published>2024-06-07T09:44:56.492Z</published>
-    <updated>2024-09-26T10:32:19.507Z</updated>
+    <updated>2025-07-25T06:47:00.693Z</updated>
     
     
-    <summary type="html">&lt;p&gt;Javassist 是一个用于操作 Java 字节码的类库。Java 字节码存储在类文件的二进制文件中。每个类文件都包含一个 Java 类或接口。&lt;br&gt;类 Javassist.CtClass 是对类文件的抽象表示。（编译时类 CtClass ）对象是处理类文件的句柄（句柄 Handle 是一个是用来标识对象或者项目的标识符）。&lt;/p&gt;</summary>
+    <summary type="html">&lt;p&gt;Javassist 是一个用于操作 Java 字节码的类库。Java 字节码存储在类文件的二进制文件中。每个类文件都包含一个 Java 类或接口。&lt;br&gt;类 Javassist.CtClass 是对类文件的抽象表示。（编译时类 CtClass ）对象是处理类文件的句柄（句柄 Handle 是一个用来标识对象或者项目的标识符）。&lt;/p&gt;</summary>
     
     
     
@@ -576,7 +576,7 @@
     <link href="https://changeyourway.github.io/2024/06/05/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-CC4+CC2+CC5+CC7%E9%93%BE%E5%88%86%E6%9E%90/"/>
     <id>https://changeyourway.github.io/2024/06/05/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-CC4+CC2+CC5+CC7%E9%93%BE%E5%88%86%E6%9E%90/</id>
     <published>2024-06-05T06:03:01.842Z</published>
-    <updated>2024-09-26T10:35:07.863Z</updated>
+    <updated>2025-07-25T02:57:21.579Z</updated>
     
     
       
@@ -604,7 +604,7 @@
     <link href="https://changeyourway.github.io/2024/05/27/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-CC3%E9%93%BE%E5%88%86%E6%9E%90/"/>
     <id>https://changeyourway.github.io/2024/05/27/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-CC3%E9%93%BE%E5%88%86%E6%9E%90/</id>
     <published>2024-05-27T02:55:47.408Z</published>
-    <updated>2024-10-06T08:22:40.691Z</updated>
+    <updated>2025-07-24T12:49:56.864Z</updated>
     
     
     <summary type="html">&lt;p&gt;CC3 链的核心在于利用 TemplatesImpl 加载恶意类时执行静态代码块。&lt;/p&gt;</summary>
@@ -672,7 +672,7 @@
     <link href="https://changeyourway.github.io/2024/05/13/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-CC6%E9%93%BE%E5%88%86%E6%9E%90/"/>
     <id>https://changeyourway.github.io/2024/05/13/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-CC6%E9%93%BE%E5%88%86%E6%9E%90/</id>
     <published>2024-05-13T09:15:09.329Z</published>
-    <updated>2024-10-06T07:28:40.809Z</updated>
+    <updated>2025-07-24T12:49:40.151Z</updated>
     
     
     <summary type="html">&lt;p&gt;前面在分析 CC1链 的 ysoserial 版时，我们知道 LazyMap 的 get 方法会调用成员属性 factory 的 transform 方法，而我们上一次是通过 AnnotationInvocationHandler 的 invoke 方法来调用这个 get 方法的。那么还有哪里能调用 LazyMap 的 get 方法呢？我们的 CC6 链给出了另一条路径：TiedMapEntry 类的 getValue 方法会调用成员属性的 get 方法。&lt;/p&gt;</summary>
@@ -757,7 +757,7 @@
     <link href="https://changeyourway.github.io/2024/05/10/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-URLDNS%E5%88%A9%E7%94%A8%E9%93%BE%E5%88%86%E6%9E%90/"/>
     <id>https://changeyourway.github.io/2024/05/10/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-URLDNS%E5%88%A9%E7%94%A8%E9%93%BE%E5%88%86%E6%9E%90/</id>
     <published>2024-05-10T11:53:40.080Z</published>
-    <updated>2024-10-06T06:57:34.845Z</updated>
+    <updated>2025-07-23T16:58:47.121Z</updated>
     
     
     <summary type="html">&lt;p&gt;本文详尽地讲述了 URLDNS 反序列化利用链的原理&lt;/p&gt;</summary>
@@ -774,7 +774,7 @@
     <link href="https://changeyourway.github.io/2024/05/10/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-CC1%E9%93%BE%E5%88%86%E6%9E%90/"/>
     <id>https://changeyourway.github.io/2024/05/10/Java%20%E5%AE%89%E5%85%A8/%E6%BC%8F%E6%B4%9E%E7%AF%87-CC1%E9%93%BE%E5%88%86%E6%9E%90/</id>
     <published>2024-05-10T11:53:40.079Z</published>
-    <updated>2024-10-06T06:31:00.654Z</updated>
+    <updated>2025-07-23T16:33:42.386Z</updated>
     
     
     <summary type="html">&lt;p&gt;Apache Commons Collections 是对 java.util.Collection 的扩展，对常用的集合操作进行了很好的封装、抽象和补充，在保证性能的同时大大简化代码。CC 链正是在 Commons Collections 包中的反序列化利用链，本次介绍的是 CC1 链。&lt;/p&gt;</summary>
@@ -808,7 +808,7 @@
     <link href="https://changeyourway.github.io/2024/05/10/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-Java%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"/>
     <id>https://changeyourway.github.io/2024/05/10/Java%20%E5%AE%89%E5%85%A8/%E5%9F%BA%E7%A1%80%E7%AF%87-Java%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/</id>
     <published>2024-05-10T11:53:40.077Z</published>
-    <updated>2024-05-02T06:20:56.563Z</updated>
+    <updated>2025-07-23T15:08:00.231Z</updated>
     
     
     <summary type="html">&lt;p&gt;Java 序列化是指把 Java 对象转换为字节序列的过程，而 Java 反序列化是指把字节序列恢复为 Java 对象的过程。本文详细讲解了 Java 序列化与反序列化的实现。&lt;/p&gt;</summary>
